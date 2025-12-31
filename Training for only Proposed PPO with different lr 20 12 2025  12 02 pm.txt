@@ -1,0 +1,194 @@
+# =========================================================
+# Standard & Scientific Libraries
+# =========================================================
+import os
+import random
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# =========================================================
+# PyTorch
+# =========================================================
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import TensorDataset, DataLoader
+
+# =========================================================
+# Scikit-learn
+# =========================================================
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
+
+# =========================================================
+# Google Colab Drive (SAFE & IDEMPOTENT)
+# =========================================================
+# mount drive (uncomment if using Colab)
+from google.colab import drive
+drive.mount('/content/drive', force_remount=False)
+
+# -----------------------
+# Config / paths
+# -----------------------
+data_path = "/content/drive/MyDrive/dataset1_combined.csv"   # adjust if needed
+save_dir = "/content/drive/MyDrive/TCCN"
+os.makedirs(save_dir, exist_ok=True)
+
+
+
+# =========================================================
+# Reproducibility
+# =========================================================
+SEED = 420
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+
+# =========================================================
+# Device & Plot Settings
+# =========================================================
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device:", device)
+print("Torch:", torch.__version__)
+
+plt.rcParams["figure.figsize"] = (12, 6)
+plt.rcParams["axes.grid"] = True
+plt.rcParams["grid.linestyle"] = "--"
+plt.rcParams["grid.alpha"] = 0.35
+
+# =========================================================
+# Load & Sanitize Dataset
+# =========================================================
+df = pd.read_csv(data_path)
+
+df = df.replace([np.inf, -np.inf], np.nan)
+df = df.dropna().reset_index(drop=True)
+
+print("Dataset shape:", df.shape)
+
+# =========================================================
+# Feature Selection
+# =========================================================
+non_state_cols = ["Series", "Time"]
+numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+numeric_cols = [c for c in numeric_cols if c not in non_state_cols]
+
+if len(numeric_cols) < 2:
+    raise ValueError("Insufficient numeric columns for state/action construction.")
+
+state_cols = numeric_cols
+action_cols = ["CPU_Load", "Power"] if {"CPU_Load", "Power"}.issubset(numeric_cols) else numeric_cols[:2]
+
+state_dim = len(state_cols)
+print(f"State dim: {state_dim}")
+
+# =========================================================
+# Normalization (Numerically Safe)
+# =========================================================
+scaler = MinMaxScaler(feature_range=(0.0, 1.0))
+state_scaled = scaler.fit_transform(df[state_cols].astype(np.float32).values)
+state_scaled = np.clip(state_scaled, 1e-6, 1.0 - 1e-6)
+
+X_tensor = torch.tensor(state_scaled, dtype=torch.float32, device=device)
+
+# =========================================================
+# Binary Labels (Proxy Supervised Task)
+# =========================================================
+# Label = 1 if power consumption is below median
+power_idx = state_cols.index("Power") if "Power" in state_cols else 0
+labels = (state_scaled[:, power_idx] < np.median(state_scaled[:, power_idx])).astype(np.int32)
+
+y_tensor = torch.tensor(labels.reshape(-1, 1), dtype=torch.float32, device=device)
+
+print("Data tensors prepared:",
+      "X:", X_tensor.shape,
+      "y:", y_tensor.shape)
+
+LEARNING_RATES = [1e-2, 1e-3, 4e-4, 1e-4]
+NUM_EPOCHS = 150
+class Pro_PPO(nn.Module):
+    def __init__(self, input_dim, lr):
+        super().__init__()
+        self.policy = nn.Sequential(
+            nn.Linear(input_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+            nn.Sigmoid()
+        )
+        self.optimizer = optim.Adam(self.parameters(), lr=lr)
+        self.loss_fn = nn.BCELoss()
+
+    def train_epoch(self, x, y):
+        preds = torch.clamp(self.policy(x), 1e-6, 1 - 1e-6)
+        loss = self.loss_fn(preds, y)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        return loss.item()
+loss_records = []
+
+X = X_tensor.to(device)
+y = y_tensor.to(device)
+
+for lr in LEARNING_RATES:
+
+    model = Pro_PPO(X.shape[1], lr).to(device)
+    epoch_losses = []
+
+    for epoch in range(1, NUM_EPOCHS + 1):
+        loss = model.train_epoch(X, y)
+        epoch_losses.append(loss)
+
+        loss_records.append([
+            epoch,
+            lr,
+            loss
+        ])
+
+    print(f"[INFO] Finished training Pro_PPO with lr={lr}")
+df_loss = pd.DataFrame(
+    loss_records,
+    columns=["epoch", "learning_rate", "loss"]
+)
+
+csv_path = os.path.join(save_dir, "Pro_PPO_Loss_Curves_LR1.csv")
+df_loss.to_csv(csv_path, index=False)
+
+print("[INFO] Saved CSV:", csv_path)
+plt.figure(figsize=(12, 6))
+
+for lr in LEARNING_RATES:
+    sub = df_loss[df_loss.learning_rate == lr]
+    plt.plot(
+        sub.epoch,
+        sub.loss,
+        linewidth=2,
+        marker="o",
+        markersize=3,
+        label=f"lr={lr}"
+    )
+
+plt.xlabel("Epoch", fontsize=22)
+plt.ylabel("Loss", fontsize=22)
+
+plt.legend(
+    fontsize=19,
+    ncol=4,
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.15),
+    frameon=False
+)
+
+
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+plt.grid(True, linestyle="--", alpha=0.4)
+plt.tight_layout()
+
+pdf_path = os.path.join(save_dir, "Pro_PPO_Loss_Curves_LR1.pdf")
+plt.savefig(pdf_path, dpi=300)
+plt.show()
+
+print("[INFO] Saved PDF:", pdf_path)
