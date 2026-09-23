@@ -1,0 +1,1257 @@
+import re
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import os
+import glob
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# ============================================================
+# Configuration
+# ============================================================
+
+DATA_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+
+MODELS = [
+    "Pro_PPO",
+    "GAN_PPO",
+    "KG",
+    "KMeans",
+    "PPO"
+]
+
+# Names displayed in plot legends
+LEGEND_NAMES = {
+    "Pro_PPO": "Ours",
+    "GAN_PPO": "GAN_PPO",
+    "KG": "KG",
+    "KMeans": "KDT",
+    "PPO": "PPO"
+}
+METRICS = [
+    "Loss",
+    "Accuracy",
+    "F1",
+    "TP",
+    "FN"
+]
+
+# Output directory
+OUTPUT_DIR = os.path.join(DATA_DIR, "plots")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# ============================================================
+# Find Excel files
+# ============================================================
+
+excel_files = glob.glob(os.path.join(DATA_DIR, "model_training_metrics_with_TP_FP21ab1xa64 (3).xlsx"))#model_training_metrics_with_TP_FP21ab1xa63 (2)
+
+if not excel_files:
+    raise FileNotFoundError(
+        f"No Excel files were found in:\n{DATA_DIR}"
+    )
+
+print("=" * 80)
+print("Excel files found:")
+for file in excel_files:
+    print(os.path.basename(file))
+print("=" * 80)
+
+# ============================================================
+# Read and combine Excel files
+# ============================================================
+
+dataframes = []
+
+for file in excel_files:
+    try:
+        df = pd.read_excel(file)
+
+        required_columns = [
+            "Loss",
+            "Accuracy",
+            "F1",
+            "TP",
+            "FN",
+            "epoch",
+            "model"
+        ]
+
+        missing = [
+            col for col in required_columns
+            if col not in df.columns
+        ]
+
+        if missing:
+            print(
+                f"Skipping {os.path.basename(file)} "
+                f"(missing columns: {missing})"
+            )
+            continue
+
+        dataframes.append(df)
+
+        print(
+            f"Loaded: {os.path.basename(file)} "
+            f"-> {len(df)} rows"
+        )
+
+    except Exception as e:
+        print(
+            f"Could not read {os.path.basename(file)}: {e}"
+        )
+
+if not dataframes:
+    raise ValueError(
+        "No valid Excel files containing the required columns were found."
+    )
+
+data = pd.concat(dataframes, ignore_index=True)
+
+# ============================================================
+# Clean model names
+# ============================================================
+
+data["model"] = (
+    data["model"]
+    .astype(str)
+    .str.strip()
+    .str.replace("\\", "", regex=False)
+)
+
+# Keep only requested models
+data = data[data["model"].isin(MODELS)].copy()
+
+# Convert numerical columns
+for column in METRICS + ["epoch"]:
+    data[column] = pd.to_numeric(
+        data[column],
+        errors="coerce"
+    )
+
+# Remove invalid rows
+data = data.dropna(
+    subset=METRICS + ["epoch", "model"]
+)
+
+# Sort
+data = data.sort_values(
+    ["model", "epoch"]
+)
+
+# ============================================================
+# Print summary
+# ============================================================
+
+print("\n" + "=" * 80)
+print("DATA SUMMARY")
+print("=" * 80)
+
+print(f"Total rows: {len(data)}")
+print(f"Models found: {data['model'].unique().tolist()}")
+
+for model in MODELS:
+    model_data = data[data["model"] == model]
+
+    if len(model_data) == 0:
+        print(f"\n{model}: NO DATA")
+    else:
+        print(
+            f"\n{model}: "
+            f"{len(model_data)} rows | "
+            f"Epochs {int(model_data['epoch'].min())}"
+            f"-{int(model_data['epoch'].max())}"
+        )
+
+# ============================================================
+# Plot each metric
+# ============================================================
+
+for metric in METRICS:
+
+    plt.figure(figsize=(10, 7))
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values("epoch")
+
+        if model_data.empty:
+            continue
+
+        plt.plot(
+            model_data["epoch"],
+            model_data[metric],
+            linewidth=2.5,
+            marker="o",
+            markersize=5,
+            markevery=max(1, len(model_data) // 20),
+            label=LEGEND_NAMES[model]
+        )
+
+    plt.xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    plt.ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    plt.xticks(
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    plt.yticks(
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    plt.legend(
+        fontsize=21,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.15091015),
+        ncol=5,
+        frameon=True,
+        prop={
+            "family": "Times New Roman",
+            "size": 20
+        }
+    )
+
+    plt.grid(
+        True,
+        linestyle="--",
+        linewidth=0.7,
+        alpha=0.5
+    )
+
+    plt.tight_layout()
+
+    # --------------------------------------------------------
+    # Save PNG and EPS
+    # --------------------------------------------------------
+
+    png_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.png"
+    )
+
+    eps_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.eps"
+    )
+
+    plt.savefig(
+        png_path,
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.savefig(
+        eps_path,
+        format="eps",
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.show()
+    plt.close()
+
+    print(
+        f"Saved: {metric}_comparison.png / "
+        f"{metric}_comparison.eps"
+    )
+
+# ============================================================
+# Combined figure containing all metrics
+# ============================================================
+
+fig, axes = plt.subplots(
+    3,
+    2,
+    figsize=(16, 18)
+)
+
+axes = axes.flatten()
+
+for i, metric in enumerate(METRICS):
+
+    ax = axes[i]
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values("epoch")
+
+        if model_data.empty:
+            continue
+
+        ax.plot(
+            model_data["epoch"],
+            model_data[metric],
+            linewidth=2.2,
+            marker="o",
+            markersize=4,
+            markevery=max(1, len(model_data) // 20),
+            label=LEGEND_NAMES[model]
+        )
+
+    ax.set_xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.tick_params(
+        axis="both",
+        labelsize=20
+    )
+
+    ax.grid(
+        True,
+        linestyle="--",
+        linewidth=0.6,
+        alpha=0.5
+    )
+
+    for label in ax.get_xticklabels():
+        label.set_fontname("Times New Roman")
+
+    for label in ax.get_yticklabels():
+        label.set_fontname("Times New Roman")
+
+# Remove unused sixth subplot
+if len(METRICS) < len(axes):
+    for j in range(len(METRICS), len(axes)):
+        fig.delaxes(axes[j])
+
+# Common legend at top
+handles, labels = axes[0].get_legend_handles_labels()
+
+fig.legend(
+    handles,
+    labels,
+    loc="upper center",
+    ncol=5,
+    fontsize=16,
+    frameon=True,
+    prop={"family": "Times New Roman"},
+    bbox_to_anchor=(0.5, 1.11995)
+)
+
+plt.tight_layout(
+    rect=[0, 0, 1, 0.96]
+)
+
+combined_png = os.path.join(
+    OUTPUT_DIR,
+    "all_metrics_comparison.png"
+)
+
+combined_eps = os.path.join(
+    OUTPUT_DIR,
+    "all_metrics_comparison.eps"
+)
+
+plt.savefig(
+    combined_png,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    combined_eps,
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+plt.close()
+
+print("\n" + "=" * 80)
+print("COMPLETE")
+print("=" * 80)
+print(f"Plots saved to:\n{OUTPUT_DIR}")
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+TXT_FILE = Path(
+    r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+) / "Dataset for convergence test with baselines5.txt"
+
+OUTPUT_DIR = Path(__file__).resolve().parent / "plots"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+MODELS = ["SACFL", "SACDAFL"]
+
+METRICS = ["Q1", "Q2", "Actor"]
+
+
+# ============================================================
+# CHECK FILE
+# ============================================================
+
+if not TXT_FILE.exists():
+    raise FileNotFoundError(
+        f"\nDataset not found:\n{TXT_FILE}"
+    )
+
+print("\n" + "=" * 70)
+print("INPUT FILE")
+print("=" * 70)
+print(TXT_FILE)
+
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+text = TXT_FILE.read_text(
+    encoding="utf-8",
+    errors="ignore"
+)
+
+
+# ============================================================
+# STORAGE
+# ============================================================
+
+data = {
+    "SACFL": {
+        "Round": [],
+        "Q1": [],
+        "Q2": [],
+        "Actor": []
+    },
+
+    "SACDAFL": {
+        "Round": [],
+        "Q1": [],
+        "Q2": [],
+        "Actor": []
+    }
+}
+
+
+# ============================================================
+# REGULAR EXPRESSIONS
+# ============================================================
+
+model_pattern = re.compile(
+    r"Running\s+with\s+(SACFL|SACDAFL)\s+Aggregator",
+    re.IGNORECASE
+)
+
+round_pattern = re.compile(
+    r"Round\s+(\d+)\s*/\s*(\d+)",
+    re.IGNORECASE
+)
+
+q1_pattern = re.compile(
+    r"Q1\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)",
+    re.IGNORECASE
+)
+
+q2_pattern = re.compile(
+    r"Q2\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)",
+    re.IGNORECASE
+)
+
+actor_pattern = re.compile(
+    r"Actor\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)",
+    re.IGNORECASE
+)
+
+
+# ============================================================
+# PARSE FILE
+# ============================================================
+
+current_model = None
+current_round = None
+
+for line in text.splitlines():
+
+    stripped = line.strip()
+
+    # --------------------------------------------------------
+    # Detect model section
+    # --------------------------------------------------------
+
+    model_match = model_pattern.search(stripped)
+
+    if model_match:
+
+        current_model = model_match.group(1).upper()
+        current_round = None
+
+        print(
+            f"\nDetected model: {current_model}"
+        )
+
+        continue
+
+    # --------------------------------------------------------
+    # Ignore text before a model section
+    # --------------------------------------------------------
+
+    if current_model not in MODELS:
+        continue
+
+    # --------------------------------------------------------
+    # Detect round
+    # --------------------------------------------------------
+
+    round_match = round_pattern.search(stripped)
+
+    if round_match:
+
+        current_round = int(
+            round_match.group(1)
+        )
+
+        continue
+
+    # --------------------------------------------------------
+    # Detect Q1, Q2 and Actor
+    # --------------------------------------------------------
+
+    q1_match = q1_pattern.search(stripped)
+    q2_match = q2_pattern.search(stripped)
+    actor_match = actor_pattern.search(stripped)
+
+    if (
+        current_round is not None
+        and q1_match
+        and q2_match
+        and actor_match
+    ):
+
+        q1 = float(
+            q1_match.group(1)
+        )
+
+        q2 = float(
+            q2_match.group(1)
+        )
+
+        actor = float(
+            actor_match.group(1)
+        )
+
+        data[current_model]["Round"].append(
+            current_round
+        )
+
+        data[current_model]["Q1"].append(
+            q1
+        )
+
+        data[current_model]["Q2"].append(
+            q2
+        )
+
+        data[current_model]["Actor"].append(
+            actor
+        )
+
+        current_round = None
+
+
+# ============================================================
+# CREATE DATAFRAMES
+# ============================================================
+
+dfs = {}
+
+for model in MODELS:
+
+    dfs[model] = pd.DataFrame(
+        data[model]
+    )
+
+    if not dfs[model].empty:
+
+        dfs[model] = (
+            dfs[model]
+            .drop_duplicates(
+                subset="Round"
+            )
+            .sort_values(
+                "Round"
+            )
+            .reset_index(
+                drop=True
+            )
+        )
+
+
+# ============================================================
+# PARSING SUMMARY
+# ============================================================
+
+for model in MODELS:
+
+    print("\n" + "=" * 70)
+    print(
+        f"{model}: {len(dfs[model])} rounds detected"
+    )
+    print("=" * 70)
+
+    if dfs[model].empty:
+
+        print(
+            f"WARNING: No data found for {model}"
+        )
+
+    else:
+
+        print(
+            f"Rounds: "
+            f"{dfs[model]['Round'].iloc[0]} "
+            f"to "
+            f"{dfs[model]['Round'].iloc[-1]}"
+        )
+
+        print(
+            f"Q1: "
+            f"{dfs[model]['Q1'].iloc[0]:.4f} "
+            f"to "
+            f"{dfs[model]['Q1'].iloc[-1]:.4f}"
+        )
+
+        print(
+            f"Q2: "
+            f"{dfs[model]['Q2'].iloc[0]:.4f} "
+            f"to "
+            f"{dfs[model]['Q2'].iloc[-1]:.4f}"
+        )
+
+        print(
+            f"Actor: "
+            f"{dfs[model]['Actor'].iloc[0]:.4f} "
+            f"to "
+            f"{dfs[model]['Actor'].iloc[-1]:.4f}"
+        )
+
+
+# ============================================================
+# VALIDATE
+# ============================================================
+
+if dfs["SACFL"].empty:
+    raise ValueError(
+        "No SACFL training data was detected."
+    )
+
+if dfs["SACDAFL"].empty:
+    raise ValueError(
+        "No SACDAFL training data was detected."
+    )
+
+
+# ============================================================
+# FIND COMMON ROUNDS
+# ============================================================
+
+common_rounds = sorted(
+    set(dfs["SACFL"]["Round"])
+    &
+    set(dfs["SACDAFL"]["Round"])
+)
+
+if len(common_rounds) == 0:
+    raise ValueError(
+        "SACFL and SACDAFL have no common training rounds."
+    )
+
+
+print("\n" + "=" * 70)
+print("COMMON TRAINING ROUNDS")
+print("=" * 70)
+
+print(
+    f"Number of common rounds: {len(common_rounds)}"
+)
+
+print(
+    f"First common round: {common_rounds[0]}"
+)
+
+print(
+    f"Last common round : {common_rounds[-1]}"
+)
+
+
+# ============================================================
+# ALIGN DATA
+# ============================================================
+
+sacfl_common = (
+    dfs["SACFL"]
+    .set_index("Round")
+    .loc[common_rounds]
+)
+
+sacdafl_common = (
+    dfs["SACDAFL"]
+    .set_index("Round")
+    .loc[common_rounds]
+)
+
+
+# ============================================================
+# CALCULATE STANDARD DEVIATION
+# ============================================================
+
+statistics = []
+
+for metric in METRICS:
+
+    sacfl_values = (
+        sacfl_common[metric]
+        .to_numpy(dtype=float)
+    )
+
+    sacdafl_values = (
+        sacdafl_common[metric]
+        .to_numpy(dtype=float)
+    )
+
+    model_values = np.vstack(
+        (
+            sacfl_values,
+            sacdafl_values
+        )
+    )
+
+    mean_values = np.mean(
+        model_values,
+        axis=0
+    )
+
+    # Sample SD between SACFL and SACDAFL
+    std_values = np.std(
+        model_values,
+        axis=0,
+        ddof=1
+    )
+
+    mean_sd = np.mean(
+        std_values
+    )
+
+    maximum_sd = np.max(
+        std_values
+    )
+
+    final_sd = std_values[-1]
+
+    statistics.append(
+        {
+            "Metric": metric,
+            "Mean_SD": mean_sd,
+            "Maximum_SD": maximum_sd,
+            "Final_SD": final_sd
+        }
+    )
+
+
+# ============================================================
+# PRINT SD RESULTS
+# ============================================================
+
+stats_df = pd.DataFrame(
+    statistics
+)
+
+print("\n" + "=" * 70)
+print("STANDARD DEVIATION BETWEEN SACFL AND SACDAFL")
+print("=" * 70)
+
+for _, row in stats_df.iterrows():
+
+    print(
+        f"{row['Metric']:>8s} | "
+        f"Mean SD = {row['Mean_SD']:.6f} | "
+        f"Max SD = {row['Maximum_SD']:.6f} | "
+        f"Final SD = {row['Final_SD']:.6f}"
+    )
+
+
+# ============================================================
+# SAVE SD STATISTICS
+# ============================================================
+
+stats_file = (
+    OUTPUT_DIR /
+    "SACFL_vs_SACDAFL_statistics.csv"
+)
+
+stats_df.to_csv(
+    stats_file,
+    index=False
+)
+
+
+# ============================================================
+# SAVE COMPARISON DATA
+# ============================================================
+
+comparison_df = pd.DataFrame(
+    {
+        "Round": common_rounds,
+
+        "SACFL_Q1":
+            sacfl_common["Q1"].to_numpy(),
+
+        "SACDAFL_Q1":
+            sacdafl_common["Q1"].to_numpy(),
+
+        "SACFL_Q2":
+            sacfl_common["Q2"].to_numpy(),
+
+        "SACDAFL_Q2":
+            sacdafl_common["Q2"].to_numpy(),
+
+        "SACFL_Actor":
+            sacfl_common["Actor"].to_numpy(),
+
+        "SACDAFL_Actor":
+            sacdafl_common["Actor"].to_numpy()
+    }
+)
+
+comparison_file = (
+    OUTPUT_DIR /
+    "SACFL_vs_SACDAFL_comparison.csv"
+)
+
+comparison_df.to_csv(
+    comparison_file,
+    index=False
+)
+
+
+# ============================================================
+# PLOT FUNCTION
+# ============================================================
+
+def plot_metric(metric):
+
+    rounds = np.array(
+        common_rounds
+    )
+
+    sacfl_values = (
+        sacfl_common[metric]
+        .to_numpy(dtype=float)
+    )
+
+    sacdafl_values = (
+        sacdafl_common[metric]
+        .to_numpy(dtype=float)
+    )
+
+    # ========================================================
+    # MEAN AND STANDARD DEVIATION
+    # ========================================================
+
+    model_values = np.vstack(
+        (
+            sacfl_values,
+            sacdafl_values
+        )
+    )
+
+    mean_values = np.mean(
+        model_values,
+        axis=0
+    )
+
+    std_values = np.std(
+        model_values,
+        axis=0,
+        ddof=1
+    )
+
+    mean_sd = np.mean(
+        std_values
+    )
+
+    # ========================================================
+    # CREATE FIGURE
+    # ========================================================
+
+    fig, ax = plt.subplots(
+        figsize=(11, 7)
+    )
+
+    # ========================================================
+    # SACFL
+    # ========================================================
+
+    ax.plot(
+        rounds,
+        sacfl_values,
+        marker="o",
+        markersize=6,
+        linewidth=2.5,
+        label="Vanilla"
+    )
+
+    # ========================================================
+    # SACDAFL
+    # ========================================================
+
+    ax.plot(
+        rounds,
+        sacdafl_values,
+        marker="s",
+        markersize=6,
+        linewidth=2.5,
+        label="SAC-Fedprox"
+    )
+
+    # ========================================================
+    # PINK STANDARD-DEVIATION REGION
+    # ========================================================
+
+    ax.fill_between(
+        rounds,
+        mean_values - std_values,
+        mean_values + std_values,
+        color="pink",
+        alpha=0.35,
+        label=r"Mean $\pm$ SD"
+    )
+
+    # ========================================================
+    # MEAN SD ANNOTATION
+    # ========================================================
+
+    ax.text(
+        0.03,
+        0.95,
+        f"Mean SD = {mean_sd:.4f}",
+        transform=ax.transAxes,
+        fontsize=17,
+        fontname="Times New Roman",
+        verticalalignment="top",
+        horizontalalignment="left",
+        bbox=dict(
+            boxstyle="round,pad=0.25",
+            facecolor="white",
+            edgecolor="black",
+            linewidth=0.8
+        )
+    )
+
+    # ========================================================
+    # AXIS LABELS
+    # ========================================================
+
+    ax.set_xlabel(
+        "Round",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        "Loss",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    # ========================================================
+    # TICKS
+    # ========================================================
+
+    ax.tick_params(
+        axis="both",
+        labelsize=17,
+        width=1.5
+    )
+
+    for label in ax.get_xticklabels():
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    for label in ax.get_yticklabels():
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    # ========================================================
+    # LEGEND
+    # ========================================================
+
+    ax.legend(
+        fontsize=21,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.12),
+        ncol=3,
+        frameon=False
+    )
+
+    # ========================================================
+    # IEEE-STYLE AXES
+    # ========================================================
+
+    ax.spines["top"].set_visible(True)
+    ax.spines["right"].set_visible(True)
+
+    ax.spines["left"].set_linewidth(
+        1.5
+    )
+
+    ax.spines["bottom"].set_linewidth(
+        1.5
+    )
+
+    ax.grid(False)
+
+    ax.set_xlim(
+        left=0
+    )
+
+    plt.tight_layout()
+
+    # ========================================================
+    # OUTPUT FILENAMES
+    # ========================================================
+
+    # ========================================================
+    # OUTPUT FILENAMES
+    # ========================================================
+
+    png_file = (
+            OUTPUT_DIR /
+            f"SACFL_vs_SACDAFL_{metric.lower()}.png"
+    )
+
+    eps_file = (
+            OUTPUT_DIR /
+            f"SACFL_vs_SACDAFL_{metric.lower()}.eps"
+    )
+
+    # ========================================================
+    # SAVE PNG
+    # ========================================================
+
+    print(
+        f"\nSaving PNG: {png_file}"
+    )
+
+    # Use a temporary filename to avoid Windows file-lock/
+    # overwrite problems with the existing PNG.
+    png_temp = (
+            OUTPUT_DIR /
+            f"_temp_SACFL_vs_SACDAFL_{metric.lower()}.png"
+    )
+
+    # Remove temporary file if it already exists
+    if png_temp.exists():
+        try:
+            png_temp.unlink()
+        except PermissionError:
+            raise PermissionError(
+                f"\nCannot remove temporary file:\n{png_temp}\n"
+                "Please close the file if it is open."
+            )
+
+    # Save to temporary PNG
+    fig.savefig(
+        str(png_temp),
+        dpi=600,
+        bbox_inches="tight",
+        format="png"
+    )
+
+    # Replace the final PNG
+    try:
+        if png_file.exists():
+            png_file.unlink()
+
+        png_temp.rename(png_file)
+
+    except PermissionError:
+        print(
+            f"\nWARNING: Cannot replace:\n{png_file}"
+        )
+        print(
+            "The file may be open in an image viewer."
+        )
+        print(
+            f"The newly generated file remains at:\n{png_temp}"
+        )
+        raise
+
+    # ========================================================
+    # REMOVE TRANSPARENCY FOR EPS
+    # ========================================================
+
+    # EPS does not support transparency.
+    # Make the SD region solid pink before EPS export.
+
+    if ax.collections:
+        ax.collections[0].set_alpha(1.0)
+
+    # ========================================================
+    # SAVE EPS
+    # ========================================================
+
+    print(
+        f"Saving EPS: {eps_file}"
+    )
+
+    # Remove old EPS first
+    if eps_file.exists():
+        try:
+            eps_file.unlink()
+        except PermissionError:
+            raise PermissionError(
+                f"\nCannot overwrite EPS file:\n{eps_file}\n"
+                "Please close the file if it is open."
+            )
+
+    fig.savefig(
+        str(eps_file),
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    # ========================================================
+    # CLOSE FIGURE
+    # ========================================================
+
+    plt.close(fig)
+
+    print(
+        f"Completed: {metric}"
+    )
+
+    print(
+        f"Mean SD = {mean_sd:.6f}"
+    )
+
+    # ========================================================
+    # SAVE PNG
+    # ========================================================
+
+    print(
+        f"\nSaving PNG: {png_file}"
+    )
+
+    fig.savefig(
+        str(png_file),
+        dpi=600,
+        bbox_inches="tight",
+        format="png"
+    )
+
+    # ========================================================
+    # REMOVE TRANSPARENCY FOR EPS
+    # ========================================================
+
+    # EPS does not support transparency.
+    # Make the SD region solid pink before EPS export.
+
+    if ax.collections:
+        ax.collections[0].set_alpha(1.0)
+
+    # ========================================================
+    # SAVE EPS
+    # ========================================================
+
+    print(
+        f"Saving EPS: {eps_file}"
+    )
+
+    fig.savefig(
+        str(eps_file),
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    # ========================================================
+    # CLOSE FIGURE
+    # ========================================================
+
+    plt.close(fig)
+
+    print(
+        f"Completed: {metric}"
+    )
+
+    print(
+        f"Mean SD = {mean_sd:.6f}"
+    )
+# ============================================================
+# GENERATE GRAPHS
+# ============================================================
+
+for metric in METRICS:
+
+    plot_metric(
+        metric
+    )
+
+
+# ============================================================
+# FINAL SUMMARY
+# ============================================================
+
+print("\n" + "=" * 70)
+print("SACFL vs SACDAFL COMPARISON COMPLETED")
+print("=" * 70)
+
+print(
+    f"\nOutput directory:\n{OUTPUT_DIR}"
+)
+
+print("\nGenerated graphs:")
+
+for metric in METRICS:
+
+    print(
+        f"  SACFL_vs_SACDAFL_{metric.lower()}.png"
+    )
+
+    print(
+        f"  SACFL_vs_SACDAFL_{metric.lower()}.eps"
+    )
+
+print("\nGenerated CSV files:")
+
+print(
+    f"  {stats_file.name}"
+)
+
+print(
+    f"  {comparison_file.name}"
+)
+
+print("\n" + "=" * 70)
