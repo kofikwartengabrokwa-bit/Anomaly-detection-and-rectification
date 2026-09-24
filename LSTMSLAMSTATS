@@ -1,0 +1,322 @@
+======================================================================
+Ours (SLAM-LSTM-PPO)
+======================================================================
+Users= 100 | Time=297.705 ms | Scheduling=69.32% | QoS violation=100.00% | Resource efficiency=81.51%
+Users= 200 | Time=520.235 ms | Scheduling=68.85% | QoS violation=100.00% | Resource efficiency=79.77%
+Users= 300 | Time=711.028 ms | Scheduling=69.29% | QoS violation=100.00% | Resource efficiency=81.71%
+Users= 400 | Time=954.149 ms | Scheduling=68.93% | QoS violation=100.00% | Resource efficiency=80.00%
+Users= 500 | Time=1220.693 ms | Scheduling=69.01% | QoS violation=100.00% | Resource efficiency=80.40%
+Users= 600 | Time=1441.020 ms | Scheduling=68.95% | QoS violation=100.00% | Resource efficiency=79.89%
+Users= 700 | Time=1681.524 ms | Scheduling=69.16% | QoS violation=100.00% | Resource efficiency=80.91%
+Users= 800 | Time=1913.043 ms | Scheduling=68.99% | QoS violation=100.00% | Resource efficiency=80.38%
+Users= 900 | Time=2482.931 ms | Scheduling=68.96% | QoS violation=100.00% | Resource efficiency=80.07%
+Users=1000 | Time=2401.986 ms | Scheduling=69.17% | QoS violation=100.00% | Resource efficiency=80.82%
+
+
+======================================================================
+Kmeans+Decision
+======================================================================
+Users= 100 | Time=31.692 ms | Scheduling=70.21% | QoS violation=100.00% | Resource efficiency=84.09%
+Users= 200 | Time=55.039 ms | Scheduling=69.53% | QoS violation=100.00% | Resource efficiency=80.73%
+Users= 300 | Time=99.652 ms | Scheduling=69.91% | QoS violation=100.00% | Resource efficiency=82.67%
+Users= 400 | Time=165.341 ms | Scheduling=69.63% | QoS violation=100.00% | Resource efficiency=81.15%
+Users= 500 | Time=128.241 ms | Scheduling=69.69% | QoS violation=100.00% | Resource efficiency=81.51%
+Users= 600 | Time=172.470 ms | Scheduling=69.58% | QoS violation=100.00% | Resource efficiency=80.99%
+Users= 700 | Time=192.330 ms | Scheduling=69.85% | QoS violation=100.00% | Resource efficiency=82.32%
+Users= 800 | Time=218.938 ms | Scheduling=69.78% | QoS violation=100.00% | Resource efficiency=81.93%
+Users= 900 | Time=245.289 ms | Scheduling=69.66% | QoS violation=100.00% | Resource efficiency=81.44%
+Users=1000 | Time=267.566 ms | Scheduling=69.83% | QoS violation=100.00% | Resource efficiency=82.10%
+
+
+======================================================================
+Knowledge Graph
+======================================================================
+Users= 100 | Time=5.061 ms | Scheduling=70.18% | QoS violation=100.00% | Resource efficiency=82.23%
+Users= 200 | Time=11.003 ms | Scheduling=69.55% | QoS violation=100.00% | Resource efficiency=79.42%
+Users= 300 | Time=15.055 ms | Scheduling=70.01% | QoS violation=100.00% | Resource efficiency=81.35%
+Users= 400 | Time=19.613 ms | Scheduling=69.71% | QoS violation=100.00% | Resource efficiency=79.88%
+Users= 500 | Time=24.528 ms | Scheduling=69.71% | QoS violation=100.00% | Resource efficiency=80.15%
+Users= 600 | Time=37.790 ms | Scheduling=69.63% | QoS violation=100.00% | Resource efficiency=79.67%
+Users= 700 | Time=36.602 ms | Scheduling=69.87% | QoS violation=100.00% | Resource efficiency=80.72%
+Users= 800 | Time=43.461 ms | Scheduling=69.84% | QoS violation=100.00% | Resource efficiency=80.46%
+Users= 900 | Time=80.484 ms | Scheduling=69.68% | QoS violation=100.00% | Resource efficiency=79.96%
+Users=1000 | Time=93.830 ms | Scheduling=69.82% | QoS violation=100.00% | Resource efficiency=80.52%
+
+
+======================================================================
+GAN PPO
+======================================================================
+Users= 100 | Time=99.477 ms | Scheduling=69.92% | QoS violation=100.00% | Resource efficiency=82.29%
+Users= 200 | Time=276.986 ms | Scheduling=69.38% | QoS violation=100.00% | Resource efficiency=79.24%
+Users= 300 | Time=304.525 ms | Scheduling=69.81% | QoS violation=100.00% | Resource efficiency=81.38%
+Users= 400 | Time=353.856 ms | Scheduling=69.41% | QoS violation=100.00% | Resource efficiency=79.74%
+Users= 500 | Time=384.018 ms | Scheduling=69.46% | QoS violation=100.00% | Resource efficiency=79.76%
+Users= 600 | Time=468.369 ms | Scheduling=69.46% | QoS violation=100.00% | Resource efficiency=79.71%
+Users= 700 | Time=580.101 ms | Scheduling=69.72% | QoS violation=100.00% | Resource efficiency=80.76%
+Users= 800 | Time=698.854 ms | Scheduling=69.69% | QoS violation=100.00% | Resource efficiency=80.58%
+Users= 900 | Time=795.693 ms | Scheduling=69.53% | QoS violation=100.00% | Resource efficiency=79.80%
+Users=1000 | Time=812.324 ms | Scheduling=69.63% | QoS violation=100.00% | Resource efficiency=80.35%
+
+
+======================================================================
+PPO
+======================================================================
+Users= 100 | Time=74.857 ms | Scheduling=69.66% | QoS violation=100.00% | Resource efficiency=81.86%
+Users= 200 | Time=189.307 ms | Scheduling=69.10% | QoS violation=100.00% | Resource efficiency=80.02%
+Users= 300 | Time=244.446 ms | Scheduling=69.47% | QoS violation=100.00% | Resource efficiency=81.07%
+Users= 400 | Time=322.226 ms | Scheduling=69.19% | QoS violation=100.00% | Resource efficiency=79.90%
+Users= 500 | Time=429.362 ms | Scheduling=69.19% | QoS violation=100.00% | Resource efficiency=79.98%
+Users= 600 | Time=489.178 ms | Scheduling=69.07% | QoS violation=100.00% | Resource efficiency=79.91%
+Users= 700 | Time=545.443 ms | Scheduling=69.36% | QoS violation=100.00% | Resource efficiency=81.07%
+Users= 800 | Time=622.559 ms | Scheduling=69.33% | QoS violation=100.00% | Resource efficiency=80.63%
+Users= 900 | Time=740.597 ms | Scheduling=69.16% | QoS violation=100.00% | Resource efficiency=80.22%
+Users=1000 | Time=820.087 ms | Scheduling=69.21% | QoS violation=100.00% | Resource efficiency=80.47%
+
+Results saved to: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\five_model_results\five_model_results.csv
+
+All metric files saved.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+
+
+====================================================================================================
+FINAL COMPARISON AT 1000 USERS
+====================================================================================================
+               model  execution_time_ms  processing_time_ms_per_user  scheduling_efficiency  qos_violation_rate  resource_allocation_efficiency
+Ours (SLAM-LSTM-PPO)          2401.9863                       2.4020                69.1732            100.0000                         80.8212
+     Kmeans+Decision           267.5662                       0.2676                69.8299            100.0000                         82.0973
+     Knowledge Graph            93.8302                       0.0938                69.8207            100.0000                         80.5167
+             GAN PPO           812.3239                       0.8123                69.6345            100.0000                         80.3522
+                 PPO           820.0874                       0.8201                69.2150            100.0000                         80.4702
+
+Process finished with exit code 0
+
+
+
+======================================================================
+Ours (SLAM-LSTM-PPO)
+======================================================================
+Users= 100 | Time=274.404 ms | Scheduling=69.58% | QoS violation=100.00% | Resource efficiency=82.53%
+Users= 200 | Time=515.744 ms | Scheduling=68.81% | QoS violation=100.00% | Resource efficiency=78.96%
+Users= 300 | Time=878.487 ms | Scheduling=69.26% | QoS violation=100.00% | Resource efficiency=81.23%
+Users= 400 | Time=1063.920 ms | Scheduling=68.94% | QoS violation=100.00% | Resource efficiency=79.58%
+Users= 500 | Time=1517.363 ms | Scheduling=68.77% | QoS violation=100.00% | Resource efficiency=79.11%
+Users= 600 | Time=1667.385 ms | Scheduling=68.88% | QoS violation=100.00% | Resource efficiency=79.61%
+Users= 700 | Time=1948.688 ms | Scheduling=69.10% | QoS violation=100.00% | Resource efficiency=80.25%
+Users= 800 | Time=2247.774 ms | Scheduling=69.11% | QoS violation=100.00% | Resource efficiency=80.14%
+Users= 900 | Time=2238.892 ms | Scheduling=68.90% | QoS violation=100.00% | Resource efficiency=79.32%
+Users=1000 | Time=2801.400 ms | Scheduling=69.09% | QoS violation=100.00% | Resource efficiency=80.28%
+
+
+======================================================================
+Kmeans+Decision
+======================================================================
+Users= 100 | Time=36.251 ms | Scheduling=70.21% | QoS violation=100.00% | Resource efficiency=84.09%
+Users= 200 | Time=62.533 ms | Scheduling=69.53% | QoS violation=100.00% | Resource efficiency=80.73%
+Users= 300 | Time=88.586 ms | Scheduling=69.91% | QoS violation=100.00% | Resource efficiency=82.67%
+Users= 400 | Time=160.923 ms | Scheduling=69.63% | QoS violation=100.00% | Resource efficiency=81.15%
+Users= 500 | Time=136.191 ms | Scheduling=69.69% | QoS violation=100.00% | Resource efficiency=81.51%
+Users= 600 | Time=181.549 ms | Scheduling=69.58% | QoS violation=100.00% | Resource efficiency=80.99%
+Users= 700 | Time=195.882 ms | Scheduling=69.85% | QoS violation=100.00% | Resource efficiency=82.32%
+Users= 800 | Time=233.034 ms | Scheduling=69.78% | QoS violation=100.00% | Resource efficiency=81.93%
+Users= 900 | Time=406.902 ms | Scheduling=69.66% | QoS violation=100.00% | Resource efficiency=81.44%
+Users=1000 | Time=1173.345 ms | Scheduling=69.83% | QoS violation=100.00% | Resource efficiency=82.10%
+
+
+======================================================================
+Knowledge Graph
+======================================================================
+Users= 100 | Time=6.770 ms | Scheduling=70.18% | QoS violation=100.00% | Resource efficiency=82.23%
+Users= 200 | Time=10.183 ms | Scheduling=69.55% | QoS violation=100.00% | Resource efficiency=79.42%
+Users= 300 | Time=20.624 ms | Scheduling=70.01% | QoS violation=100.00% | Resource efficiency=81.35%
+Users= 400 | Time=21.520 ms | Scheduling=69.71% | QoS violation=100.00% | Resource efficiency=79.88%
+Users= 500 | Time=32.255 ms | Scheduling=69.71% | QoS violation=100.00% | Resource efficiency=80.15%
+Users= 600 | Time=30.526 ms | Scheduling=69.63% | QoS violation=100.00% | Resource efficiency=79.67%
+Users= 700 | Time=38.128 ms | Scheduling=69.87% | QoS violation=100.00% | Resource efficiency=80.72%
+Users= 800 | Time=51.197 ms | Scheduling=69.84% | QoS violation=100.00% | Resource efficiency=80.46%
+Users= 900 | Time=74.919 ms | Scheduling=69.68% | QoS violation=100.00% | Resource efficiency=79.96%
+Users=1000 | Time=263.151 ms | Scheduling=69.82% | QoS violation=100.00% | Resource efficiency=80.52%
+
+
+======================================================================
+GAN PPO
+======================================================================
+Users= 100 | Time=298.472 ms | Scheduling=69.46% | QoS violation=100.00% | Resource efficiency=82.04%
+Users= 200 | Time=361.168 ms | Scheduling=69.22% | QoS violation=100.00% | Resource efficiency=80.38%
+Users= 300 | Time=407.843 ms | Scheduling=69.38% | QoS violation=100.00% | Resource efficiency=81.09%
+Users= 400 | Time=425.196 ms | Scheduling=68.95% | QoS violation=100.00% | Resource efficiency=79.51%
+Users= 500 | Time=862.383 ms | Scheduling=69.16% | QoS violation=100.00% | Resource efficiency=80.13%
+Users= 600 | Time=807.877 ms | Scheduling=69.10% | QoS violation=100.00% | Resource efficiency=79.71%
+Users= 700 | Time=811.981 ms | Scheduling=69.17% | QoS violation=100.00% | Resource efficiency=80.43%
+Users= 800 | Time=1465.195 ms | Scheduling=69.15% | QoS violation=100.00% | Resource efficiency=80.30%
+Users= 900 | Time=1970.730 ms | Scheduling=69.08% | QoS violation=100.00% | Resource efficiency=79.75%
+Users=1000 | Time=2434.668 ms | Scheduling=69.27% | QoS violation=100.00% | Resource efficiency=80.56%
+
+
+======================================================================
+PPO
+======================================================================
+Users= 100 | Time=118.094 ms | Scheduling=70.17% | QoS violation=100.00% | Resource efficiency=81.60%
+Users= 200 | Time=292.207 ms | Scheduling=69.47% | QoS violation=100.00% | Resource efficiency=79.16%
+Users= 300 | Time=432.539 ms | Scheduling=69.93% | QoS violation=100.00% | Resource efficiency=81.60%
+Users= 400 | Time=2660.389 ms | Scheduling=69.58% | QoS violation=100.00% | Resource efficiency=79.97%
+Users= 500 | Time=1004.863 ms | Scheduling=69.59% | QoS violation=100.00% | Resource efficiency=80.18%
+Users= 600 | Time=568.752 ms | Scheduling=69.50% | QoS violation=100.00% | Resource efficiency=79.86%
+Users= 700 | Time=1082.074 ms | Scheduling=69.80% | QoS violation=100.00% | Resource efficiency=80.74%
+Users= 800 | Time=729.516 ms | Scheduling=69.65% | QoS violation=100.00% | Resource efficiency=80.17%
+Users= 900 | Time=813.447 ms | Scheduling=69.53% | QoS violation=100.00% | Resource efficiency=79.95%
+Users=1000 | Time=824.043 ms | Scheduling=69.76% | QoS violation=100.00% | Resource efficiency=80.63%
+
+Results saved to: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\five_model_results\five_model_results.csv
+
+All metric files saved.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+
+
+====================================================================================================
+FINAL COMPARISON AT 1000 USERS
+====================================================================================================
+               model  execution_time_ms  processing_time_ms_per_user  scheduling_efficiency  qos_violation_rate  resource_allocation_efficiency
+Ours (SLAM-LSTM-PPO)          2801.4000                       2.8014                69.0851            100.0000                         80.2849
+     Kmeans+Decision          1173.3446                       1.1733                69.8299            100.0000                         82.0973
+     Knowledge Graph           263.1510                       0.2632                69.8207            100.0000                         80.5167
+             GAN PPO          2434.6678                       2.4347                69.2705            100.0000                         80.5649
+                 PPO           824.0432                       0.8240                69.7624            100.0000                         80.6257
+
+Process finished with exit code 0
+
+
+
+
+FINAL COMPARISON AT 1000 USERS
+====================================================================================================
+               model  execution_time_ms  processing_time_ms_per_user  scheduling_efficiency  qos_violation_rate  resource_allocation_efficiency
+Ours (SLAM-LSTM-PPO)          2432.3158                       2.4323                69.1855            100.0000                         80.6131
+     Kmeans+Decision           295.8207                       0.2958                69.8299            100.0000                         82.0973
+     Knowledge Graph            58.1682                       0.0582                69.8207            100.0000                         80.5167
+             GAN PPO          1032.9518                       1.0330                69.7719            100.0000                         80.4440
+                 PPO           824.5510                       0.8246                69.4020            100.0000                         79.1459
+
+
+
+
+
+
+
+
+
+
+#This
+
+
+Models:
+ - Ours (SLAM-LSTM-PPO)
+ - Kmeans+Decision
+ - Knowledge Graph
+ - GAN PPO
+ - PPO
+
+
+======================================================================
+Ours (SLAM-LSTM-PPO)
+======================================================================
+Users= 100 | Time=610.172 ms | Scheduling=70.16% | QoS violation=100.00% | Resource efficiency=84.59%
+Users= 200 | Time=1088.321 ms | Scheduling=69.51% | QoS violation=100.00% | Resource efficiency=81.81%
+Users= 300 | Time=1689.341 ms | Scheduling=69.75% | QoS violation=100.00% | Resource efficiency=83.24%
+Users= 400 | Time=2164.464 ms | Scheduling=69.60% | QoS violation=100.00% | Resource efficiency=82.41%
+Users= 500 | Time=2751.070 ms | Scheduling=69.58% | QoS violation=100.00% | Resource efficiency=82.37%
+Users= 600 | Time=3255.641 ms | Scheduling=69.50% | QoS violation=100.00% | Resource efficiency=81.93%
+Users= 700 | Time=3901.272 ms | Scheduling=69.76% | QoS violation=100.00% | Resource efficiency=83.08%
+Users= 800 | Time=4390.026 ms | Scheduling=69.70% | QoS violation=100.00% | Resource efficiency=82.82%
+Users= 900 | Time=5201.988 ms | Scheduling=69.58% | QoS violation=100.00% | Resource efficiency=82.40%
+Users=1000 | Time=5322.735 ms | Scheduling=69.73% | QoS violation=100.00% | Resource efficiency=83.00%
+
+
+======================================================================
+Kmeans+Decision
+======================================================================
+Users= 100 | Time=27.523 ms | Scheduling=70.21% | QoS violation=100.00% | Resource efficiency=84.09%
+Users= 200 | Time=70.386 ms | Scheduling=69.53% | QoS violation=100.00% | Resource efficiency=80.73%
+Users= 300 | Time=101.285 ms | Scheduling=69.91% | QoS violation=100.00% | Resource efficiency=82.67%
+Users= 400 | Time=161.802 ms | Scheduling=69.63% | QoS violation=100.00% | Resource efficiency=81.15%
+Users= 500 | Time=129.156 ms | Scheduling=69.69% | QoS violation=100.00% | Resource efficiency=81.51%
+Users= 600 | Time=170.127 ms | Scheduling=69.58% | QoS violation=100.00% | Resource efficiency=80.99%
+Users= 700 | Time=222.139 ms | Scheduling=69.85% | QoS violation=100.00% | Resource efficiency=82.32%
+Users= 800 | Time=271.101 ms | Scheduling=69.78% | QoS violation=100.00% | Resource efficiency=81.93%
+Users= 900 | Time=322.801 ms | Scheduling=69.66% | QoS violation=100.00% | Resource efficiency=81.44%
+Users=1000 | Time=279.913 ms | Scheduling=69.83% | QoS violation=100.00% | Resource efficiency=82.10%
+
+
+======================================================================
+Knowledge Graph
+======================================================================
+Users= 100 | Time=6.402 ms | Scheduling=70.18% | QoS violation=100.00% | Resource efficiency=82.23%
+Users= 200 | Time=9.797 ms | Scheduling=69.55% | QoS violation=100.00% | Resource efficiency=79.42%
+Users= 300 | Time=15.403 ms | Scheduling=70.01% | QoS violation=100.00% | Resource efficiency=81.35%
+Users= 400 | Time=21.261 ms | Scheduling=69.71% | QoS violation=100.00% | Resource efficiency=79.88%
+Users= 500 | Time=29.136 ms | Scheduling=69.71% | QoS violation=100.00% | Resource efficiency=80.15%
+Users= 600 | Time=36.340 ms | Scheduling=69.63% | QoS violation=100.00% | Resource efficiency=79.67%
+Users= 700 | Time=65.333 ms | Scheduling=69.87% | QoS violation=100.00% | Resource efficiency=80.72%
+Users= 800 | Time=70.088 ms | Scheduling=69.84% | QoS violation=100.00% | Resource efficiency=80.46%
+Users= 900 | Time=70.353 ms | Scheduling=69.68% | QoS violation=100.00% | Resource efficiency=79.96%
+Users=1000 | Time=54.878 ms | Scheduling=69.82% | QoS violation=100.00% | Resource efficiency=80.52%
+
+
+======================================================================
+GAN PPO
+======================================================================
+Users= 100 | Time=84.457 ms | Scheduling=68.00% | QoS violation=100.00% | Resource efficiency=76.04%
+Users= 200 | Time=212.530 ms | Scheduling=67.48% | QoS violation=100.00% | Resource efficiency=73.76%
+Users= 300 | Time=263.714 ms | Scheduling=67.96% | QoS violation=100.00% | Resource efficiency=75.89%
+Users= 400 | Time=357.243 ms | Scheduling=67.56% | QoS violation=100.00% | Resource efficiency=74.14%
+Users= 500 | Time=394.994 ms | Scheduling=67.64% | QoS violation=100.00% | Resource efficiency=74.49%
+Users= 600 | Time=488.147 ms | Scheduling=67.53% | QoS violation=100.00% | Resource efficiency=74.01%
+Users= 700 | Time=566.215 ms | Scheduling=67.75% | QoS violation=100.00% | Resource efficiency=74.96%
+Users= 800 | Time=634.914 ms | Scheduling=67.74% | QoS violation=100.00% | Resource efficiency=74.93%
+Users= 900 | Time=716.206 ms | Scheduling=67.62% | QoS violation=100.00% | Resource efficiency=74.39%
+Users=1000 | Time=802.302 ms | Scheduling=67.77% | QoS violation=100.00% | Resource efficiency=75.07%
+
+
+======================================================================
+PPO
+======================================================================
+Users= 100 | Time=80.722 ms | Scheduling=70.16% | QoS violation=100.00% | Resource efficiency=84.58%
+Users= 200 | Time=201.534 ms | Scheduling=69.46% | QoS violation=100.00% | Resource efficiency=81.77%
+Users= 300 | Time=238.083 ms | Scheduling=69.78% | QoS violation=100.00% | Resource efficiency=83.16%
+Users= 400 | Time=328.635 ms | Scheduling=69.49% | QoS violation=100.00% | Resource efficiency=81.73%
+Users= 500 | Time=396.313 ms | Scheduling=69.59% | QoS violation=100.00% | Resource efficiency=82.19%
+Users= 600 | Time=492.359 ms | Scheduling=69.56% | QoS violation=100.00% | Resource efficiency=82.11%
+Users= 700 | Time=548.973 ms | Scheduling=69.77% | QoS violation=100.00% | Resource efficiency=83.03%
+Users= 800 | Time=629.355 ms | Scheduling=69.68% | QoS violation=100.00% | Resource efficiency=82.70%
+Users= 900 | Time=710.120 ms | Scheduling=69.58% | QoS violation=100.00% | Resource efficiency=82.21%
+Users=1000 | Time=810.136 ms | Scheduling=69.71% | QoS violation=100.00% | Resource efficiency=82.82%
+
+Results saved to: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\five_model_results\five_model_results.csv
+
+All metric files saved.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+
+
+====================================================================================================
+FINAL COMPARISON AT 1000 USERS
+====================================================================================================
+               model  execution_time_ms  processing_time_ms_per_user  scheduling_efficiency  qos_violation_rate  resource_allocation_efficiency
+Ours (SLAM-LSTM-PPO)          5322.7347                       5.3227                69.7266            100.0000                         82.9988
+     Kmeans+Decision           279.9134                       0.2799                69.8299            100.0000                         82.0973
+     Knowledge Graph            54.8778                       0.0549                69.8207            100.0000                         80.5167
+             GAN PPO           802.3017                       0.8023                67.7737            100.0000                         75.0725
+                 PPO           810.1360                       0.8101                69.7146            100.0000                         82.8249
+
+Process finished with exit code 0
