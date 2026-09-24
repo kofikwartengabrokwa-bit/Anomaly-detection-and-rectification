@@ -1,0 +1,2863 @@
+# ============================================================
+# IMPORT REQUIRED LIBRARIES
+# ============================================================
+# ============================================================
+# IMPORT REQUIRED LIBRARIES
+# ============================================================
+
+import sqlite3
+import os
+import pandas as pd
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+SAVE_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1"
+DB_PATH = os.path.join(SAVE_DIR, "Lower_Layer_Data.db")
+
+# Dataset split configuration
+TRAIN_PERCENTAGE = 0.64
+VALIDATION_PERCENTAGE = 0.16
+TEST_PERCENTAGE = 0.20
+
+# ============================================================
+# RADIO / PHY PARAMETERS
+# ============================================================
+
+RADIO_PARAMETERS = [
+    "dlBytes",
+    "dlMcs",
+    "dlBler",
+    "ulBytes",
+    "ulMcs",
+    "ulBler",
+    "ri",
+    "phr",
+    "pcmax",
+    "rsrq",
+    "sinr",
+    "rsrp",
+    "rssi",
+    "cqi",
+    "pucchSnr",
+    "puschSnr"
+]
+
+# ============================================================
+# PARAMETER UNITS
+# ============================================================
+
+PARAMETER_UNITS = {
+    "dlBytes": "bytes",
+    "dlMcs": "index",
+    "dlBler": "ratio",
+    "ulBytes": "bytes",
+    "ulMcs": "index",
+    "ulBler": "ratio",
+    "ri": "index",
+    "phr": "dB",
+    "pcmax": "dBm",
+    "rsrq": "dB",
+    "sinr": "dB",
+    "rsrp": "dBm",
+    "rssi": "dBm",
+    "cqi": "index",
+    "pucchSnr": "dB",
+    "puschSnr": "dB"
+}
+
+# ============================================================
+# PARAMETER DESCRIPTIONS
+# ============================================================
+
+PARAMETER_DESCRIPTIONS = {
+    "dlBytes": "Downlink bytes",
+    "dlMcs": "Downlink MCS",
+    "dlBler": "Downlink BLER",
+    "ulBytes": "Uplink bytes",
+    "ulMcs": "Uplink MCS",
+    "ulBler": "Uplink BLER",
+    "ri": "Rank indicator",
+    "phr": "Power headroom",
+    "pcmax": "Maximum UE transmit power",
+    "rsrq": "Reference signal received quality",
+    "sinr": "Signal-to-interference-plus-noise ratio",
+    "rsrp": "Reference signal received power",
+    "rssi": "Received signal strength indicator",
+    "cqi": "Channel quality indicator",
+    "pucchSnr": "PUCCH SNR",
+    "puschSnr": "PUSCH SNR"
+}
+
+# ============================================================
+# OUTPUT FILES
+# ============================================================
+
+CSV_OUTPUT = os.path.join(
+    SAVE_DIR,
+    "radio_parameter_constraints.csv"
+)
+
+LATEX_OUTPUT = os.path.join(
+    SAVE_DIR,
+    "radio_parameter_constraints.tex"
+)
+
+# ============================================================
+# START
+# ============================================================
+
+print("=" * 100)
+print("RADIO PARAMETER CONSTRAINT ANALYSIS")
+print("=" * 100)
+
+print(f"Database:")
+print(DB_PATH)
+
+# ============================================================
+# CHECK SPLIT CONFIGURATION
+# ============================================================
+
+split_sum = (
+    TRAIN_PERCENTAGE +
+    VALIDATION_PERCENTAGE +
+    TEST_PERCENTAGE
+)
+
+if abs(split_sum - 1.0) > 1e-6:
+    raise ValueError(
+        "Training, validation, and testing percentages "
+        "must sum to 1.0."
+    )
+
+# ============================================================
+# CHECK DATABASE
+# ============================================================
+
+if not os.path.exists(DB_PATH):
+    raise FileNotFoundError(
+        f"\nCould not find database:\n{DB_PATH}"
+    )
+
+# ============================================================
+# CONNECT TO SQLITE DATABASE
+# ============================================================
+
+connection = sqlite3.connect(DB_PATH)
+
+# ============================================================
+# FIND AVAILABLE TABLES
+# ============================================================
+
+tables = pd.read_sql_query(
+    """
+    SELECT name
+    FROM sqlite_master
+    WHERE type='table'
+    ORDER BY name
+    """,
+    connection
+)
+
+print("\nAvailable tables:")
+print(tables.to_string(index=False))
+
+if tables.empty:
+    connection.close()
+    raise RuntimeError(
+        "No tables were found in the database."
+    )
+
+# ============================================================
+# SELECT TABLE
+# ============================================================
+
+# If the expected table exists, use it.
+# Otherwise, use the first available table.
+
+EXPECTED_TABLE = "lower_layer_data"
+
+if EXPECTED_TABLE in tables["name"].values:
+    TABLE_NAME = EXPECTED_TABLE
+else:
+    TABLE_NAME = tables.iloc[0]["name"]
+
+print(f"\nSelected table: {TABLE_NAME}")
+
+# ============================================================
+# LOAD DATA
+# ============================================================
+
+query = f'SELECT * FROM "{TABLE_NAME}"'
+
+df = pd.read_sql_query(
+    query,
+    connection
+)
+
+connection.close()
+
+# ============================================================
+# DATASET INFORMATION
+# ============================================================
+
+TOTAL_SAMPLES = len(df)
+
+print("\n" + "=" * 100)
+print("DATASET INFORMATION")
+print("=" * 100)
+
+print(f"Number of samples : {TOTAL_SAMPLES:,}")
+print(f"Number of columns : {len(df.columns):,}")
+
+print("\nColumns:")
+for column in df.columns:
+    print(f"  - {column}")
+
+# ============================================================
+# DATASET SPLIT
+# ============================================================
+
+train_samples = round(
+    TOTAL_SAMPLES * TRAIN_PERCENTAGE
+)
+
+validation_samples = round(
+    TOTAL_SAMPLES * VALIDATION_PERCENTAGE
+)
+
+test_samples = (
+    TOTAL_SAMPLES -
+    train_samples -
+    validation_samples
+)
+
+print("\n" + "=" * 100)
+print("DATASET SPLIT")
+print("=" * 100)
+
+print(
+    f"Training set   : {train_samples:,} "
+    f"({TRAIN_PERCENTAGE * 100:.2f}%)"
+)
+
+print(
+    f"Validation set : {validation_samples:,} "
+    f"({VALIDATION_PERCENTAGE * 100:.2f}%)"
+)
+
+print(
+    f"Testing set    : {test_samples:,} "
+    f"({TEST_PERCENTAGE * 100:.2f}%)"
+)
+
+print(
+    f"Total          : "
+    f"{train_samples + validation_samples + test_samples:,}"
+)
+
+# ============================================================
+# CHECK RADIO PARAMETERS
+# ============================================================
+
+print("\n" + "=" * 100)
+print("RADIO / PHY PARAMETER AVAILABILITY")
+print("=" * 100)
+
+available_parameters = [
+    parameter
+    for parameter in RADIO_PARAMETERS
+    if parameter in df.columns
+]
+
+missing_parameters = [
+    parameter
+    for parameter in RADIO_PARAMETERS
+    if parameter not in df.columns
+]
+
+print(
+    f"Expected parameters : {len(RADIO_PARAMETERS)}"
+)
+
+print(
+    f"Available parameters: {len(available_parameters)}"
+)
+
+if missing_parameters:
+
+    print("\nMissing parameters:")
+
+    for parameter in missing_parameters:
+        print(f"  - {parameter}")
+
+# ============================================================
+# CONVERT PARAMETERS TO NUMERIC
+# ============================================================
+
+for parameter in available_parameters:
+
+    df[parameter] = pd.to_numeric(
+        df[parameter],
+        errors="coerce"
+    )
+
+# ============================================================
+# EXTRACT MINIMUM / MAXIMUM / STATISTICS
+# ============================================================
+
+results = []
+
+for parameter in available_parameters:
+
+    series = df[parameter].dropna()
+
+    total_samples = len(df)
+
+    valid_samples = len(series)
+
+    missing_samples = (
+        total_samples -
+        valid_samples
+    )
+
+    if valid_samples == 0:
+
+        minimum = float("nan")
+        maximum = float("nan")
+        mean = float("nan")
+        median = float("nan")
+        std = float("nan")
+
+    else:
+
+        minimum = series.min()
+        maximum = series.max()
+        mean = series.mean()
+        median = series.median()
+        std = series.std()
+
+    results.append({
+
+        "Parameter":
+            parameter,
+
+        "Description":
+            PARAMETER_DESCRIPTIONS.get(
+                parameter,
+                parameter
+            ),
+
+        "Unit":
+            PARAMETER_UNITS.get(
+                parameter,
+                ""
+            ),
+
+        "Samples":
+            total_samples,
+
+        "Valid":
+            valid_samples,
+
+        "Missing":
+            missing_samples,
+
+        "Availability (%)":
+            (valid_samples / total_samples) * 100,
+
+        "Minimum":
+            minimum,
+
+        "Maximum":
+            maximum,
+
+        "Mean":
+            mean,
+
+        "Median":
+            median,
+
+        "Std":
+            std
+    })
+
+constraints_df = pd.DataFrame(results)
+
+# ============================================================
+# DISPLAY EMPIRICAL CONSTRAINTS
+# ============================================================
+
+print("\n" + "=" * 100)
+print("EMPIRICAL RADIO PARAMETER CONSTRAINTS")
+print("=" * 100)
+
+display_columns = [
+    "Parameter",
+    "Unit",
+    "Valid",
+    "Minimum",
+    "Maximum",
+    "Mean",
+    "Median",
+    "Std"
+]
+
+print(
+    constraints_df[
+        display_columns
+    ].to_string(
+        index=False,
+        float_format=lambda x: f"{x:.6f}"
+    )
+)
+
+# ============================================================
+# DETAILED PARAMETER-BY-PARAMETER OUTPUT
+# ============================================================
+
+print("\n" + "=" * 100)
+print("DETAILED PARAMETER CONSTRAINTS")
+print("=" * 100)
+
+for _, row in constraints_df.iterrows():
+
+    print("\n" + "-" * 100)
+
+    print(
+        f"Parameter : {row['Parameter']}"
+    )
+
+    print(
+        f"Description: {row['Description']}"
+    )
+
+    print(
+        f"Unit      : {row['Unit']}"
+    )
+
+    print(
+        f"Minimum   : {row['Minimum']:.10f}"
+    )
+
+    print(
+        f"Maximum   : {row['Maximum']:.10f}"
+    )
+
+    print(
+        f"Mean      : {row['Mean']:.10f}"
+    )
+
+    print(
+        f"Median    : {row['Median']:.10f}"
+    )
+
+    print(
+        f"Std       : {row['Std']:.10f}"
+    )
+
+    print(
+        f"Valid     : {int(row['Valid']):,}"
+    )
+
+    print(
+        f"Missing   : {int(row['Missing']):,}"
+    )
+
+# ============================================================
+# SHARED SAMPLE ANALYSIS
+# ============================================================
+
+print("\n" + "=" * 100)
+print("SHARED SAMPLE ANALYSIS")
+print("=" * 100)
+
+unique_counts = (
+    constraints_df["Valid"]
+    .unique()
+)
+
+if len(unique_counts) == 1:
+
+    shared_samples = int(
+        unique_counts[0]
+    )
+
+    print(
+        f"All {len(available_parameters)} radio parameters "
+        f"contain {shared_samples:,} valid samples."
+    )
+
+    if shared_samples == TOTAL_SAMPLES:
+
+        print(
+            "All radio parameters are available across "
+            f"the complete dataset ({TOTAL_SAMPLES:,} samples)."
+        )
+
+else:
+
+    print(
+        "The radio parameters do not contain "
+        "the same number of valid samples."
+    )
+
+# ============================================================
+# COMPLETE ROW ANALYSIS
+# ============================================================
+
+complete_radio_rows = (
+    df[available_parameters]
+    .notna()
+    .all(axis=1)
+    .sum()
+)
+
+complete_percentage = (
+    complete_radio_rows /
+    TOTAL_SAMPLES
+) * 100
+
+print("\n" + "=" * 100)
+print("COMPLETE RADIO-PARAMETER ROW ANALYSIS")
+print("=" * 100)
+
+print(
+    f"Rows containing all {len(available_parameters)} "
+    f"radio parameters: {complete_radio_rows:,}"
+)
+
+print(
+    f"Percentage: {complete_percentage:.2f}%"
+)
+
+# ============================================================
+# DATASET OBSERVED RANGE
+# ============================================================
+
+print("\n" + "=" * 100)
+print("DATASET-OBSERVED CONFIGURATION INTERVALS")
+print("=" * 100)
+
+for _, row in constraints_df.iterrows():
+
+    print(
+        f"{row['Parameter']:12s} : "
+        f"[{row['Minimum']:.6f}, "
+        f"{row['Maximum']:.6f}] "
+        f"{row['Unit']}"
+    )
+
+# ============================================================
+# SAVE CSV
+# ============================================================
+
+constraints_df.to_csv(
+    CSV_OUTPUT,
+    index=False
+)
+
+print("\n" + "=" * 100)
+print("CSV OUTPUT")
+print("=" * 100)
+
+print(
+    f"Saved empirical constraints to:\n{CSV_OUTPUT}"
+)
+
+# ============================================================
+# CREATE LATEX TABLE
+# ============================================================
+
+latex_df = constraints_df[
+    [
+        "Description",
+        "Parameter",
+        "Unit",
+        "Minimum",
+        "Maximum"
+    ]
+].copy()
+
+# Escape LaTeX special characters
+latex_df["Description"] = (
+    latex_df["Description"]
+    .str.replace("_", r"\_", regex=False)
+)
+
+latex_df["Parameter"] = (
+    latex_df["Parameter"]
+    .str.replace("_", r"\_", regex=False)
+)
+
+# Format numerical values
+latex_df["Minimum"] = (
+    latex_df["Minimum"]
+    .map(lambda x: f"{x:.6f}")
+)
+
+latex_df["Maximum"] = (
+    latex_df["Maximum"]
+    .map(lambda x: f"{x:.6f}")
+)
+
+# ============================================================
+# GENERATE LATEX
+# ============================================================
+
+latex_table = latex_df.to_latex(
+    index=False,
+    escape=False,
+    column_format="l l c r r",
+    header=[
+        "Parameter",
+        "Symbol",
+        "Unit",
+        "Minimum",
+        "Maximum"
+    ],
+    caption=(
+        "Empirical minimum and maximum values of the "
+        "radio and physical-layer parameters in the "
+        "Lower\\_Layer\\_Data dataset."
+    ),
+    label="tab:dataset_radio_constraints"
+)
+
+# ============================================================
+# SAVE LATEX
+# ============================================================
+
+with open(
+    LATEX_OUTPUT,
+    "w",
+    encoding="utf-8"
+) as file:
+
+    file.write(latex_table)
+
+print(
+    f"\nLaTeX table saved to:\n{LATEX_OUTPUT}"
+)
+
+# ============================================================
+# PRINT LATEX TABLE
+# ============================================================
+
+print("\n" + "=" * 100)
+print("LATEX TABLE")
+print("=" * 100)
+
+print(latex_table)
+
+# ============================================================
+# FINAL SUMMARY
+# ============================================================
+
+print("\n" + "=" * 100)
+print("FINAL SUMMARY")
+print("=" * 100)
+
+print(
+    f"Database samples           : {TOTAL_SAMPLES:,}"
+)
+
+print(
+    f"Database columns           : {len(df.columns):,}"
+)
+
+print(
+    f"Radio/PHY parameters       : "
+    f"{len(available_parameters)}"
+)
+
+print(
+    f"Complete radio rows        : "
+    f"{complete_radio_rows:,}"
+)
+
+print(
+    f"Complete-row percentage    : "
+    f"{complete_percentage:.2f}%"
+)
+
+print(
+    f"Training samples           : "
+    f"{train_samples:,}"
+)
+
+print(
+    f"Validation samples         : "
+    f"{validation_samples:,}"
+)
+
+print(
+    f"Testing samples            : "
+    f"{test_samples:,}"
+)
+
+print(
+    f"\nCSV file:\n{CSV_OUTPUT}"
+)
+
+print(
+    f"\nLaTeX file:\n{LATEX_OUTPUT}"
+)
+
+print("=" * 100)
+print("ANALYSIS COMPLETED SUCCESSFULLY")
+print("=" * 100)
+import sqlite3
+import os
+import pandas as pd
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+SAVE_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1"
+DB_PATH = os.path.join(SAVE_DIR, "Lower_Layer_Data.db")
+
+# Dataset split configuration
+TRAIN_PERCENTAGE = 0.64
+VALIDATION_PERCENTAGE = 0.16
+TEST_PERCENTAGE = 0.20
+
+# Radio/PHY parameters
+RADIO_PARAMETERS = [
+    "dlBytes",
+    "dlMcs",
+    "dlBler",
+    "ulBytes",
+    "ulMcs",
+    "ulBler",
+    "ri",
+    "phr",
+    "pcmax",
+    "rsrq",
+    "sinr",
+    "rsrp",
+    "rssi",
+    "cqi",
+    "pucchSnr",
+    "puschSnr"
+]
+
+print("=" * 80)
+print("RADIO PARAMETER SAMPLE ANALYSIS")
+print("=" * 80)
+
+print(f"Database: {DB_PATH}")
+
+# ============================================================
+# CHECK SPLIT CONFIGURATION
+# ============================================================
+
+if abs(
+    TRAIN_PERCENTAGE +
+    VALIDATION_PERCENTAGE +
+    TEST_PERCENTAGE - 1.0
+) > 1e-6:
+    raise ValueError(
+        "Training, validation, and testing percentages must sum to 100%."
+    )
+
+# ============================================================
+# CHECK DATABASE
+# ============================================================
+
+if not os.path.exists(DB_PATH):
+    raise FileNotFoundError(
+        f"Could not find database:\n{DB_PATH}"
+    )
+
+# ============================================================
+# CONNECT TO SQLITE DATABASE
+# ============================================================
+
+connection = sqlite3.connect(DB_PATH)
+
+# ============================================================
+# FIND AVAILABLE TABLES
+# ============================================================
+
+tables = pd.read_sql_query(
+    """
+    SELECT name
+    FROM sqlite_master
+    WHERE type='table'
+    ORDER BY name
+    """,
+    connection
+)
+
+print("\nAvailable tables:")
+print(tables)
+
+if len(tables) == 0:
+    connection.close()
+    raise RuntimeError("No tables were found in the database.")
+
+# ============================================================
+# SELECT TABLE
+# ============================================================
+
+TABLE_NAME = tables.iloc[0]["name"]
+
+print(f"\nUsing table: {TABLE_NAME}")
+
+# ============================================================
+# LOAD DATA
+# ============================================================
+
+df = pd.read_sql_query(
+    f'SELECT * FROM "{TABLE_NAME}"',
+    connection
+)
+
+connection.close()
+
+# ============================================================
+# DATASET INFORMATION
+# ============================================================
+
+TOTAL_SAMPLES = len(df)
+
+print("\n" + "=" * 80)
+print("DATASET INFORMATION")
+print("=" * 80)
+
+print(f"Number of samples: {TOTAL_SAMPLES:,}")
+print(f"Number of columns: {len(df.columns)}")
+
+print("\nColumns:")
+print(df.columns.tolist())
+
+# ============================================================
+# DATASET SPLIT
+# ============================================================
+
+# Calculate sample counts
+train_samples = round(TOTAL_SAMPLES * TRAIN_PERCENTAGE)
+validation_samples = round(TOTAL_SAMPLES * VALIDATION_PERCENTAGE)
+
+# Ensure all samples are accounted for
+test_samples = (
+    TOTAL_SAMPLES -
+    train_samples -
+    validation_samples
+)
+
+print("\n" + "=" * 80)
+print("DATASET SPLIT")
+print("=" * 80)
+
+print(
+    f"Training set:   {train_samples:,} "
+    f"({TRAIN_PERCENTAGE * 100:.2f}%)"
+)
+
+print(
+    f"Validation set: {validation_samples:,} "
+    f"({VALIDATION_PERCENTAGE * 100:.2f}%)"
+)
+
+print(
+    f"Testing set:    {test_samples:,} "
+    f"({TEST_PERCENTAGE * 100:.2f}%)"
+)
+
+print(
+    f"Total samples:  "
+    f"{train_samples + validation_samples + test_samples:,}"
+)
+
+# ============================================================
+# CHECK RADIO PARAMETERS
+# ============================================================
+
+print("\n" + "=" * 80)
+print("RADIO PARAMETERS")
+print("=" * 80)
+
+available_parameters = [
+    parameter
+    for parameter in RADIO_PARAMETERS
+    if parameter in df.columns
+]
+
+missing_parameters = [
+    parameter
+    for parameter in RADIO_PARAMETERS
+    if parameter not in df.columns
+]
+
+print(f"Expected radio parameters: {len(RADIO_PARAMETERS)}")
+print(f"Available radio parameters: {len(available_parameters)}")
+
+if missing_parameters:
+    print("\nMissing parameters:")
+    for parameter in missing_parameters:
+        print(f"  - {parameter}")
+
+# ============================================================
+# COUNT SAMPLES FOR EACH RADIO PARAMETER
+# ============================================================
+
+results = []
+
+for parameter in available_parameters:
+
+    total_samples = len(df)
+    valid_samples = df[parameter].notna().sum()
+    missing_samples = df[parameter].isna().sum()
+
+    results.append({
+        "Parameter": parameter,
+        "Total Samples": total_samples,
+        "Samples Available": valid_samples,
+        "Missing Samples": missing_samples,
+        "Availability (%)": (valid_samples / total_samples) * 100
+    })
+
+radio_summary = pd.DataFrame(results)
+
+# ============================================================
+# DISPLAY RESULTS
+# ============================================================
+
+print("\n" + "=" * 80)
+print("SAMPLE COUNT FOR EACH RADIO PARAMETER")
+print("=" * 80)
+
+print(
+    radio_summary.to_string(
+        index=False,
+        formatters={
+            "Availability (%)": "{:.2f}".format
+        }
+    )
+)
+
+# ============================================================
+# CHECK WHETHER ALL RADIO PARAMETERS HAVE THE SAME
+# NUMBER OF SAMPLES
+# ============================================================
+
+print("\n" + "=" * 80)
+print("SHARED SAMPLE ANALYSIS")
+print("=" * 80)
+
+unique_sample_counts = radio_summary["Samples Available"].unique()
+
+if len(unique_sample_counts) == 1:
+
+    shared_samples = unique_sample_counts[0]
+
+    print(
+        f"All {len(available_parameters)} radio parameters "
+        f"are available for {shared_samples:,} samples."
+    )
+
+    if shared_samples == len(df):
+        print(
+            "Therefore, all radio parameters are shared across "
+            f"the complete dataset of {len(df):,} samples."
+        )
+
+else:
+
+    print(
+        "The radio parameters do not all have the same number "
+        "of available samples."
+    )
+
+# ============================================================
+# COMPLETE ROW ANALYSIS
+# ============================================================
+
+complete_radio_rows = (
+    df[available_parameters]
+    .notna()
+    .all(axis=1)
+    .sum()
+)
+
+print(
+    f"\nSamples containing ALL {len(available_parameters)} "
+    f"radio parameters: {complete_radio_rows:,}"
+)
+
+print(
+    f"Percentage of samples containing all radio parameters: "
+    f"{(complete_radio_rows / len(df)) * 100:.2f}%"
+)
+
+# ============================================================
+# RADIO PARAMETER DESCRIPTIVE STATISTICS
+# ============================================================
+
+print("\n" + "=" * 80)
+print("RADIO PARAMETER DESCRIPTIVE STATISTICS")
+print("=" * 80)
+
+print(
+    df[available_parameters].describe().T[
+        ["count", "mean", "std", "min", "max"]
+    ].to_string()
+)
+
+# ============================================================
+# FINAL SUMMARY
+# ============================================================
+
+print("\n" + "=" * 80)
+print("FINAL DATASET SUMMARY")
+print("=" * 80)
+
+print(f"Total samples:                 {TOTAL_SAMPLES:,}")
+print(f"Training samples:              {train_samples:,} "
+      f"({TRAIN_PERCENTAGE * 100:.2f}%)")
+print(f"Validation samples:            {validation_samples:,} "
+      f"({VALIDATION_PERCENTAGE * 100:.2f}%)")
+print(f"Testing samples:               {test_samples:,} "
+      f"({TEST_PERCENTAGE * 100:.2f}%)")
+print(f"Radio/PHY parameters:          {len(available_parameters)}")
+print(f"Complete radio-parameter rows:  {complete_radio_rows:,}")
+print(f"Radio parameter availability:   "
+      f"{(complete_radio_rows / TOTAL_SAMPLES) * 100:.2f}%")
+
+print("=" * 80)
+import sqlite3
+import numpy as np
+import pandas as pd
+
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+
+import matplotlib.pyplot as plt
+
+print("\nRequired libraries imported successfully.")
+
+# ============================================================
+# 1. CONFIGURATION
+# ============================================================
+
+import os
+
+import os
+
+SAVE_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1"
+os.makedirs(SAVE_DIR, exist_ok=True)
+
+DB_PATH = os.path.join(SAVE_DIR, "Lower_Layer_Data.db")
+
+# Create directory if it does not exist
+os.makedirs(SAVE_DIR, exist_ok=True)
+
+SEQUENCE_LENGTH = 10
+BATCH_SIZE = 128
+HIDDEN_SIZE = 128
+NUM_LAYERS = 2
+DROPOUT = 0.30
+
+LEARNING_RATE = 0.001
+EPOCHS = 1
+
+RANDOM_STATE = 42
+
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
+
+print("=" * 70)
+print("LSTM NETWORK TRAFFIC CLASSIFICATION")
+print("=" * 70)
+
+print(f"Database: {DB_PATH}")
+print(f"Device:   {DEVICE}")
+
+
+# ============================================================
+# 2. CHECK DATABASE
+# ============================================================
+
+if not os.path.exists(DB_PATH):
+    raise FileNotFoundError(
+        f"Could not find {DB_PATH}\n"
+        f"Place Lower_Layer_Data.db in the same folder as this script."
+    )
+
+
+# ============================================================
+# 3. CONNECT TO SQLITE DATABASE
+# ============================================================
+
+connection = sqlite3.connect(DB_PATH)
+
+tables = pd.read_sql_query(
+    """
+    SELECT name
+    FROM sqlite_master
+    WHERE type='table'
+    ORDER BY name
+    """,
+    connection
+)
+
+print("\nAvailable tables:")
+print(tables)
+
+
+if len(tables) == 0:
+    connection.close()
+    raise RuntimeError("No tables were found in the database.")
+
+
+# ============================================================
+# 4. SELECT TABLE
+# ============================================================
+# By default, use the first table.
+# After inspecting your database, you can replace this with:
+#
+# TABLE_NAME = "your_actual_table_name"
+
+TABLE_NAME = tables.iloc[0]["name"]
+
+print(f"\nUsing table: {TABLE_NAME}")
+
+
+# ============================================================
+# 5. LOAD DATA
+# ============================================================
+
+df = pd.read_sql_query(
+    f'SELECT * FROM "{TABLE_NAME}"',
+    connection
+)
+
+connection.close()
+
+print("\nDataset shape:")
+print(df.shape)
+
+print("\nColumns:")
+print(df.columns.tolist())
+
+print("\nFirst five rows:")
+print(df.head())
+
+
+# ============================================================
+# 6. IDENTIFY LABEL COLUMN
+# ============================================================
+
+possible_label_columns = [
+    "label",
+    "Label",
+    "LABEL",
+    "class",
+    "Class",
+    "CLASS",
+    "attack",
+    "Attack",
+    "ATTACK",
+    "traffic_type",
+    "Traffic_Type",
+    "traffic",
+    "Traffic",
+    "category",
+    "Category",
+    "threat",
+    "Threat",
+    "type",
+    "Type"
+]
+
+label_column = None
+
+for column in possible_label_columns:
+    if column in df.columns:
+        label_column = column
+        break
+
+if label_column is None:
+    raise ValueError(
+        "\nCould not automatically identify the traffic-label column.\n"
+        "Available columns are:\n"
+        f"{df.columns.tolist()}\n\n"
+        "Set label_column manually in Section 6."
+    )
+
+print(f"\nDetected label column: {label_column}")
+
+
+# ============================================================
+# 7. REMOVE MISSING VALUES
+# ============================================================
+
+df = df.replace([np.inf, -np.inf], np.nan)
+
+print("\nMissing values before cleaning:")
+print(df.isnull().sum())
+
+df = df.dropna(subset=[label_column])
+
+print(f"\nDataset shape after removing missing labels: {df.shape}")
+
+
+# ============================================================
+# 8. DISPLAY TRAFFIC CLASSES
+# ============================================================
+
+print("\nTraffic-class distribution:")
+print(df[label_column].value_counts())
+
+
+# ============================================================
+# 9. SEPARATE FEATURES AND LABEL
+# ============================================================
+
+X_df = df.drop(columns=[label_column])
+y_raw = df[label_column]
+
+
+# ============================================================
+# 10. KEEP NUMERIC FEATURES
+# ============================================================
+
+numeric_columns = X_df.select_dtypes(
+    include=[np.number]
+).columns.tolist()
+
+if len(numeric_columns) == 0:
+    raise ValueError(
+        "No numeric features were found in the database."
+    )
+
+X_df = X_df[numeric_columns]
+
+print("\nNumeric features used by LSTM:")
+print(numeric_columns)
+
+print(f"\nNumber of features: {len(numeric_columns)}")
+
+
+# ============================================================
+# 12. ENCODE ATTACK LABELS
+# ============================================================
+
+label_encoder = LabelEncoder()
+
+y_encoded = label_encoder.fit_transform(
+    y_raw.astype(str)
+)
+
+class_names = label_encoder.classes_
+num_classes = len(class_names)
+
+print("\nAttack classes:")
+for i, class_name in enumerate(class_names):
+    print(f"{i}: {class_name}")
+
+print(f"\nNumber of classes: {num_classes}")
+
+
+# ============================================================
+# 13. PREPARE FEATURE MATRIX
+# ============================================================
+
+X = X_df.astype(np.float32).values
+y = y_encoded.astype(np.int64)
+
+print("\nFeature matrix shape:")
+print(X.shape)
+
+print("\nLabel vector shape:")
+print(y.shape)
+
+print("\nNumber of features:")
+print(X.shape[1])
+
+
+# ============================================================
+# 14. TRAIN-TEST SPLIT
+# ============================================================
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    random_state=RANDOM_STATE,
+    stratify=y
+)
+
+print("\nTraining data:")
+print(X_train.shape)
+
+print("\nTesting data:")
+print(X_test.shape)
+
+print("\nTraining class distribution:")
+print(
+    pd.Series(
+        y_train
+    ).value_counts().sort_index()
+)
+
+print("\nTesting class distribution:")
+print(
+    pd.Series(
+        y_test
+    ).value_counts().sort_index()
+)
+
+
+# ============================================================
+# 15. FEATURE STANDARDIZATION
+# ============================================================
+
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+X_train = X_train.astype(np.float32)
+X_test = X_test.astype(np.float32)
+
+print("\nFeature standardization completed.")
+
+print(
+    f"Training mean: {X_train.mean():.4f}"
+)
+
+print(
+    f"Training standard deviation: {X_train.std():.4f}"
+)
+
+
+# ============================================================
+# 16. CREATE LSTM SEQUENCES
+# ============================================================
+
+def create_sequences(X, y, sequence_length):
+    sequences = []
+    labels = []
+
+    for i in range(len(X) - sequence_length + 1):
+
+        sequence = X[
+            i:i + sequence_length
+        ]
+
+        # Use the label of the final observation
+        # in the sequence as the sequence label.
+        label = y[
+            i + sequence_length - 1
+        ]
+
+        sequences.append(sequence)
+        labels.append(label)
+
+    return (
+        np.asarray(sequences, dtype=np.float32),
+        np.asarray(labels, dtype=np.int64)
+    )
+
+
+X_train_seq, y_train_seq = create_sequences(
+    X_train,
+    y_train,
+    SEQUENCE_LENGTH
+)
+
+X_test_seq, y_test_seq = create_sequences(
+    X_test,
+    y_test,
+    SEQUENCE_LENGTH
+)
+
+print("\nLSTM training sequences:")
+print(X_train_seq.shape)
+
+print("\nLSTM testing sequences:")
+print(X_test_seq.shape)
+
+print("\nExpected format:")
+print("(samples, sequence_length, features)")
+
+
+
+# ============================================================
+# 17. PYTORCH DATASET
+# ============================================================
+
+class TrafficDataset(Dataset):
+
+    def __init__(self, X, y):
+        self.X = torch.tensor(
+            X,
+            dtype=torch.float32
+        )
+
+        self.y = torch.tensor(
+            y,
+            dtype=torch.long
+        )
+
+    def __len__(self):
+        return len(self.y)
+
+    def __getitem__(self, index):
+        return (
+            self.X[index],
+            self.y[index]
+        )
+
+
+train_dataset = TrafficDataset(
+    X_train_seq,
+    y_train_seq
+)
+
+test_dataset = TrafficDataset(
+    X_test_seq,
+    y_test_seq
+)
+
+
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=True
+)
+
+test_loader = DataLoader(
+    test_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=False
+)
+
+print("\nDataset objects created.")
+print(f"Training samples: {len(train_dataset)}")
+print(f"Testing samples:  {len(test_dataset)}")
+
+
+
+# ============================================================
+# 18. DEFINE LSTM MODEL
+# ============================================================
+
+class LSTMClassifier(nn.Module):
+
+    def __init__(
+        self,
+        input_size,
+        hidden_size,
+        num_layers,
+        num_classes,
+        dropout
+    ):
+
+        super().__init__()
+
+        self.lstm = nn.LSTM(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0.0
+        )
+
+        self.dropout = nn.Dropout(dropout)
+
+        self.fc = nn.Linear(
+            hidden_size,
+            num_classes
+        )
+
+    def forward(self, x):
+
+        output, (hidden, cell) = self.lstm(x)
+
+        # Use the final time-step representation
+        final_output = output[:, -1, :]
+
+        final_output = self.dropout(
+            final_output
+        )
+
+        logits = self.fc(final_output)
+
+        return logits
+
+
+INPUT_SIZE = X_train_seq.shape[2]
+
+model = LSTMClassifier(
+    input_size=INPUT_SIZE,
+    hidden_size=HIDDEN_SIZE,
+    num_layers=NUM_LAYERS,
+    num_classes=num_classes,
+    dropout=DROPOUT
+).to(DEVICE)
+
+
+print("\nLSTM architecture:")
+print(model)
+
+print(f"\nInput size:   {INPUT_SIZE}")
+print(f"Hidden size:  {HIDDEN_SIZE}")
+print(f"LSTM layers:  {NUM_LAYERS}")
+print(f"Classes:      {num_classes}")
+print(f"Device:       {DEVICE}")
+
+
+# ============================================================
+# 19. LOSS FUNCTION AND OPTIMIZER
+# ============================================================
+
+criterion = nn.CrossEntropyLoss()
+
+optimizer = torch.optim.Adam(
+    model.parameters(),
+    lr=LEARNING_RATE
+)
+
+print("\nLoss function:")
+print(criterion)
+
+print("\nOptimizer:")
+print(optimizer)
+
+
+# ============================================================
+# 20. TRAIN LSTM
+# ============================================================
+
+print("\n" + "=" * 70)
+print("TRAINING LSTM")
+print("=" * 70)
+
+model.train()
+
+for epoch in range(EPOCHS):
+
+    running_loss = 0.0
+    correct = 0
+    total = 0
+
+    for batch_X, batch_y in train_loader:
+
+        batch_X = batch_X.to(DEVICE)
+        batch_y = batch_y.to(DEVICE)
+
+        optimizer.zero_grad()
+
+        outputs = model(batch_X)
+
+        loss = criterion(
+            outputs,
+            batch_y
+        )
+
+        loss.backward()
+
+        optimizer.step()
+
+        running_loss += (
+            loss.item() * batch_X.size(0)
+        )
+
+        predictions = torch.argmax(
+            outputs,
+            dim=1
+        )
+
+        correct += (
+            predictions == batch_y
+        ).sum().item()
+
+        total += batch_y.size(0)
+
+    epoch_loss = running_loss / total
+    epoch_accuracy = correct / total
+
+    print(
+        f"Epoch [{epoch + 1}/{EPOCHS}] | "
+        f"Loss: {epoch_loss:.4f} | "
+        f"Accuracy: {epoch_accuracy:.4f}"
+    )
+
+print("\nLSTM training completed.")
+
+
+# ============================================================
+# 21. GENERATE TEST PREDICTIONS AND CONFIDENCE SCORES
+# ============================================================
+
+model.eval()
+
+all_predictions = []
+all_true_labels = []
+all_confidences = []
+all_probabilities = []
+
+with torch.no_grad():
+
+    for batch_X, batch_y in test_loader:
+
+        batch_X = batch_X.to(DEVICE)
+
+        logits = model(batch_X)
+
+        probabilities = torch.softmax(
+            logits,
+            dim=1
+        )
+
+        confidence, predictions = torch.max(
+            probabilities,
+            dim=1
+        )
+
+        all_predictions.extend(
+            predictions.cpu().numpy()
+        )
+
+        all_true_labels.extend(
+            batch_y.numpy()
+        )
+
+        all_confidences.extend(
+            confidence.cpu().numpy()
+        )
+
+        all_probabilities.extend(
+            probabilities.cpu().numpy()
+        )
+
+
+all_predictions = np.asarray(
+    all_predictions
+)
+
+all_true_labels = np.asarray(
+    all_true_labels
+)
+
+all_confidences = np.asarray(
+    all_confidences
+)
+
+all_probabilities = np.asarray(
+    all_probabilities
+)
+
+
+print("\nPrediction results generated.")
+
+print(
+    f"Number of predictions: "
+    f"{len(all_predictions)}"
+)
+
+print(
+    f"Mean overall confidence: "
+    f"{all_confidences.mean() * 100:.2f}%"
+)
+
+print(
+    f"Minimum confidence: "
+    f"{all_confidences.min() * 100:.2f}%"
+)
+
+print(
+    f"Maximum confidence: "
+    f"{all_confidences.max() * 100:.2f}%"
+)
+
+
+# ============================================================
+# 22. OVERALL LSTM PERFORMANCE
+# ============================================================
+
+overall_accuracy = np.mean(
+    all_predictions == all_true_labels
+)
+
+print("\n" + "=" * 70)
+print("LSTM TEST PERFORMANCE")
+print("=" * 70)
+
+print(
+    f"Test Accuracy: "
+    f"{overall_accuracy * 100:.2f}%"
+)
+
+print(
+    f"Mean Prediction Confidence: "
+    f"{all_confidences.mean() * 100:.2f}%"
+)
+
+
+# ============================================================
+# 23. CONFIDENCE THRESHOLDS
+# ============================================================
+
+HIGH_CONFIDENCE_THRESHOLD = 0.80
+LOW_CONFIDENCE_THRESHOLD = 0.50
+
+print("\nConfidence thresholds:")
+print(
+    f"High confidence: >= "
+    f"{HIGH_CONFIDENCE_THRESHOLD * 100:.0f}%"
+)
+
+print(
+    f"Low confidence: < "
+    f"{LOW_CONFIDENCE_THRESHOLD * 100:.0f}%"
+)
+
+print(
+    "\nConfidence between 50% and 80% "
+    "is treated as moderate confidence."
+)
+
+
+# ============================================================
+# 24. CALCULATE CLASS-WISE CONFIDENCE METRICS
+# ============================================================
+
+mean_confidence = []
+high_confidence_rate = []
+low_confidence_rate = []
+sample_counts = []
+
+for class_id in range(num_classes):
+
+    # Select predictions belonging to this class
+    class_mask = (
+        all_predictions == class_id
+    )
+
+    class_confidences = (
+        all_confidences[class_mask]
+    )
+
+    sample_count = len(
+        class_confidences
+    )
+
+    sample_counts.append(
+        sample_count
+    )
+
+    if sample_count == 0:
+
+        mean_confidence.append(
+            np.nan
+        )
+
+        high_confidence_rate.append(
+            np.nan
+        )
+
+        low_confidence_rate.append(
+            np.nan
+        )
+
+        continue
+
+    # Mean confidence
+    mean_value = (
+        np.mean(class_confidences)
+    )
+
+    # High-confidence percentage
+    high_value = (
+        np.mean(
+            class_confidences
+            >= HIGH_CONFIDENCE_THRESHOLD
+        )
+        * 100
+    )
+
+    # Low-confidence percentage
+    low_value = (
+        np.mean(
+            class_confidences
+            < LOW_CONFIDENCE_THRESHOLD
+        )
+        * 100
+    )
+
+    mean_confidence.append(
+        mean_value * 100
+    )
+
+    high_confidence_rate.append(
+        high_value
+    )
+
+    low_confidence_rate.append(
+        low_value
+    )
+
+
+confidence_results = pd.DataFrame({
+
+    "Attack": class_names,
+
+    "Samples": sample_counts,
+
+    "Mean Confidence (%)":
+        mean_confidence,
+
+    "High Confidence (%)":
+        high_confidence_rate,
+
+    "Low Confidence (%)":
+        low_confidence_rate
+})
+
+
+print("\n" + "=" * 90)
+print("CLASS-WISE LSTM CONFIDENCE ANALYSIS")
+print("=" * 90)
+
+print(
+    confidence_results.to_string(
+        index=False,
+        float_format=lambda x: f"{x:.2f}"
+    )
+)
+
+# ============================================================
+# 25. SAVE CONFIDENCE RESULTS
+# ============================================================
+
+RESULT_FILE = os.path.join(
+    SAVE_DIR,
+    "lstm_confidence_results.csv"
+)
+
+confidence_results.to_csv(
+    RESULT_FILE,
+    index=False
+)
+
+print(
+    f"\nConfidence results saved to:\n"
+    f"{RESULT_FILE}"
+)
+
+
+
+# ============================================================
+# 26. LIST ALL DETECTED THREAT CLASSES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("DETECTED THREAT CLASSES")
+print("=" * 70)
+
+for i, threat in enumerate(class_names, start=1):
+    print(f"{i}. {threat}")
+
+print("=" * 70)
+
+print(f"\nTotal detected classes: {len(class_names)}")
+
+
+# ============================================================
+# 27. DISPLAY CONFIDENCE METRICS FOR ALL THREATS
+# ============================================================
+
+print("\n" + "=" * 100)
+print("LSTM THREAT-PREDICTION CONFIDENCE")
+print("=" * 100)
+
+print(
+    f"{'Threat':<25}"
+    f"{'Mean Confidence':>20}"
+    f"{'High Confidence':>20}"
+    f"{'Low Confidence':>20}"
+)
+
+print("-" * 100)
+
+for i, threat in enumerate(class_names):
+
+    print(
+        f"{threat:<25}"
+        f"{mean_confidence[i]:>18.2f}%"
+        f"{high_confidence_rate[i]:>19.2f}%"
+        f"{low_confidence_rate[i]:>19.2f}%"
+    )
+
+print("=" * 100)
+# ============================================================
+# 28. COMBINED BAR CHART
+#     MEAN + HIGH + LOW CONFIDENCE
+# ============================================================
+# ============================================================
+# 30. MEAN CONFIDENCE BY THREAT
+# ============================================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.arange(len(class_names))
+
+fig, ax = plt.subplots(figsize=(13, 7))
+
+bars = ax.bar(
+    x,
+    mean_confidence,
+    width=0.65
+)
+
+# Threat names directly on the x-axis
+ax.set_xticks(x)
+ax.set_xticklabels(
+    class_names,
+    fontsize=18,
+    rotation=0
+)
+
+ax.set_xlabel(
+    "Threat Class",
+    fontsize=20,
+    fontweight="bold"
+)
+
+ax.set_ylabel(
+    "Mean Confidence (%)",
+    fontsize=20,
+    fontweight="bold"
+)
+
+ax.tick_params(
+    axis="y",
+    labelsize=17
+)
+
+ax.set_ylim(0, 100)
+
+# Confidence percentage on top of each threat
+for bar, value in zip(bars, mean_confidence):
+
+    if not np.isnan(value):
+
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            value + 1.5,
+            f"{value:.1f}%",
+            ha="center",
+            va="bottom",
+            fontsize=16,
+            fontweight="bold"
+        )
+
+ax.grid(
+    axis="y",
+    linestyle="--",
+    alpha=0.3
+)
+
+fig.tight_layout()
+
+FILE_MEAN = os.path.join(
+    SAVE_DIR,
+    "LSTM_Mean_Confidence_Threats.png"
+)
+
+fig.savefig(
+    FILE_MEAN,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print(
+    f"\nMean-confidence figure saved to:\n{FILE_MEAN}"
+)
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Number of threat classes
+x = np.arange(len(class_names))
+
+# Width of each individual bar
+bar_width = 0.25
+
+
+plt.figure(figsize=(13, 7))
+
+
+# ------------------------------------------------------------
+# Mean confidence
+# ------------------------------------------------------------
+
+bars_mean = plt.bar(
+    x - bar_width,
+    mean_confidence,
+    width=bar_width,
+    label="Mean Confidence"
+)
+
+
+# ------------------------------------------------------------
+# High confidence
+# ------------------------------------------------------------
+
+bars_high = plt.bar(
+    x,
+    high_confidence_rate,
+    width=bar_width,
+    label="High Confidence"
+)
+
+
+# ------------------------------------------------------------
+# Low confidence
+# ------------------------------------------------------------
+
+bars_low = plt.bar(
+    x + bar_width,
+    low_confidence_rate,
+    width=bar_width,
+    label="Low Confidence"
+)
+
+
+# ------------------------------------------------------------
+# X-axis
+# ------------------------------------------------------------
+
+plt.xlabel(
+    "Threat Class",
+    fontsize=20,
+    fontweight="bold"
+)
+
+plt.ylabel(
+    "Confidence (%)",
+    fontsize=20,
+    fontweight="bold"
+)
+
+plt.xticks(
+    x,
+    class_names,
+    fontsize=17,
+    rotation=20
+)
+
+plt.yticks(
+    fontsize=17
+)
+
+
+# ------------------------------------------------------------
+# Y-axis range
+# ------------------------------------------------------------
+
+plt.ylim(
+    0,
+    100
+)
+
+
+# ------------------------------------------------------------
+# Add numerical values above bars
+# ------------------------------------------------------------
+
+for bars in [
+    bars_mean,
+    bars_high,
+    bars_low
+]:
+
+    for bar in bars:
+
+        height = bar.get_height()
+
+        if not np.isnan(height):
+
+            plt.text(
+                bar.get_x()
+                + bar.get_width() / 2,
+
+                height + 1,
+
+                f"{height:.1f}%",
+
+                ha="center",
+                va="bottom",
+
+                fontsize=13,
+                fontweight="bold"
+            )
+
+
+# ------------------------------------------------------------
+# Legend
+# ------------------------------------------------------------
+
+plt.legend(
+    fontsize=15,
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.02),
+    ncol=3,
+    frameon=True
+)
+
+
+# ------------------------------------------------------------
+# Grid
+# ------------------------------------------------------------
+
+plt.grid(
+    axis="y",
+    linestyle="--",
+    alpha=0.3
+)
+
+
+# ------------------------------------------------------------
+# Layout
+# ------------------------------------------------------------
+
+plt.tight_layout()
+
+
+# ------------------------------------------------------------
+# Save figure
+# ------------------------------------------------------------
+
+COMBINED_CONFIDENCE_FILE = os.path.join(
+    SAVE_DIR,
+    "LSTM_Threat_Confidence_Combined.png"
+)
+
+plt.savefig(
+    COMBINED_CONFIDENCE_FILE,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+print(
+    f"\nCombined confidence figure saved to:\n"
+    f"{COMBINED_CONFIDENCE_FILE}"
+)
+
+# ============================================================
+# 29. PUBLICATION-READY COMBINED CONFIDENCE BAR CHART
+# ============================================================
+
+x = np.arange(len(class_names))
+
+bar_width = 0.24
+
+fig, ax = plt.subplots(
+    figsize=(13, 7)
+)
+
+
+# ------------------------------------------------------------
+# Plot three confidence categories
+# ------------------------------------------------------------
+
+bars1 = ax.bar(
+    x - bar_width,
+    mean_confidence,
+    width=bar_width,
+    label="Mean Confidence"
+)
+
+bars2 = ax.bar(
+    x,
+    high_confidence_rate,
+    width=bar_width,
+    label="High Confidence"
+)
+
+bars3 = ax.bar(
+    x + bar_width,
+    low_confidence_rate,
+    width=bar_width,
+    label="Low Confidence"
+)
+
+
+# ------------------------------------------------------------
+# Axis labels
+# ------------------------------------------------------------
+
+ax.set_xlabel(
+    "Threat Class",
+    fontsize=20,
+    fontweight="bold"
+)
+
+ax.set_ylabel(
+    "Confidence (%)",
+    fontsize=20,
+    fontweight="bold"
+)
+
+
+# ------------------------------------------------------------
+# Tick labels
+# ------------------------------------------------------------
+
+ax.set_xticks(x)
+
+ax.set_xticklabels(
+    class_names,
+    fontsize=17,
+    rotation=20
+)
+
+ax.tick_params(
+    axis="y",
+    labelsize=17
+)
+
+
+# ------------------------------------------------------------
+# Fixed confidence scale
+# ------------------------------------------------------------
+
+ax.set_ylim(
+    0,
+    100
+)
+
+
+# ------------------------------------------------------------
+# Add values
+# ------------------------------------------------------------
+
+def add_values(bars):
+
+    for bar in bars:
+
+        height = bar.get_height()
+
+        if not np.isnan(height):
+
+            ax.annotate(
+                f"{height:.1f}%",
+                xy=(
+                    bar.get_x()
+                    + bar.get_width() / 2,
+                    height
+                ),
+                xytext=(
+                    0,
+                    4
+                ),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
+                fontsize=12,
+                fontweight="bold"
+            )
+
+
+add_values(bars1)
+add_values(bars2)
+add_values(bars3)
+
+
+# ------------------------------------------------------------
+# Legend
+# ------------------------------------------------------------
+
+ax.legend(
+    fontsize=15,
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.02),
+    ncol=3,
+    frameon=True
+)
+
+
+# ------------------------------------------------------------
+# Grid
+# ------------------------------------------------------------
+
+ax.grid(
+    axis="y",
+    linestyle="--",
+    alpha=0.3
+)
+
+
+# ------------------------------------------------------------
+# Layout
+# ------------------------------------------------------------
+
+fig.tight_layout()
+
+
+# ------------------------------------------------------------
+# Save high-resolution figure
+# ------------------------------------------------------------
+
+PUBLICATION_FIGURE = os.path.join(
+    SAVE_DIR,
+    "LSTM_Threat_Confidence_All_Metrics.png"
+)
+
+fig.savefig(
+    PUBLICATION_FIGURE,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+print(
+    "\nPublication-ready figure saved:"
+)
+
+print(
+    PUBLICATION_FIGURE
+)
+# ============================================================
+# 26. PLOT 1 — MEAN CONFIDENCE
+# ============================================================
+
+plt.figure(figsize=(10, 6))
+
+bars = plt.bar(
+    class_names,
+    mean_confidence
+)
+
+plt.xlabel(
+    "Attack Class",
+    fontsize=20,
+    fontweight="bold"
+)
+
+plt.ylabel(
+    "Mean Confidence (%)",
+    fontsize=20,
+    fontweight="bold"
+)
+
+plt.xticks(
+    fontsize=17,
+    rotation=20
+)
+
+plt.yticks(
+    fontsize=17
+)
+
+plt.ylim(
+    0,
+    100
+)
+
+# Add values above bars
+for bar, value in zip(
+    bars,
+    mean_confidence
+):
+
+    if not np.isnan(value):
+
+        plt.text(
+            bar.get_x() +
+            bar.get_width() / 2,
+
+            value + 1,
+
+            f"{value:.1f}%",
+
+            ha="center",
+            va="bottom",
+
+            fontsize=16,
+            fontweight="bold"
+        )
+
+
+plt.tight_layout()
+
+MEAN_CONFIDENCE_FILE = os.path.join(
+    SAVE_DIR,
+    "LSTM_Mean_Confidence.png"
+)
+
+plt.savefig(
+    MEAN_CONFIDENCE_FILE,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print(
+    f"Saved:\n{MEAN_CONFIDENCE_FILE}"
+)
+
+# ============================================================
+# 27. PLOT 2 — HIGH CONFIDENCE RATE
+# ============================================================
+
+plt.figure(figsize=(10, 6))
+
+bars = plt.bar(
+    class_names,
+    high_confidence_rate
+)
+
+plt.xlabel(
+    "Attack Class",
+    fontsize=20,
+    fontweight="bold"
+)
+
+plt.ylabel(
+    "High-Confidence Predictions (%)",
+    fontsize=20,
+    fontweight="bold"
+)
+
+plt.xticks(
+    fontsize=17,
+    rotation=20
+)
+
+plt.yticks(
+    fontsize=17
+)
+
+plt.ylim(
+    0,
+    100
+)
+
+for bar, value in zip(
+    bars,
+    high_confidence_rate
+):
+
+    if not np.isnan(value):
+
+        plt.text(
+            bar.get_x() +
+            bar.get_width() / 2,
+
+            value + 1,
+
+            f"{value:.1f}%",
+
+            ha="center",
+            va="bottom",
+
+            fontsize=16,
+            fontweight="bold"
+        )
+
+
+plt.tight_layout()
+
+HIGH_CONFIDENCE_FILE = os.path.join(
+    SAVE_DIR,
+    "LSTM_High_Confidence.png"
+)
+
+plt.savefig(
+    HIGH_CONFIDENCE_FILE,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print(
+    f"Saved:\n{HIGH_CONFIDENCE_FILE}"
+)
+
+# ============================================================
+# 28. PLOT 3 — LOW CONFIDENCE RATE
+# ============================================================
+
+plt.figure(figsize=(10, 6))
+
+bars = plt.bar(
+    class_names,
+    low_confidence_rate
+)
+
+plt.xlabel(
+    "Attack Class",
+    fontsize=20,
+    fontweight="bold"
+)
+
+plt.ylabel(
+    "Low-Confidence Predictions (%)",
+    fontsize=20,
+    fontweight="bold"
+)
+
+plt.xticks(
+    fontsize=17,
+    rotation=20
+)
+
+plt.yticks(
+    fontsize=17
+)
+
+plt.ylim(
+    0,
+    100
+)
+
+for bar, value in zip(
+    bars,
+    low_confidence_rate
+):
+
+    if not np.isnan(value):
+
+        plt.text(
+            bar.get_x() +
+            bar.get_width() / 2,
+
+            value + 1,
+
+            f"{value:.1f}%",
+
+            ha="center",
+            va="bottom",
+
+            fontsize=16,
+            fontweight="bold"
+        )
+
+
+plt.tight_layout()
+
+LOW_CONFIDENCE_FILE = os.path.join(
+    SAVE_DIR,
+    "LSTM_Low_Confidence.png"
+)
+
+plt.savefig(
+    LOW_CONFIDENCE_FILE,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print(
+    f"Saved:\n{LOW_CONFIDENCE_FILE}"
+)
+
+# ============================================================
+# 30. MEAN CONFIDENCE BY THREAT
+# ============================================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.arange(len(class_names))
+
+fig, ax = plt.subplots(figsize=(13, 7))
+
+bars = ax.bar(
+    x,
+    mean_confidence,
+    width=0.65
+)
+
+# Threat names directly on the x-axis
+ax.set_xticks(x)
+ax.set_xticklabels(
+    class_names,
+    fontsize=18,
+    rotation=0
+)
+
+ax.set_xlabel(
+    "Threat Class",
+    fontsize=20,
+    fontweight="bold"
+)
+
+ax.set_ylabel(
+    "Mean Confidence (%)",
+    fontsize=20,
+    fontweight="bold"
+)
+
+ax.tick_params(
+    axis="y",
+    labelsize=17
+)
+
+ax.set_ylim(0, 100)
+
+# Confidence percentage on top of each threat
+for bar, value in zip(bars, mean_confidence):
+
+    if not np.isnan(value):
+
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            value + 1.5,
+            f"{value:.1f}%",
+            ha="center",
+            va="bottom",
+            fontsize=16,
+            fontweight="bold"
+        )
+
+ax.grid(
+    axis="y",
+    linestyle="--",
+    alpha=0.3
+)
+
+fig.tight_layout()
+
+FILE_MEAN = os.path.join(
+    SAVE_DIR,
+    "LSTM_Mean_Confidence_Threats.png"
+)
+
+fig.savefig(
+    FILE_MEAN,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print(
+    f"\nMean-confidence figure saved to:\n{FILE_MEAN}"
+)
+
+# ============================================================
+# 31. HIGH CONFIDENCE BY THREAT
+# ============================================================
+
+x = np.arange(len(class_names))
+
+fig, ax = plt.subplots(figsize=(13, 7))
+
+bars = ax.bar(
+    x,
+    high_confidence_rate,
+    width=0.65
+)
+
+ax.set_xticks(x)
+
+ax.set_xticklabels(
+    class_names,
+    fontsize=18,
+    rotation=0
+)
+
+ax.set_xlabel(
+    "Threat Class",
+    fontsize=20,
+    fontweight="bold"
+)
+
+ax.set_ylabel(
+    "High Confidence (%)",
+    fontsize=20,
+    fontweight="bold"
+)
+
+ax.tick_params(
+    axis="y",
+    labelsize=17
+)
+
+ax.set_ylim(0, 100)
+
+# Put percentage directly above every threat bar
+for bar, value in zip(
+    bars,
+    high_confidence_rate
+):
+
+    if not np.isnan(value):
+
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            value + 1.5,
+            f"{value:.1f}%",
+            ha="center",
+            va="bottom",
+            fontsize=16,
+            fontweight="bold"
+        )
+
+ax.grid(
+    axis="y",
+    linestyle="--",
+    alpha=0.3
+)
+
+fig.tight_layout()
+
+FILE_HIGH = os.path.join(
+    SAVE_DIR,
+    "LSTM_High_Confidence_Threats.png"
+)
+
+fig.savefig(
+    FILE_HIGH,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print(
+    f"\nHigh-confidence figure saved to:\n{FILE_HIGH}"
+)
+
+# ============================================================
+# 32. LOW CONFIDENCE BY THREAT
+# ============================================================
+
+x = np.arange(len(class_names))
+
+fig, ax = plt.subplots(figsize=(13, 7))
+
+bars = ax.bar(
+    x,
+    low_confidence_rate,
+    width=0.65
+)
+
+ax.set_xticks(x)
+
+ax.set_xticklabels(
+    class_names,
+    fontsize=18,
+    rotation=0
+)
+
+ax.set_xlabel(
+    "Threat Class",
+    fontsize=20,
+    fontweight="bold"
+)
+
+ax.set_ylabel(
+    "Low Confidence (%)",
+    fontsize=20,
+    fontweight="bold"
+)
+
+ax.tick_params(
+    axis="y",
+    labelsize=17
+)
+
+ax.set_ylim(0, 100)
+
+# Put percentage directly above every threat bar
+for bar, value in zip(
+    bars,
+    low_confidence_rate
+):
+
+    if not np.isnan(value):
+
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            value + 1.5,
+            f"{value:.1f}%",
+            ha="center",
+            va="bottom",
+            fontsize=16,
+            fontweight="bold"
+        )
+
+ax.grid(
+    axis="y",
+    linestyle="--",
+    alpha=0.3
+)
+
+fig.tight_layout()
+
+FILE_LOW = os.path.join(
+    SAVE_DIR,
+    "LSTM_Low_Confidence_Threats.png"
+)
+
+fig.savefig(
+    FILE_LOW,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print(
+    f"\nLow-confidence figure saved to:\n{FILE_LOW}"
+)
+# ============================================================
+# 29. FINAL CONFIDENCE SUMMARY
+# ============================================================
+
+print("\n")
+print("=" * 90)
+print("FINAL LSTM CONFIDENCE SUMMARY")
+print("=" * 90)
+
+for i, attack in enumerate(class_names):
+
+    print(
+        f"{attack:<20} | "
+        f"Mean: {mean_confidence[i]:6.2f}% | "
+        f"High: {high_confidence_rate[i]:6.2f}% | "
+        f"Low: {low_confidence_rate[i]:6.2f}%"
+    )
+
+print("=" * 90)
+
+print(
+    f"\nOverall mean confidence: "
+    f"{np.nanmean(mean_confidence):.2f}%"
+)
+
+print(
+    f"High-confidence threshold: "
+    f"{HIGH_CONFIDENCE_THRESHOLD * 100:.0f}%"
+)
+
+print(
+    f"Low-confidence threshold: "
+    f"{LOW_CONFIDENCE_THRESHOLD * 100:.0f}%"
+)
