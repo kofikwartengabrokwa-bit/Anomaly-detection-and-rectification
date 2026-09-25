@@ -1,0 +1,1040 @@
+import re
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+
+import re
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+FILE_PATH = "LSTM_Threat_Stats.txt"
+MIN_USERS = 600
+MAX_USERS = 1000
+OUTPUT_DIR = "lstm_plots"
+
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# ============================================================
+# Plot configuration
+# ============================================================
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 19
+plt.rcParams["axes.labelsize"] = 20
+plt.rcParams["xtick.labelsize"] = 18
+plt.rcParams["ytick.labelsize"] = 18
+plt.rcParams["legend.fontsize"] = 22
+
+
+# ============================================================
+# Function to assign requested short names
+# ============================================================
+def get_short_name(model_name):
+
+    name = model_name.strip().lower()
+
+    # --------------------------------------------------------
+    # Ours
+    # --------------------------------------------------------
+    if (
+        "ours" in name
+        or "slam-lstm" in name
+        or "slamlstm" in name
+    ):
+        return "Ours"
+
+    # --------------------------------------------------------
+    # GAN-PPO
+    # --------------------------------------------------------
+    if "gan" in name:
+        return "GAN_PPO"
+
+    # --------------------------------------------------------
+    # Kmeans+Decision -> KDT
+    # Case-insensitive and exact combination
+    # --------------------------------------------------------
+    if "kmeans+decision" in name:
+        return "KDT"
+
+    # Also handle possible spacing variations
+    if (
+        "kmeans + decision" in name
+        or "k-means+decision" in name
+        or "k-means + decision" in name
+    ):
+        return "KDT"
+
+    # --------------------------------------------------------
+    # KG
+    # --------------------------------------------------------
+    if (
+        re.search(r"\bkg\b", name)
+        or "knowledge graph" in name
+    ):
+        return "KG"
+
+    # --------------------------------------------------------
+    # PPO
+    # --------------------------------------------------------
+    if re.search(r"\bppo\b", name):
+        return "PPO"
+
+    # --------------------------------------------------------
+    # Fallback
+    # --------------------------------------------------------
+    return model_name.strip()
+
+
+# ============================================================
+# Read file
+# ============================================================
+with open(FILE_PATH, "r", encoding="utf-8") as f:
+    text = f.read()
+
+
+# ============================================================
+# Extract model blocks
+# ============================================================
+pattern = re.compile(
+    r"=+\s*\n"
+    r"(.+?)\n"
+    r"=+\s*\n"
+    r"(.*?)(?=\n=+\s*\n|\Z)",
+    re.DOTALL
+)
+
+matches = pattern.findall(text)
+
+records = []
+
+row_pattern = re.compile(
+    r"Users\s*=\s*(\d+)"
+    r"\s*\|\s*Time\s*=\s*([\d.]+)\s*ms"
+    r"\s*\|\s*Scheduling\s*=\s*([\d.]+)%"
+    r"\s*\|\s*QoS violation\s*=\s*([\d.]+)%"
+    r"\s*\|\s*Resource efficiency\s*=\s*([\d.]+)%"
+)
+
+
+# ============================================================
+# Parse data
+# ============================================================
+for model_name, block in matches:
+
+    model_name = model_name.strip()
+
+    # Assign short name for legend
+    short_name = get_short_name(model_name)
+
+    rows = row_pattern.findall(block)
+
+    for users, time, scheduling, qos, efficiency in rows:
+
+        users = int(users)
+
+        if MIN_USERS <= users <= MAX_USERS:
+
+            records.append({
+                "Model": model_name,
+                "Legend": short_name,
+                "Users": users,
+                "Time": float(time),
+                "Scheduling": float(scheduling),
+                "QoS Violation": float(qos),
+                "Resource Efficiency": float(efficiency)
+            })
+
+
+# ============================================================
+# Check extraction
+# ============================================================
+if not records:
+    raise ValueError(
+        "No data were extracted. Check the formatting of "
+        "LSTM_Threat_Stats.txt."
+    )
+
+df = pd.DataFrame(records)
+
+
+# ============================================================
+# Print model-name mapping
+# ============================================================
+print("\n============================================================")
+print("MODEL NAME MAPPING")
+print("============================================================")
+
+mapping = df[["Model", "Legend"]].drop_duplicates()
+
+for _, row in mapping.iterrows():
+    print(f"{row['Model']}  -->  {row['Legend']}")
+
+
+# ============================================================
+# Verify Kmeans+Decision mapping
+# ============================================================
+kmeans_models = df[
+    df["Model"].str.lower().str.contains(
+        "kmeans+decision",
+        regex=False
+    )
+]
+
+if len(kmeans_models) > 0:
+
+    if not all(kmeans_models["Legend"] == "KDT"):
+        raise ValueError(
+            "ERROR: Kmeans+Decision was not mapped to KDT."
+        )
+
+    print("\nKmeans+Decision successfully mapped to KDT.")
+
+
+# ============================================================
+# Print extracted data
+# ============================================================
+print("\n============================================================")
+print("EXTRACTED DATA")
+print("============================================================")
+
+print(
+    df[
+        [
+            "Legend",
+            "Users",
+            "Time",
+            "Scheduling",
+            "QoS Violation",
+            "Resource Efficiency"
+        ]
+    ].to_string(index=False)
+)
+
+print("\nUsers found:")
+print(sorted(df["Users"].unique()))
+
+
+# ============================================================
+# Desired legend order
+# ============================================================
+desired_order = [
+    "Ours",
+    "GAN_PPO",
+    "KDT",
+    "KG",
+    "PPO"
+]
+
+present_models = df["Legend"].unique()
+
+models = [
+    model
+    for model in desired_order
+    if model in present_models
+]
+
+# Add unexpected models at the end, if any
+for model in present_models:
+    if model not in models:
+        models.append(model)
+
+
+# ============================================================
+# Plot function
+# ============================================================
+def plot_metric(
+        dataframe,
+        metric,
+        ylabel,
+        filename,
+        ylim=None
+):
+
+    users = sorted(
+        dataframe["Users"].unique()
+    )
+
+    x = np.arange(len(users))
+
+    width = 0.8 / len(models)
+
+    fig, ax = plt.subplots(
+        figsize=(12, 7)
+    )
+
+    for i, model in enumerate(models):
+
+        model_data = dataframe[
+            dataframe["Legend"] == model
+        ]
+
+        values = []
+
+        for user in users:
+
+            row = model_data[
+                model_data["Users"] == user
+            ]
+
+            if len(row) > 0:
+                values.append(
+                    row.iloc[0][metric]
+                )
+            else:
+                values.append(np.nan)
+
+        offset = (
+            i - (len(models) - 1) / 2
+        ) * width
+
+        ax.bar(
+            x + offset,
+            values,
+            width=width,
+            label=model
+        )
+
+    # ========================================================
+    # Axes
+    # ========================================================
+    ax.set_xlabel(
+        "Number of users"
+    )
+
+    ax.set_ylabel(
+        ylabel
+    )
+
+    ax.set_xticks(x)
+
+    ax.set_xticklabels(users)
+
+    if ylim is not None:
+        ax.set_ylim(ylim)
+
+    # ========================================================
+    # Grid
+    # ========================================================
+    ax.grid(
+        axis="y",
+        linestyle="--",
+        linewidth=0.7,
+        alpha=0.5
+    )
+
+    ax.set_axisbelow(True)
+
+    # ========================================================
+    # Legend
+    # ========================================================
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.15),
+        ncol=len(models),
+        frameon=False
+    )
+
+    # ========================================================
+    # Spines
+    # ========================================================
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    plt.tight_layout()
+
+    # ========================================================
+    # Save PNG
+    # ========================================================
+    png_path = os.path.join(
+        OUTPUT_DIR,
+        filename + ".png"
+    )
+
+    # ========================================================
+    # Save EPS
+    # ========================================================
+    eps_path = os.path.join(
+        OUTPUT_DIR,
+        filename + ".eps"
+    )
+
+    plt.savefig(
+        png_path,
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.savefig(
+        eps_path,
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    plt.show()
+
+    plt.close()
+
+    print(f"Saved: {png_path}")
+    print(f"Saved: {eps_path}")
+
+
+# ============================================================
+# Generate four bar charts
+# ============================================================
+
+plot_metric(
+    df,
+    "Time",
+    "Execution time (ms)",
+    "execution_time",
+    ylim=(0, None)
+)
+
+plot_metric(
+    df,
+    "Scheduling",
+    "Scheduling efficiency (%)",
+    "scheduling_efficiency",
+    ylim=(0, 100)
+)
+
+plot_metric(
+    df,
+    "QoS Violation",
+    "QoS violation (%)",
+    "qos_violation",
+    ylim=(0, 100)
+)
+
+plot_metric(
+    df,
+    "Resource Efficiency",
+    "Scheduling efficiency (%)",
+    "resource_efficiency",
+    ylim=(0, 100)
+)
+
+
+# ============================================================
+# Completion
+# ============================================================
+print("\n============================================================")
+print("PLOTTING COMPLETED SUCCESSFULLY")
+print("============================================================")
+print("Legend order:")
+print("Ours | GAN_PPO | KDT | KG | PPO")
+print(f"User range: {MIN_USERS} - {MAX_USERS}")
+print(f"Output directory: {OUTPUT_DIR}")
+print("============================================================")
+
+
+# ============================================================
+# Completion
+# ============================================================
+print("\n============================================================")
+print("PLOTTING COMPLETED SUCCESSFULLY")
+print("============================================================")
+print("Legend order:")
+print("GAN_PPO | KDT | KG | Ours | PPO")
+print(f"User range: {MIN_USERS} - {MAX_USERS}")
+print(f"Output directory: {OUTPUT_DIR}")
+print("============================================================")
+MIN_USERS = 600
+MAX_USERS = 1000
+OUTPUT_DIR = "lstm_plots"
+
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# ============================================================
+# Plot configuration
+# ============================================================
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 19
+plt.rcParams["axes.labelsize"] = 20
+plt.rcParams["xtick.labelsize"] = 18
+plt.rcParams["ytick.labelsize"] = 18
+plt.rcParams["legend.fontsize"] = 16
+
+# ============================================================
+# Read data
+# ============================================================
+with open(FILE_PATH, "r", encoding="utf-8") as f:
+    text = f.read()
+
+# ============================================================
+# Extract model blocks
+# ============================================================
+pattern = re.compile(
+    r"=+\s*\n"
+    r"(.+?)\n"
+    r"=+\s*\n"
+    r"(.*?)(?=\n=+\s*\n|\Z)",
+    re.DOTALL
+)
+
+matches = pattern.findall(text)
+
+records = []
+
+row_pattern = re.compile(
+    r"Users\s*=\s*(\d+)"
+    r"\s*\|\s*Time\s*=\s*([\d.]+)\s*ms"
+    r"\s*\|\s*Scheduling\s*=\s*([\d.]+)%"
+    r"\s*\|\s*QoS violation\s*=\s*([\d.]+)%"
+    r"\s*\|\s*Resource efficiency\s*=\s*([\d.]+)%"
+)
+
+for model_name, block in matches:
+
+    model_name = model_name.strip()
+
+    rows = row_pattern.findall(block)
+
+    for users, time, scheduling, qos, efficiency in rows:
+
+        users = int(users)
+
+        if MIN_USERS <= users <= MAX_USERS:
+            records.append({
+                "Model": model_name,
+                "Users": users,
+                "Time": float(time),
+                "Scheduling": float(scheduling),
+                "QoS Violation": float(qos),
+                "Resource Efficiency": float(efficiency)
+            })
+
+if not records:
+    raise ValueError(
+        "No data were extracted. Check the formatting of lstm.txt."
+    )
+
+df = pd.DataFrame(records)
+
+# ============================================================
+# Short names for legend
+# ============================================================
+short_names = {
+    "GAN-PPO": "GAN_PPO",
+    "GAN_PPO": "GAN_PPO",
+    "KDT": "KDT",
+    "KG": "KG",
+    "Ours (SLAM-LSTM-PPO)": "Ours",
+    "Ours": "Ours",
+    "PPO": "PPO"
+}
+
+df["Legend"] = df["Model"].map(
+    lambda x: short_names.get(x, x)
+)
+
+# ============================================================
+# Display extracted data
+# ============================================================
+print("\n============================================================")
+print("EXTRACTED DATA")
+print("============================================================")
+print(df.to_string(index=False))
+
+print("\nModels found:")
+print(df["Model"].unique())
+
+print("\nLegend names:")
+print(df["Legend"].unique())
+
+print("\nUsers found:")
+print(sorted(df["Users"].unique()))
+
+df = df.sort_values(["Users", "Model"])
+
+
+# ============================================================
+# Plot function
+# ============================================================
+def plot_metric(
+        dataframe,
+        metric,
+        ylabel,
+        filename,
+        ylim=None
+):
+
+    users = sorted(dataframe["Users"].unique())
+
+    # Desired legend order
+    desired_order = [
+        "GAN_PPO",
+        "KDT",
+        "KG",
+        "Ours",
+        "PPO"
+    ]
+
+    # Keep only models actually present
+    models = [
+        model for model in desired_order
+        if model in dataframe["Legend"].unique()
+    ]
+
+    # Add any unexpected models at the end
+    for model in dataframe["Legend"].unique():
+        if model not in models:
+            models.append(model)
+
+    x = np.arange(len(users))
+    width = 0.8 / len(models)
+
+    fig, ax = plt.subplots(figsize=(12, 7))
+
+    for i, model in enumerate(models):
+
+        model_data = dataframe[
+            dataframe["Legend"] == model
+        ]
+
+        values = []
+
+        for user in users:
+
+            row = model_data[
+                model_data["Users"] == user
+            ]
+
+            if len(row) > 0:
+                values.append(row.iloc[0][metric])
+            else:
+                values.append(np.nan)
+
+        offset = (
+            i - (len(models) - 1) / 2
+        ) * width
+
+        ax.bar(
+            x + offset,
+            values,
+            width=width,
+            label=model
+        )
+
+    # ========================================================
+    # Axes
+    # ========================================================
+    ax.set_xlabel("Number of users")
+    ax.set_ylabel(ylabel)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(users)
+
+    if ylim is not None:
+        ax.set_ylim(ylim)
+
+    # ========================================================
+    # Grid
+    # ========================================================
+    ax.grid(
+        axis="y",
+        linestyle="--",
+        linewidth=0.7,
+        alpha=0.5
+    )
+
+    ax.set_axisbelow(True)
+
+    # ========================================================
+    # Legend
+    # ========================================================
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.15),
+        ncol=len(models),
+        frameon=False
+    )
+
+    # ========================================================
+    # Spines
+    # ========================================================
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    plt.tight_layout()
+
+    # ========================================================
+    # Save figures
+    # ========================================================
+    png_path = os.path.join(
+        OUTPUT_DIR,
+        filename + ".png"
+    )
+
+    eps_path = os.path.join(
+        OUTPUT_DIR,
+        filename + ".eps"
+    )
+
+    plt.savefig(
+        png_path,
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.savefig(
+        eps_path,
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    plt.show()
+    plt.close()
+
+    print(f"Saved: {png_path}")
+    print(f"Saved: {eps_path}")
+
+
+# ============================================================
+# Generate plots
+# ============================================================
+
+plot_metric(
+    df,
+    "Time",
+    "Execution time (ms)",
+    "execution_time",
+    ylim=(0, None)
+)
+
+plot_metric(
+    df,
+    "Scheduling",
+    "Scheduling efficiency (%)",
+    "scheduling_efficiency",
+    ylim=(0, 100)
+)
+
+plot_metric(
+    df,
+    "QoS Violation",
+    "QoS violation (%)",
+    "qos_violation",
+    ylim=(0, 100)
+)
+
+plot_metric(
+    df,
+    "Resource Efficiency",
+    "Resource efficiency (%)",
+    "resource_efficiency",
+    ylim=(0, 100)
+)
+
+# ============================================================
+# Completion message
+# ============================================================
+print("\n============================================================")
+print("PLOTTING COMPLETED SUCCESSFULLY")
+print("============================================================")
+print(f"Input file : {FILE_PATH}")
+print(f"User range : {MIN_USERS} - {MAX_USERS}")
+print(f"Output dir : {OUTPUT_DIR}")
+print("Legend     : GAN_PPO, KDT, KG, Ours, PPO")
+print("============================================================")
+
+# User range to plot
+MIN_USERS = 600
+MAX_USERS = 1000
+
+# Output directory
+OUTPUT_DIR = "lstm_plots"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# IEEE/publication-style font
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 19
+plt.rcParams["axes.labelsize"] = 20
+plt.rcParams["xtick.labelsize"] = 18
+plt.rcParams["ytick.labelsize"] = 18
+plt.rcParams["legend.fontsize"] = 16
+
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+with open(FILE_PATH, "r", encoding="utf-8") as f:
+    text = f.read()
+
+
+# ============================================================
+# EXTRACT MODEL BLOCKS
+# ============================================================
+
+# Finds model names followed by their rows
+pattern = re.compile(
+    r"=+\s*\n"
+    r"(.+?)\n"
+    r"=+\s*\n"
+    r"(.*?)(?=\n=+\s*\n|\Z)",
+    re.DOTALL
+)
+
+matches = pattern.findall(text)
+
+records = []
+
+for model_name, block in matches:
+
+    model_name = model_name.strip()
+
+    # Extract rows such as:
+    # Users=600 | Time=xxxx ms | Scheduling=xx.xx% |
+    # QoS violation=xx.xx% | Resource efficiency=xx.xx%
+
+    row_pattern = re.compile(
+        r"Users\s*=\s*(\d+)"
+        r"\s*\|\s*Time\s*=\s*([\d.]+)\s*ms"
+        r"\s*\|\s*Scheduling\s*=\s*([\d.]+)%"
+        r"\s*\|\s*QoS violation\s*=\s*([\d.]+)%"
+        r"\s*\|\s*Resource efficiency\s*=\s*([\d.]+)%"
+    )
+
+    rows = row_pattern.findall(block)
+
+    for users, time, scheduling, qos, efficiency in rows:
+
+        users = int(users)
+
+        # Keep only 600 to 1000 users
+        if MIN_USERS <= users <= MAX_USERS:
+
+            records.append({
+                "Model": model_name,
+                "Users": users,
+                "Time": float(time),
+                "Scheduling": float(scheduling),
+                "QoS Violation": float(qos),
+                "Resource Efficiency": float(efficiency)
+            })
+
+
+# ============================================================
+# CHECK EXTRACTION
+# ============================================================
+
+if not records:
+    raise ValueError(
+        "No data were extracted. Check the formatting of lstm.txt."
+    )
+
+df = pd.DataFrame(records)
+
+print("\n============================================================")
+print("EXTRACTED DATA")
+print("============================================================")
+print(df.to_string(index=False))
+
+print("\nModels found:")
+print(df["Model"].unique())
+
+print("\nUsers found:")
+print(sorted(df["Users"].unique()))
+
+
+# ============================================================
+# SORT DATA
+# ============================================================
+
+df = df.sort_values(["Users", "Model"])
+
+
+# ============================================================
+# PLOT FUNCTION
+# ============================================================
+
+def plot_metric(
+        dataframe,
+        metric,
+        ylabel,
+        filename,
+        ylim=None,
+        percentage=False
+):
+
+    users = sorted(dataframe["Users"].unique())
+    models = list(dataframe["Model"].unique())
+
+    x = np.arange(len(users))
+
+    # Width automatically adjusted according to number of models
+    width = 0.8 / len(models)
+
+    fig, ax = plt.subplots(figsize=(12, 7))
+
+    for i, model in enumerate(models):
+
+        model_data = dataframe[dataframe["Model"] == model]
+
+        values = []
+
+        for user in users:
+
+            row = model_data[model_data["Users"] == user]
+
+            if len(row) > 0:
+                values.append(row.iloc[0][metric])
+            else:
+                values.append(np.nan)
+
+        offset = (i - (len(models) - 1) / 2) * width
+
+        ax.bar(
+            x + offset,
+            values,
+            width=width,
+            label=model
+        )
+
+    # --------------------------------------------------------
+    # Axis formatting
+    # --------------------------------------------------------
+
+    ax.set_xlabel("Number of users")
+    ax.set_ylabel(ylabel)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(users)
+
+    if ylim is not None:
+        ax.set_ylim(ylim)
+
+    ax.grid(
+        axis="y",
+        linestyle="--",
+        linewidth=0.7,
+        alpha=0.5
+    )
+
+    ax.set_axisbelow(True)
+
+    # Legend at top
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.15),
+        ncol=min(len(models), 5),
+        frameon=False
+    )
+
+    # Remove unnecessary top/right borders
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    plt.tight_layout()
+
+    # --------------------------------------------------------
+    # Save PNG and EPS
+    # --------------------------------------------------------
+
+    png_path = os.path.join(
+        OUTPUT_DIR,
+        filename + ".png"
+    )
+
+    eps_path = os.path.join(
+        OUTPUT_DIR,
+        filename + ".eps"
+    )
+
+    plt.savefig(
+        png_path,
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.savefig(
+        eps_path,
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    plt.show()
+
+    plt.close()
+
+    print(f"Saved: {png_path}")
+    print(f"Saved: {eps_path}")
+
+
+# ============================================================
+# 1. EXECUTION TIME
+# ============================================================
+
+plot_metric(
+    df,
+    metric="Time",
+    ylabel="Execution time (ms)",
+    filename="execution_time",
+    ylim=(0, None)
+)
+
+
+# ============================================================
+# 2. SCHEDULING EFFICIENCY
+# ============================================================
+
+plot_metric(
+    df,
+    metric="Scheduling",
+    ylabel="Scheduling efficiency (%)",
+    filename="scheduling_efficiency",
+    ylim=(0, 100),
+    percentage=True
+)
+
+
+# ============================================================
+# 3. QoS VIOLATION
+# ============================================================
+
+plot_metric(
+    df,
+    metric="QoS Violation",
+    ylabel="QoS violation (%)",
+    filename="qos_violation",
+    ylim=(0, 100),
+    percentage=True
+)
+
+
+# ============================================================
+# 4. RESOURCE EFFICIENCY
+# ============================================================
+
+plot_metric(
+    df,
+    metric="Resource Efficiency",
+    ylabel="Resource efficiency (%)",
+    filename="resource_efficiency",
+    ylim=(0, 100),
+    percentage=True
+)
+
+
+# ============================================================
+# SUMMARY
+# ============================================================
+
+print("\n============================================================")
+print("PLOTTING COMPLETED SUCCESSFULLY")
+print("============================================================")
+print(f"Input file : {FILE_PATH}")
+print(f"User range : {MIN_USERS} - {MAX_USERS}")
+print(f"Output dir : {OUTPUT_DIR}")
+print("============================================================")
