@@ -1,0 +1,743 @@
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Scripts\python.exe E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\main.py 
+======================================================================
+FIVE-MODEL O-RAN EXPERIMENT
+======================================================================
+Database : E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\Lower_Layer_Data.db
+Results  : E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\five_model_results
+Users    : [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+
+Available tables:
+               name
+0  lower_layer_data
+
+Dataset shape: (45244, 25)
+
+Columns:
+['dlBytes', 'dlMcs', 'dlBler', 'ulBytes', 'ulMcs', 'ulBler', 'ri', 'phr', 'pcmax', 'rsrq', 'sinr', 'rsrp', 'rssi', 'cqi', 'pucchSnr', 'puschSnr', 'ue_id', 'timestamp', 'cellid', 'in_sync', 'rnti', 'pmi', 'traffic_type', 'attack_category', 'attack_subcategory']
+
+Attack categories:
+attack_category
+DDoS           15084
+Benign         10664
+Probe           8445
+DoS             4721
+Web Attacks     3273
+BruteForce      3057
+Name: count, dtype: int64
+
+Dataset loaded successfully.
+
+Classes:
+0 -> Benign
+1 -> BruteForce
+2 -> DDoS
+3 -> DoS
+4 -> Probe
+5 -> Web Attacks
+
+Train: (31670, 16)
+Validation: (6787, 16)
+Test: (6787, 16)
+
+Test sequence shape: (6783, 5, 16)
+
+Device: cpu
+PPO Episode 050 | Reward = -0.2000
+PPO Episode 100 | Reward = 0.0275
+PPO Episode 150 | Reward = -0.4814
+PPO Episode 200 | Reward = 0.1551
+PPO Episode 250 | Reward = 0.3030
+PPO Episode 300 | Reward = 0.3998
+PPO Episode 350 | Reward = 0.3839
+PPO Episode 400 | Reward = 0.3670
+PPO Episode 450 | Reward = 0.5040
+PPO Episode 500 | Reward = 0.6299
+PPO Episode 550 | Reward = 0.9311
+PPO Episode 600 | Reward = 1.0793
+PPO Episode 650 | Reward = 1.1458
+PPO Episode 700 | Reward = 1.4631
+PPO Episode 750 | Reward = 1.4191
+PPO Episode 800 | Reward = 1.5658
+PPO Episode 850 | Reward = 1.7348
+PPO Episode 900 | Reward = 1.8169
+PPO Episode 950 | Reward = 1.8661
+PPO Episode 1000 | Reward = 1.9925
+PPO Episode 1050 | Reward = 1.3707
+PPO Episode 1100 | Reward = 0.9609
+PPO Episode 1150 | Reward = 1.4950
+PPO Episode 1200 | Reward = 1.8118
+PPO Episode 1250 | Reward = 2.3400
+PPO Episode 1300 | Reward = 2.6588
+PPO Episode 1350 | Reward = 1.6735
+PPO Episode 1400 | Reward = 2.5575
+PPO Episode 1450 | Reward = 1.5209
+PPO Episode 1500 | Reward = 1.5824
+PPO Episode 1550 | Reward = 0.5698
+PPO Episode 1600 | Reward = 0.6250
+PPO Episode 1650 | Reward = 1.6597
+PPO Episode 1700 | Reward = 1.8994
+PPO Episode 1750 | Reward = 1.9801
+PPO Episode 1800 | Reward = 1.9148
+PPO Episode 1850 | Reward = 2.2716
+PPO Episode 1900 | Reward = 2.6403
+PPO Episode 1950 | Reward = 2.1375
+PPO Episode 2000 | Reward = 2.4439
+PPO Episode 2050 | Reward = 1.6965
+PPO Episode 2100 | Reward = 2.0696
+PPO Episode 2150 | Reward = 1.7318
+PPO Episode 2200 | Reward = 2.2278
+PPO Episode 2250 | Reward = 1.3814
+PPO Episode 2300 | Reward = 1.0714
+PPO Episode 2350 | Reward = 1.8831
+PPO Episode 2400 | Reward = 1.8157
+PPO Episode 2450 | Reward = 2.1411
+PPO Episode 2500 | Reward = 1.8497
+PPO Episode 2550 | Reward = 0.6495
+PPO Episode 2600 | Reward = 1.5313
+PPO Episode 2650 | Reward = 1.5344
+PPO Episode 2700 | Reward = 2.1024
+PPO Episode 2750 | Reward = 1.7814
+PPO Episode 2800 | Reward = 1.4457
+PPO Episode 2850 | Reward = 1.8529
+PPO Episode 2900 | Reward = 1.9975
+PPO Episode 2950 | Reward = 2.2483
+PPO Episode 3000 | Reward = 2.0806
+PPO Episode 3050 | Reward = 2.4955
+PPO Episode 3100 | Reward = 2.2491
+PPO Episode 3150 | Reward = 1.6489
+PPO Episode 3200 | Reward = 0.9300
+PPO Episode 3250 | Reward = 1.9863
+PPO Episode 3300 | Reward = 2.0127
+PPO Episode 3350 | Reward = 2.0453
+PPO Episode 3400 | Reward = 2.6472
+PPO Episode 3450 | Reward = 2.1916
+PPO Episode 3500 | Reward = 2.2946
+PPO Episode 3550 | Reward = 1.5609
+PPO Episode 3600 | Reward = 1.5739
+PPO Episode 3650 | Reward = 2.0616
+PPO Episode 3700 | Reward = 2.1246
+PPO Episode 3750 | Reward = 1.9613
+PPO Episode 3800 | Reward = 2.5417
+PPO Episode 3850 | Reward = 2.5808
+PPO Episode 3900 | Reward = 1.4102
+PPO Episode 3950 | Reward = 1.7085
+PPO Episode 4000 | Reward = 2.7514
+PPO Episode 4050 | Reward = 2.5395
+PPO Episode 4100 | Reward = 1.1742
+PPO Episode 4150 | Reward = 1.6380
+PPO Episode 4200 | Reward = 2.1779
+PPO Episode 4250 | Reward = 2.7542
+PPO Episode 4300 | Reward = 2.0556
+PPO Episode 4350 | Reward = 1.3856
+PPO Episode 4400 | Reward = 1.5978
+PPO Episode 4450 | Reward = 1.9488
+PPO Episode 4500 | Reward = 2.1952
+PPO Episode 4550 | Reward = 2.4622
+PPO Episode 4600 | Reward = 2.0467
+PPO Episode 4650 | Reward = 2.0274
+PPO Episode 4700 | Reward = 2.6549
+PPO Episode 4750 | Reward = 2.9109
+PPO Episode 4800 | Reward = 1.5759
+PPO Episode 4850 | Reward = 1.0341
+PPO Episode 4900 | Reward = 0.6448
+PPO Episode 4950 | Reward = 1.0310
+PPO Episode 5000 | Reward = 0.7289
+PPO Episode 5050 | Reward = 0.5110
+PPO Episode 5100 | Reward = 1.5360
+PPO Episode 5150 | Reward = 0.9163
+PPO Episode 5200 | Reward = 1.7484
+PPO Episode 5250 | Reward = 2.2698
+PPO Episode 5300 | Reward = 2.2743
+PPO Episode 5350 | Reward = 3.1234
+PPO Episode 5400 | Reward = 3.1409
+PPO Episode 5450 | Reward = 2.3584
+PPO Episode 5500 | Reward = 1.2989
+PPO Episode 5550 | Reward = 1.0931
+PPO Episode 5600 | Reward = 1.8196
+PPO Episode 5650 | Reward = 2.4252
+PPO Episode 5700 | Reward = 2.8759
+PPO Episode 5750 | Reward = 2.1781
+PPO Episode 5800 | Reward = 1.0533
+PPO Episode 5850 | Reward = 2.1664
+PPO Episode 5900 | Reward = 2.5774
+PPO Episode 5950 | Reward = 2.4959
+PPO Episode 6000 | Reward = 1.7436
+PPO Episode 6050 | Reward = 0.5179
+PPO Episode 6100 | Reward = 0.6547
+PPO Episode 6150 | Reward = 1.5447
+PPO Episode 6200 | Reward = 2.2509
+PPO Episode 6250 | Reward = 1.9696
+PPO Episode 6300 | Reward = 2.8646
+PPO Episode 6350 | Reward = 2.5417
+PPO Episode 6400 | Reward = 2.5626
+PPO Episode 6450 | Reward = 1.8509
+PPO Episode 6500 | Reward = 2.1499
+PPO Episode 6550 | Reward = 1.3668
+PPO Episode 6600 | Reward = 1.3295
+PPO Episode 6650 | Reward = 2.3683
+PPO Episode 6700 | Reward = 2.3700
+PPO Episode 6750 | Reward = 2.3362
+PPO Episode 6800 | Reward = 2.7776
+PPO Episode 6850 | Reward = 2.5021
+PPO Episode 6900 | Reward = 1.4646
+PPO Episode 6950 | Reward = 2.1120
+PPO Episode 7000 | Reward = 2.5517
+PPO Episode 7050 | Reward = 2.4107
+PPO Episode 7100 | Reward = 2.9175
+PPO Episode 7150 | Reward = 2.1388
+PPO Episode 7200 | Reward = 2.3304
+PPO Episode 7250 | Reward = 1.7695
+PPO Episode 7300 | Reward = 2.0446
+PPO Episode 7350 | Reward = 2.1324
+PPO Episode 7400 | Reward = 2.7658
+PPO Episode 7450 | Reward = 2.3072
+PPO Episode 7500 | Reward = 1.9817
+PPO Episode 7550 | Reward = 1.5288
+PPO Episode 7600 | Reward = 0.8493
+PPO Episode 7650 | Reward = 1.3557
+PPO Episode 7700 | Reward = 1.6668
+PPO Episode 7750 | Reward = 1.5361
+PPO Episode 7800 | Reward = 1.6638
+PPO Episode 7850 | Reward = 2.5353
+PPO Episode 7900 | Reward = 2.8314
+PPO Episode 7950 | Reward = 2.9167
+PPO Episode 8000 | Reward = 1.7621
+PPO Episode 8050 | Reward = 1.8816
+PPO Episode 8100 | Reward = 2.3534
+PPO Episode 8150 | Reward = 1.9982
+PPO Episode 8200 | Reward = 2.2596
+PPO Episode 8250 | Reward = 2.0112
+PPO Episode 8300 | Reward = 1.6301
+PPO Episode 8350 | Reward = 1.8084
+PPO Episode 8400 | Reward = 2.5859
+PPO Episode 8450 | Reward = 2.7076
+PPO Episode 8500 | Reward = 2.6338
+PPO Episode 8550 | Reward = 1.6833
+PPO Episode 8600 | Reward = 2.0999
+PPO Episode 8650 | Reward = 2.2489
+PPO Episode 8700 | Reward = 1.7481
+PPO Episode 8750 | Reward = 2.0053
+PPO Episode 8800 | Reward = 1.4755
+PPO Episode 8850 | Reward = 1.1413
+PPO Episode 8900 | Reward = 0.3229
+PPO Episode 8950 | Reward = 1.4934
+PPO Episode 9000 | Reward = 1.4293
+PPO Episode 9050 | Reward = 2.0153
+PPO Episode 9100 | Reward = 1.4963
+PPO Episode 9150 | Reward = 2.4357
+PPO Episode 9200 | Reward = 1.6958
+PPO Episode 9250 | Reward = 1.0737
+PPO Episode 9300 | Reward = 1.2095
+PPO Episode 9350 | Reward = 1.3943
+PPO Episode 9400 | Reward = 1.1459
+PPO Episode 9450 | Reward = 1.5217
+PPO Episode 9500 | Reward = 2.2105
+PPO Episode 9550 | Reward = 2.5605
+PPO Episode 9600 | Reward = 2.2184
+PPO Episode 9650 | Reward = 2.8073
+PPO Episode 9700 | Reward = 1.3281
+PPO Episode 9750 | Reward = 1.5351
+PPO Episode 9800 | Reward = 1.9042
+PPO Episode 9850 | Reward = 0.9509
+PPO Episode 9900 | Reward = 1.3793
+PPO Episode 9950 | Reward = 2.1240
+PPO Episode 10000 | Reward = 1.9161
+
+LSTM sequence shape: (31666, 5, 16)
+SLAM-LSTM Epoch 01/2 | Loss = 1.642775 | Accuracy = 0.3334
+SLAM-LSTM Epoch 02/2 | Loss = 1.629721 | Accuracy = 0.3334
+SLAM-LSTM-PPO Episode 050 | Reward = -0.0640
+SLAM-LSTM-PPO Episode 100 | Reward = -0.2394
+SLAM-LSTM-PPO Episode 150 | Reward = -0.0625
+SLAM-LSTM-PPO Episode 200 | Reward = 0.3497
+SLAM-LSTM-PPO Episode 250 | Reward = 0.6734
+SLAM-LSTM-PPO Episode 300 | Reward = 0.8104
+SLAM-LSTM-PPO Episode 350 | Reward = 0.4670
+SLAM-LSTM-PPO Episode 400 | Reward = 1.0285
+SLAM-LSTM-PPO Episode 450 | Reward = 0.6416
+SLAM-LSTM-PPO Episode 500 | Reward = 0.5225
+SLAM-LSTM-PPO Episode 550 | Reward = 0.6897
+SLAM-LSTM-PPO Episode 600 | Reward = 0.8873
+SLAM-LSTM-PPO Episode 650 | Reward = 0.9771
+SLAM-LSTM-PPO Episode 700 | Reward = 0.8515
+SLAM-LSTM-PPO Episode 750 | Reward = 0.4944
+SLAM-LSTM-PPO Episode 800 | Reward = 1.1781
+SLAM-LSTM-PPO Episode 850 | Reward = 0.8734
+SLAM-LSTM-PPO Episode 900 | Reward = 0.9482
+SLAM-LSTM-PPO Episode 950 | Reward = 0.3716
+SLAM-LSTM-PPO Episode 1000 | Reward = 1.0471
+SLAM-LSTM-PPO Episode 1050 | Reward = 0.6466
+SLAM-LSTM-PPO Episode 1100 | Reward = 1.1056
+SLAM-LSTM-PPO Episode 1150 | Reward = 1.2279
+SLAM-LSTM-PPO Episode 1200 | Reward = 1.1313
+SLAM-LSTM-PPO Episode 1250 | Reward = 0.7098
+SLAM-LSTM-PPO Episode 1300 | Reward = 0.6782
+SLAM-LSTM-PPO Episode 1350 | Reward = 0.9693
+SLAM-LSTM-PPO Episode 1400 | Reward = 1.1387
+SLAM-LSTM-PPO Episode 1450 | Reward = 0.4350
+SLAM-LSTM-PPO Episode 1500 | Reward = 1.1978
+SLAM-LSTM-PPO Episode 1550 | Reward = 0.7463
+SLAM-LSTM-PPO Episode 1600 | Reward = 1.1637
+SLAM-LSTM-PPO Episode 1650 | Reward = 1.6088
+SLAM-LSTM-PPO Episode 1700 | Reward = -1.8737
+SLAM-LSTM-PPO Episode 1750 | Reward = 0.5385
+SLAM-LSTM-PPO Episode 1800 | Reward = 0.5591
+SLAM-LSTM-PPO Episode 1850 | Reward = 0.5151
+SLAM-LSTM-PPO Episode 1900 | Reward = 0.6574
+SLAM-LSTM-PPO Episode 1950 | Reward = 0.8458
+SLAM-LSTM-PPO Episode 2000 | Reward = 1.3460
+SLAM-LSTM-PPO Episode 2050 | Reward = -0.8900
+SLAM-LSTM-PPO Episode 2100 | Reward = 0.7555
+SLAM-LSTM-PPO Episode 2150 | Reward = 1.0249
+SLAM-LSTM-PPO Episode 2200 | Reward = 0.9109
+SLAM-LSTM-PPO Episode 2250 | Reward = 1.0746
+SLAM-LSTM-PPO Episode 2300 | Reward = 1.8921
+SLAM-LSTM-PPO Episode 2350 | Reward = 2.2431
+SLAM-LSTM-PPO Episode 2400 | Reward = 0.3578
+SLAM-LSTM-PPO Episode 2450 | Reward = -0.0897
+SLAM-LSTM-PPO Episode 2500 | Reward = 0.0182
+SLAM-LSTM-PPO Episode 2550 | Reward = 0.1957
+SLAM-LSTM-PPO Episode 2600 | Reward = 1.0224
+SLAM-LSTM-PPO Episode 2650 | Reward = 0.6599
+SLAM-LSTM-PPO Episode 2700 | Reward = 0.6444
+SLAM-LSTM-PPO Episode 2750 | Reward = 1.0669
+SLAM-LSTM-PPO Episode 2800 | Reward = 1.0148
+SLAM-LSTM-PPO Episode 2850 | Reward = 1.0472
+SLAM-LSTM-PPO Episode 2900 | Reward = 1.1258
+SLAM-LSTM-PPO Episode 2950 | Reward = 1.9136
+SLAM-LSTM-PPO Episode 3000 | Reward = 1.7556
+SLAM-LSTM-PPO Episode 3050 | Reward = 1.6686
+SLAM-LSTM-PPO Episode 3100 | Reward = 1.7845
+SLAM-LSTM-PPO Episode 3150 | Reward = 2.3324
+SLAM-LSTM-PPO Episode 3200 | Reward = 2.4665
+SLAM-LSTM-PPO Episode 3250 | Reward = 0.4266
+SLAM-LSTM-PPO Episode 3300 | Reward = -0.2691
+SLAM-LSTM-PPO Episode 3350 | Reward = -0.1635
+SLAM-LSTM-PPO Episode 3400 | Reward = 1.3371
+SLAM-LSTM-PPO Episode 3450 | Reward = 0.5124
+SLAM-LSTM-PPO Episode 3500 | Reward = 0.7338
+SLAM-LSTM-PPO Episode 3550 | Reward = 0.7673
+SLAM-LSTM-PPO Episode 3600 | Reward = 1.7757
+SLAM-LSTM-PPO Episode 3650 | Reward = 0.7096
+SLAM-LSTM-PPO Episode 3700 | Reward = 0.6464
+SLAM-LSTM-PPO Episode 3750 | Reward = 1.5140
+SLAM-LSTM-PPO Episode 3800 | Reward = -0.2272
+SLAM-LSTM-PPO Episode 3850 | Reward = 0.3836
+SLAM-LSTM-PPO Episode 3900 | Reward = 1.4582
+SLAM-LSTM-PPO Episode 3950 | Reward = 1.2659
+SLAM-LSTM-PPO Episode 4000 | Reward = 1.8123
+SLAM-LSTM-PPO Episode 4050 | Reward = 2.2600
+SLAM-LSTM-PPO Episode 4100 | Reward = 1.8766
+SLAM-LSTM-PPO Episode 4150 | Reward = 2.1264
+SLAM-LSTM-PPO Episode 4200 | Reward = 0.4063
+SLAM-LSTM-PPO Episode 4250 | Reward = 0.3452
+SLAM-LSTM-PPO Episode 4300 | Reward = 1.7740
+SLAM-LSTM-PPO Episode 4350 | Reward = 1.1462
+SLAM-LSTM-PPO Episode 4400 | Reward = 2.0384
+SLAM-LSTM-PPO Episode 4450 | Reward = 2.3717
+SLAM-LSTM-PPO Episode 4500 | Reward = 1.3080
+SLAM-LSTM-PPO Episode 4550 | Reward = 0.3263
+SLAM-LSTM-PPO Episode 4600 | Reward = -0.4095
+SLAM-LSTM-PPO Episode 4650 | Reward = -0.7741
+SLAM-LSTM-PPO Episode 4700 | Reward = 0.7405
+SLAM-LSTM-PPO Episode 4750 | Reward = -0.1091
+SLAM-LSTM-PPO Episode 4800 | Reward = -0.5847
+SLAM-LSTM-PPO Episode 4850 | Reward = 0.0233
+SLAM-LSTM-PPO Episode 4900 | Reward = -0.1441
+SLAM-LSTM-PPO Episode 4950 | Reward = 0.5507
+SLAM-LSTM-PPO Episode 5000 | Reward = 0.1989
+SLAM-LSTM-PPO Episode 5050 | Reward = -1.0453
+SLAM-LSTM-PPO Episode 5100 | Reward = -0.4496
+SLAM-LSTM-PPO Episode 5150 | Reward = -0.1449
+SLAM-LSTM-PPO Episode 5200 | Reward = 0.6801
+SLAM-LSTM-PPO Episode 5250 | Reward = -0.2265
+SLAM-LSTM-PPO Episode 5300 | Reward = -0.0662
+SLAM-LSTM-PPO Episode 5350 | Reward = 1.3699
+SLAM-LSTM-PPO Episode 5400 | Reward = 1.4701
+SLAM-LSTM-PPO Episode 5450 | Reward = 1.5633
+SLAM-LSTM-PPO Episode 5500 | Reward = 2.1201
+SLAM-LSTM-PPO Episode 5550 | Reward = 1.1498
+SLAM-LSTM-PPO Episode 5600 | Reward = -0.3859
+SLAM-LSTM-PPO Episode 5650 | Reward = -0.5206
+SLAM-LSTM-PPO Episode 5700 | Reward = -0.3867
+SLAM-LSTM-PPO Episode 5750 | Reward = 1.2037
+SLAM-LSTM-PPO Episode 5800 | Reward = 0.6519
+SLAM-LSTM-PPO Episode 5850 | Reward = 0.5993
+SLAM-LSTM-PPO Episode 5900 | Reward = -0.3221
+SLAM-LSTM-PPO Episode 5950 | Reward = -0.3563
+SLAM-LSTM-PPO Episode 6000 | Reward = 0.1306
+SLAM-LSTM-PPO Episode 6050 | Reward = 1.4755
+SLAM-LSTM-PPO Episode 6100 | Reward = -0.1005
+SLAM-LSTM-PPO Episode 6150 | Reward = 0.6058
+SLAM-LSTM-PPO Episode 6200 | Reward = 1.5095
+SLAM-LSTM-PPO Episode 6250 | Reward = 1.6257
+SLAM-LSTM-PPO Episode 6300 | Reward = 1.9011
+SLAM-LSTM-PPO Episode 6350 | Reward = 2.0870
+SLAM-LSTM-PPO Episode 6400 | Reward = 2.3250
+SLAM-LSTM-PPO Episode 6450 | Reward = 1.6935
+SLAM-LSTM-PPO Episode 6500 | Reward = 1.9409
+SLAM-LSTM-PPO Episode 6550 | Reward = 1.5707
+SLAM-LSTM-PPO Episode 6600 | Reward = 1.5433
+SLAM-LSTM-PPO Episode 6650 | Reward = 1.6963
+SLAM-LSTM-PPO Episode 6700 | Reward = 2.0617
+SLAM-LSTM-PPO Episode 6750 | Reward = 2.0933
+SLAM-LSTM-PPO Episode 6800 | Reward = 1.5069
+SLAM-LSTM-PPO Episode 6850 | Reward = 1.4995
+SLAM-LSTM-PPO Episode 6900 | Reward = 2.1416
+SLAM-LSTM-PPO Episode 6950 | Reward = 2.3466
+SLAM-LSTM-PPO Episode 7000 | Reward = 2.3251
+SLAM-LSTM-PPO Episode 7050 | Reward = 1.8235
+SLAM-LSTM-PPO Episode 7100 | Reward = 2.5458
+SLAM-LSTM-PPO Episode 7150 | Reward = 0.0306
+SLAM-LSTM-PPO Episode 7200 | Reward = 1.0385
+SLAM-LSTM-PPO Episode 7250 | Reward = 1.9781
+SLAM-LSTM-PPO Episode 7300 | Reward = 0.7966
+SLAM-LSTM-PPO Episode 7350 | Reward = 2.0121
+SLAM-LSTM-PPO Episode 7400 | Reward = 2.2982
+SLAM-LSTM-PPO Episode 7450 | Reward = 2.4580
+SLAM-LSTM-PPO Episode 7500 | Reward = 1.4280
+SLAM-LSTM-PPO Episode 7550 | Reward = 0.7362
+SLAM-LSTM-PPO Episode 7600 | Reward = 2.5135
+SLAM-LSTM-PPO Episode 7650 | Reward = 2.5979
+SLAM-LSTM-PPO Episode 7700 | Reward = 2.9288
+SLAM-LSTM-PPO Episode 7750 | Reward = 0.6007
+SLAM-LSTM-PPO Episode 7800 | Reward = -0.4822
+SLAM-LSTM-PPO Episode 7850 | Reward = -0.2565
+SLAM-LSTM-PPO Episode 7900 | Reward = 0.1511
+SLAM-LSTM-PPO Episode 7950 | Reward = -0.2106
+SLAM-LSTM-PPO Episode 8000 | Reward = -0.1236
+SLAM-LSTM-PPO Episode 8050 | Reward = -0.5283
+SLAM-LSTM-PPO Episode 8100 | Reward = -0.2378
+SLAM-LSTM-PPO Episode 8150 | Reward = 0.3537
+SLAM-LSTM-PPO Episode 8200 | Reward = -0.3547
+SLAM-LSTM-PPO Episode 8250 | Reward = -0.4225
+SLAM-LSTM-PPO Episode 8300 | Reward = 1.5375
+SLAM-LSTM-PPO Episode 8350 | Reward = 0.6287
+SLAM-LSTM-PPO Episode 8400 | Reward = 0.9381
+SLAM-LSTM-PPO Episode 8450 | Reward = 1.6152
+SLAM-LSTM-PPO Episode 8500 | Reward = 2.1042
+SLAM-LSTM-PPO Episode 8550 | Reward = 0.5730
+SLAM-LSTM-PPO Episode 8600 | Reward = 0.9667
+SLAM-LSTM-PPO Episode 8650 | Reward = 0.8906
+SLAM-LSTM-PPO Episode 8700 | Reward = 1.5034
+SLAM-LSTM-PPO Episode 8750 | Reward = 1.4680
+SLAM-LSTM-PPO Episode 8800 | Reward = 2.0409
+SLAM-LSTM-PPO Episode 8850 | Reward = 1.8245
+SLAM-LSTM-PPO Episode 8900 | Reward = 1.6938
+SLAM-LSTM-PPO Episode 8950 | Reward = 2.2020
+SLAM-LSTM-PPO Episode 9000 | Reward = 2.6363
+SLAM-LSTM-PPO Episode 9050 | Reward = 2.5274
+SLAM-LSTM-PPO Episode 9100 | Reward = 2.7517
+SLAM-LSTM-PPO Episode 9150 | Reward = 2.0130
+SLAM-LSTM-PPO Episode 9200 | Reward = 0.8497
+SLAM-LSTM-PPO Episode 9250 | Reward = 1.2178
+SLAM-LSTM-PPO Episode 9300 | Reward = 1.9889
+SLAM-LSTM-PPO Episode 9350 | Reward = 2.3142
+SLAM-LSTM-PPO Episode 9400 | Reward = 2.2988
+SLAM-LSTM-PPO Episode 9450 | Reward = 0.3939
+SLAM-LSTM-PPO Episode 9500 | Reward = -0.3979
+SLAM-LSTM-PPO Episode 9550 | Reward = -0.5650
+SLAM-LSTM-PPO Episode 9600 | Reward = 0.1141
+SLAM-LSTM-PPO Episode 9650 | Reward = 0.1503
+SLAM-LSTM-PPO Episode 9700 | Reward = -1.2821
+SLAM-LSTM-PPO Episode 9750 | Reward = 0.4141
+SLAM-LSTM-PPO Episode 9800 | Reward = 0.3808
+SLAM-LSTM-PPO Episode 9850 | Reward = 0.2091
+SLAM-LSTM-PPO Episode 9900 | Reward = 1.8280
+SLAM-LSTM-PPO Episode 9950 | Reward = 1.0122
+SLAM-LSTM-PPO Episode 10000 | Reward = 1.4680
+
+GAN training completed successfully.
+
+Synthetic GAN data shape: (31670, 16)
+GAN-PPO training samples: 63340
+PPO Episode 050 | Reward = 0.1910
+PPO Episode 100 | Reward = -0.3943
+PPO Episode 150 | Reward = 0.0028
+PPO Episode 200 | Reward = -0.1613
+PPO Episode 250 | Reward = 0.5947
+PPO Episode 300 | Reward = 0.2290
+PPO Episode 350 | Reward = 0.1663
+PPO Episode 400 | Reward = 0.1306
+PPO Episode 450 | Reward = 0.0722
+PPO Episode 500 | Reward = 0.5041
+PPO Episode 550 | Reward = -0.1569
+PPO Episode 600 | Reward = 0.6921
+PPO Episode 650 | Reward = 0.6768
+PPO Episode 700 | Reward = 0.5374
+PPO Episode 750 | Reward = 0.8035
+PPO Episode 800 | Reward = 0.7820
+PPO Episode 850 | Reward = 1.0884
+PPO Episode 900 | Reward = 0.9727
+PPO Episode 950 | Reward = 1.2190
+PPO Episode 1000 | Reward = 0.8737
+PPO Episode 1050 | Reward = -1.1953
+PPO Episode 1100 | Reward = -2.7572
+PPO Episode 1150 | Reward = -3.0129
+PPO Episode 1200 | Reward = -3.3421
+PPO Episode 1250 | Reward = -3.0113
+PPO Episode 1300 | Reward = -3.6074
+PPO Episode 1350 | Reward = -5.0776
+PPO Episode 1400 | Reward = -5.5995
+PPO Episode 1450 | Reward = -5.6922
+PPO Episode 1500 | Reward = -5.5748
+PPO Episode 1550 | Reward = -6.0075
+PPO Episode 1600 | Reward = -5.9844
+PPO Episode 1650 | Reward = -6.1032
+PPO Episode 1700 | Reward = -6.2405
+PPO Episode 1750 | Reward = -6.0845
+PPO Episode 1800 | Reward = -5.6344
+PPO Episode 1850 | Reward = -5.0465
+PPO Episode 1900 | Reward = -5.6513
+PPO Episode 1950 | Reward = -2.9171
+PPO Episode 2000 | Reward = -4.8586
+PPO Episode 2050 | Reward = -4.7720
+PPO Episode 2100 | Reward = -4.0125
+PPO Episode 2150 | Reward = -2.8561
+PPO Episode 2200 | Reward = -5.7205
+PPO Episode 2250 | Reward = -6.2597
+PPO Episode 2300 | Reward = -6.3990
+PPO Episode 2350 | Reward = -6.2277
+PPO Episode 2400 | Reward = -6.1112
+PPO Episode 2450 | Reward = -6.2741
+PPO Episode 2500 | Reward = -6.1756
+PPO Episode 2550 | Reward = -6.3248
+PPO Episode 2600 | Reward = -6.2152
+PPO Episode 2650 | Reward = -6.1143
+PPO Episode 2700 | Reward = -6.4113
+PPO Episode 2750 | Reward = -6.4558
+PPO Episode 2800 | Reward = -6.0683
+PPO Episode 2850 | Reward = -6.3699
+PPO Episode 2900 | Reward = -6.3785
+PPO Episode 2950 | Reward = -6.4427
+PPO Episode 3000 | Reward = -6.1114
+PPO Episode 3050 | Reward = -6.2673
+PPO Episode 3100 | Reward = -6.2949
+PPO Episode 3150 | Reward = -6.2287
+PPO Episode 3200 | Reward = -6.1099
+PPO Episode 3250 | Reward = -6.1807
+PPO Episode 3300 | Reward = -6.2355
+PPO Episode 3350 | Reward = -6.4113
+PPO Episode 3400 | Reward = -6.2584
+PPO Episode 3450 | Reward = -6.4348
+PPO Episode 3500 | Reward = -6.2593
+PPO Episode 3550 | Reward = -6.3932
+PPO Episode 3600 | Reward = -6.3164
+PPO Episode 3650 | Reward = -6.2115
+PPO Episode 3700 | Reward = -6.2459
+PPO Episode 3750 | Reward = -6.3871
+PPO Episode 3800 | Reward = -6.2961
+PPO Episode 3850 | Reward = -6.4106
+PPO Episode 3900 | Reward = -6.3279
+PPO Episode 3950 | Reward = -6.3861
+PPO Episode 4000 | Reward = -6.2003
+PPO Episode 4050 | Reward = -6.1745
+PPO Episode 4100 | Reward = -6.2261
+PPO Episode 4150 | Reward = -6.2612
+PPO Episode 4200 | Reward = -6.3505
+PPO Episode 4250 | Reward = -6.1955
+PPO Episode 4300 | Reward = -6.2306
+PPO Episode 4350 | Reward = -6.1378
+PPO Episode 4400 | Reward = -6.3053
+PPO Episode 4450 | Reward = -6.2653
+PPO Episode 4500 | Reward = -6.1230
+PPO Episode 4550 | Reward = -6.0560
+PPO Episode 4600 | Reward = -6.2113
+PPO Episode 4650 | Reward = -6.2409
+PPO Episode 4700 | Reward = -6.0574
+PPO Episode 4750 | Reward = -6.1901
+PPO Episode 4800 | Reward = -6.4092
+PPO Episode 4850 | Reward = -6.2605
+PPO Episode 4900 | Reward = -6.2726
+PPO Episode 4950 | Reward = -6.1117
+PPO Episode 5000 | Reward = -6.2382
+PPO Episode 5050 | Reward = -6.4702
+PPO Episode 5100 | Reward = -6.3302
+PPO Episode 5150 | Reward = -6.3033
+PPO Episode 5200 | Reward = -6.0915
+PPO Episode 5250 | Reward = -6.4525
+PPO Episode 5300 | Reward = -6.1336
+PPO Episode 5350 | Reward = -6.2370
+PPO Episode 5400 | Reward = -6.2027
+PPO Episode 5450 | Reward = -6.1192
+PPO Episode 5500 | Reward = -6.3151
+PPO Episode 5550 | Reward = -6.3058
+PPO Episode 5600 | Reward = -6.2880
+PPO Episode 5650 | Reward = -6.4192
+PPO Episode 5700 | Reward = -6.3317
+PPO Episode 5750 | Reward = -6.0979
+PPO Episode 5800 | Reward = -6.3020
+PPO Episode 5850 | Reward = -6.4224
+PPO Episode 5900 | Reward = -6.2696
+PPO Episode 5950 | Reward = -6.2440
+PPO Episode 6000 | Reward = -6.2517
+PPO Episode 6050 | Reward = -6.4475
+PPO Episode 6100 | Reward = -6.3794
+PPO Episode 6150 | Reward = -6.1267
+PPO Episode 6200 | Reward = -6.2227
+PPO Episode 6250 | Reward = -6.2445
+PPO Episode 6300 | Reward = -6.1880
+PPO Episode 6350 | Reward = -6.3315
+PPO Episode 6400 | Reward = -6.2912
+PPO Episode 6450 | Reward = -6.4472
+PPO Episode 6500 | Reward = -6.1955
+PPO Episode 6550 | Reward = -6.2647
+PPO Episode 6600 | Reward = -6.3556
+PPO Episode 6650 | Reward = -6.2718
+PPO Episode 6700 | Reward = -6.3062
+PPO Episode 6750 | Reward = -6.3026
+PPO Episode 6800 | Reward = -6.0882
+PPO Episode 6850 | Reward = -6.2328
+PPO Episode 6900 | Reward = -6.3379
+PPO Episode 6950 | Reward = -6.2117
+PPO Episode 7000 | Reward = -6.2875
+PPO Episode 7050 | Reward = -6.3640
+PPO Episode 7100 | Reward = -6.3012
+PPO Episode 7150 | Reward = -6.3571
+PPO Episode 7200 | Reward = -6.1688
+PPO Episode 7250 | Reward = -6.3171
+PPO Episode 7300 | Reward = -6.2324
+PPO Episode 7350 | Reward = -6.3537
+PPO Episode 7400 | Reward = -6.2427
+PPO Episode 7450 | Reward = -6.1931
+PPO Episode 7500 | Reward = -6.4463
+PPO Episode 7550 | Reward = -6.3802
+PPO Episode 7600 | Reward = -6.3524
+PPO Episode 7650 | Reward = -6.1748
+PPO Episode 7700 | Reward = -6.2368
+PPO Episode 7750 | Reward = -6.2711
+PPO Episode 7800 | Reward = -6.3367
+PPO Episode 7850 | Reward = -6.2387
+PPO Episode 7900 | Reward = -6.2667
+PPO Episode 7950 | Reward = -6.2436
+PPO Episode 8000 | Reward = -6.3218
+PPO Episode 8050 | Reward = -6.3220
+PPO Episode 8100 | Reward = -6.2924
+PPO Episode 8150 | Reward = -6.1595
+PPO Episode 8200 | Reward = -6.3965
+PPO Episode 8250 | Reward = -6.3462
+PPO Episode 8300 | Reward = -6.2707
+PPO Episode 8350 | Reward = -6.2250
+PPO Episode 8400 | Reward = -6.2903
+PPO Episode 8450 | Reward = -6.2093
+PPO Episode 8500 | Reward = -6.2625
+PPO Episode 8550 | Reward = -6.2290
+PPO Episode 8600 | Reward = -6.2735
+PPO Episode 8650 | Reward = -6.1683
+PPO Episode 8700 | Reward = -6.3816
+PPO Episode 8750 | Reward = -6.4995
+PPO Episode 8800 | Reward = -6.3228
+PPO Episode 8850 | Reward = -6.4779
+PPO Episode 8900 | Reward = -6.4691
+PPO Episode 8950 | Reward = -6.2726
+PPO Episode 9000 | Reward = -6.3186
+PPO Episode 9050 | Reward = -6.2864
+PPO Episode 9100 | Reward = -6.3146
+PPO Episode 9150 | Reward = -6.0757
+PPO Episode 9200 | Reward = -6.1999
+PPO Episode 9250 | Reward = -6.2424
+PPO Episode 9300 | Reward = -6.0627
+PPO Episode 9350 | Reward = -6.0941
+PPO Episode 9400 | Reward = -6.3473
+PPO Episode 9450 | Reward = -6.2236
+PPO Episode 9500 | Reward = -6.4346
+PPO Episode 9550 | Reward = -6.4458
+PPO Episode 9600 | Reward = -6.2840
+PPO Episode 9650 | Reward = -6.2435
+PPO Episode 9700 | Reward = -6.6098
+PPO Episode 9750 | Reward = -6.2523
+PPO Episode 9800 | Reward = -6.3011
+PPO Episode 9850 | Reward = -6.2668
+PPO Episode 9900 | Reward = -6.2384
+PPO Episode 9950 | Reward = -6.2196
+PPO Episode 10000 | Reward = -6.3695
+
+Models:
+ - Ours (SLAM-LSTM-PPO)
+ - Kmeans+Decision
+ - Knowledge Graph
+ - GAN PPO
+ - PPO
+
+
+======================================================================
+Ours (SLAM-LSTM-PPO)
+======================================================================
+Users= 100 | Time=862.165 ms | Scheduling=70.29% | QoS violation=100.00% | Resource efficiency=82.51%
+Users= 200 | Time=1889.687 ms | Scheduling=69.94% | QoS violation=100.00% | Resource efficiency=81.38%
+Users= 300 | Time=2737.292 ms | Scheduling=69.99% | QoS violation=100.00% | Resource efficiency=81.77%
+Users= 400 | Time=3491.214 ms | Scheduling=69.65% | QoS violation=100.00% | Resource efficiency=80.42%
+Users= 500 | Time=4427.859 ms | Scheduling=69.91% | QoS violation=100.00% | Resource efficiency=81.48%
+Users= 600 | Time=5839.929 ms | Scheduling=70.10% | QoS violation=100.00% | Resource efficiency=82.22%
+Users= 700 | Time=6089.272 ms | Scheduling=69.92% | QoS violation=100.00% | Resource efficiency=81.37%
+Users= 800 | Time=7210.358 ms | Scheduling=69.97% | QoS violation=100.00% | Resource efficiency=81.67%
+Users= 900 | Time=7740.324 ms | Scheduling=69.90% | QoS violation=100.00% | Resource efficiency=81.18%
+Users=1000 | Time=8183.604 ms | Scheduling=69.75% | QoS violation=100.00% | Resource efficiency=80.71%
+
+
+======================================================================
+Kmeans+Decision
+======================================================================
+Users= 100 | Time=87.228 ms | Scheduling=70.28% | QoS violation=100.00% | Resource efficiency=84.23%
+Users= 200 | Time=95.270 ms | Scheduling=69.81% | QoS violation=100.00% | Resource efficiency=81.97%
+Users= 300 | Time=134.124 ms | Scheduling=69.91% | QoS violation=100.00% | Resource efficiency=82.45%
+Users= 400 | Time=154.834 ms | Scheduling=69.54% | QoS violation=100.00% | Resource efficiency=81.01%
+Users= 500 | Time=212.738 ms | Scheduling=69.86% | QoS violation=100.00% | Resource efficiency=82.24%
+Users= 600 | Time=313.910 ms | Scheduling=69.99% | QoS violation=100.00% | Resource efficiency=82.84%
+Users= 700 | Time=304.215 ms | Scheduling=69.81% | QoS violation=100.00% | Resource efficiency=82.12%
+Users= 800 | Time=360.572 ms | Scheduling=69.87% | QoS violation=100.00% | Resource efficiency=82.24%
+Users= 900 | Time=399.118 ms | Scheduling=69.76% | QoS violation=100.00% | Resource efficiency=81.90%
+Users=1000 | Time=573.471 ms | Scheduling=69.64% | QoS violation=100.00% | Resource efficiency=81.29%
+
+
+======================================================================
+Knowledge Graph
+======================================================================
+Users= 100 | Time=12.767 ms | Scheduling=70.25% | QoS violation=100.00% | Resource efficiency=82.37%
+Users= 200 | Time=13.458 ms | Scheduling=69.88% | QoS violation=100.00% | Resource efficiency=80.77%
+Users= 300 | Time=26.078 ms | Scheduling=69.93% | QoS violation=100.00% | Resource efficiency=80.80%
+Users= 400 | Time=27.431 ms | Scheduling=69.63% | QoS violation=100.00% | Resource efficiency=79.50%
+Users= 500 | Time=33.259 ms | Scheduling=69.88% | QoS violation=100.00% | Resource efficiency=80.91%
+Users= 600 | Time=42.927 ms | Scheduling=70.08% | QoS violation=100.00% | Resource efficiency=81.47%
+Users= 700 | Time=66.700 ms | Scheduling=69.85% | QoS violation=100.00% | Resource efficiency=80.54%
+Users= 800 | Time=71.643 ms | Scheduling=69.90% | QoS violation=100.00% | Resource efficiency=80.72%
+Users= 900 | Time=65.820 ms | Scheduling=69.84% | QoS violation=100.00% | Resource efficiency=80.55%
+Users=1000 | Time=94.881 ms | Scheduling=69.71% | QoS violation=100.00% | Resource efficiency=79.90%
+
+
+======================================================================
+GAN PPO
+======================================================================
+Users= 100 | Time=125.759 ms | Scheduling=68.00% | QoS violation=100.00% | Resource efficiency=76.06%
+Users= 200 | Time=260.293 ms | Scheduling=67.73% | QoS violation=100.00% | Resource efficiency=74.88%
+Users= 300 | Time=403.409 ms | Scheduling=67.76% | QoS violation=100.00% | Resource efficiency=75.03%
+Users= 400 | Time=501.317 ms | Scheduling=67.53% | QoS violation=100.00% | Resource efficiency=73.99%
+Users= 500 | Time=599.317 ms | Scheduling=67.75% | QoS violation=100.00% | Resource efficiency=74.99%
+Users= 600 | Time=805.163 ms | Scheduling=67.91% | QoS violation=100.00% | Resource efficiency=75.70%
+Users= 700 | Time=843.158 ms | Scheduling=67.77% | QoS violation=100.00% | Resource efficiency=75.03%
+Users= 800 | Time=981.948 ms | Scheduling=67.75% | QoS violation=100.00% | Resource efficiency=74.97%
+Users= 900 | Time=1110.495 ms | Scheduling=67.72% | QoS violation=100.00% | Resource efficiency=74.84%
+Users=1000 | Time=1389.258 ms | Scheduling=67.60% | QoS violation=100.00% | Resource efficiency=74.30%
+
+
+======================================================================
+PPO
+======================================================================
+Users= 100 | Time=125.723 ms | Scheduling=70.21% | QoS violation=100.00% | Resource efficiency=86.17%
+Users= 200 | Time=267.351 ms | Scheduling=70.07% | QoS violation=100.00% | Resource efficiency=85.20%
+Users= 300 | Time=401.991 ms | Scheduling=70.12% | QoS violation=100.00% | Resource efficiency=85.52%
+Users= 400 | Time=448.160 ms | Scheduling=69.68% | QoS violation=100.00% | Resource efficiency=84.27%
+Users= 500 | Time=485.054 ms | Scheduling=70.02% | QoS violation=100.00% | Resource efficiency=85.44%
+Users= 600 | Time=614.711 ms | Scheduling=70.14% | QoS violation=100.00% | Resource efficiency=85.92%
+Users= 700 | Time=702.064 ms | Scheduling=70.00% | QoS violation=100.00% | Resource efficiency=85.10%
+Users= 800 | Time=1189.777 ms | Scheduling=70.00% | QoS violation=100.00% | Resource efficiency=85.31%
+Users= 900 | Time=926.905 ms | Scheduling=69.89% | QoS violation=100.00% | Resource efficiency=84.86%
+Users=1000 | Time=1014.648 ms | Scheduling=69.81% | QoS violation=100.00% | Resource efficiency=84.69%
+
+Results saved to: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\five_model_results\five_model_results.csv
+
+All metric files saved.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
