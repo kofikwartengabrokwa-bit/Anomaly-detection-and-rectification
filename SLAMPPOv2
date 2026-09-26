@@ -1,0 +1,3951 @@
+import os
+import re
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+DATA_FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+FILE_NAME = "combinedPPOSLAMv.txt"
+
+FILE_PATH = os.path.join(DATA_FOLDER, FILE_NAME)
+
+OUTPUT_PNG = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.png"
+)
+
+OUTPUT_EPS = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.eps"
+)
+
+# Plot up to this episode
+MAX_EPISODE = 100000
+
+# Smoothing window
+SMOOTH_WINDOW = 15
+
+
+# ============================================================
+# SMOOTHING FUNCTION
+# ============================================================
+
+def smooth(values, window=SMOOTH_WINDOW):
+    """
+    Smooth a sequence using a centered moving average.
+
+    Parameters
+    ----------
+    values : array-like
+        Reward values.
+    window : int
+        Moving-average window size.
+
+    Returns
+    -------
+    numpy.ndarray
+        Smoothed reward values.
+    """
+
+    values = np.asarray(values, dtype=float)
+
+    if len(values) < 3:
+        return values.copy()
+
+    # Ensure an odd window for centered smoothing
+    window = int(window)
+
+    if window < 3:
+        return values.copy()
+
+    if window % 2 == 0:
+        window += 1
+
+    # Prevent the window from exceeding the data length
+    if window > len(values):
+        window = len(values)
+
+        if window % 2 == 0:
+            window -= 1
+
+    if window < 3:
+        return values.copy()
+
+    kernel = np.ones(window) / window
+
+    # Edge padding prevents the curve from shrinking at the boundaries
+    pad = window // 2
+
+    padded = np.pad(
+        values,
+        (pad, pad),
+        mode="edge"
+    )
+
+    smoothed = np.convolve(
+        padded,
+        kernel,
+        mode="valid"
+    )
+
+    return smoothed
+
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+if not os.path.isfile(FILE_PATH):
+    raise FileNotFoundError(
+        f"File not found:\n{FILE_PATH}"
+    )
+
+print("\nReading data from:")
+print(FILE_PATH)
+
+with open(
+    FILE_PATH,
+    "r",
+    encoding="utf-8",
+    errors="ignore"
+) as file:
+    text = file.read()
+
+print(f"\nFile size: {len(text)} characters")
+
+
+# ============================================================
+# REWARD PARSER
+# ============================================================
+
+pattern = re.compile(
+    r"^\s*"
+    r"(PPO|SLAM-LSTM-PPO|GAN-PPO)"
+    r"\s+Episode\s+(\d+)"
+    r"\s*\|\s*Reward\s*=\s*"
+    r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"
+    r"\s*$",
+    re.IGNORECASE | re.MULTILINE
+)
+
+
+# ============================================================
+# EXTRACT DATA
+# ============================================================
+
+data = {
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+
+
+
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for match in pattern.finditer(text):
+
+    algorithm = match.group(1).upper()
+    episode = int(match.group(2))
+    reward = float(match.group(3))
+
+    if algorithm == "SLAM-LSTM-PPO":
+        algorithm = "SLAM-LSTM-PPO"
+
+    elif algorithm == "PPO":
+        algorithm = "PPO"
+
+    elif algorithm == "GAN-PPO":
+        algorithm = "GAN-PPO"
+
+    data[algorithm]["episodes"].append(episode)
+    data[algorithm]["rewards"].append(reward)
+
+
+# ============================================================
+# SORT DATA
+# ============================================================
+
+for algorithm in data:
+
+    combined = sorted(
+        zip(
+            data[algorithm]["episodes"],
+            data[algorithm]["rewards"]
+        ),
+        key=lambda x: x[0]
+    )
+
+    data[algorithm]["episodes"] = [
+        item[0] for item in combined
+    ]
+
+    data[algorithm]["rewards"] = [
+        item[1] for item in combined
+    ]
+
+
+# ============================================================
+# LIMIT DATA TO MAXIMUM EPISODE
+# ============================================================
+
+plot_data = {
+    "PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for algorithm in data:
+
+    for episode, reward in zip(
+        data[algorithm]["episodes"],
+        data[algorithm]["rewards"]
+    ):
+
+        if episode <= MAX_EPISODE:
+
+            plot_data[algorithm]["episodes"].append(
+                episode
+            )
+
+            plot_data[algorithm]["rewards"].append(
+                reward
+            )
+
+
+# ============================================================
+# DISPLAY DETECTED DATA
+# ============================================================
+
+print("\n" + "=" * 70)
+print("DETECTED ALGORITHMS")
+print("=" * 70)
+
+for algorithm in data:
+
+    episodes = data[algorithm]["episodes"]
+
+    if len(episodes) > 0:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: 0"
+        )
+
+
+# ============================================================
+# PLOTTING DATA CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print(f"PLOTTING DATA: UP TO {MAX_EPISODE} EPISODES")
+print("=" * 70)
+
+for algorithm in plot_data:
+
+    episodes = plot_data[algorithm]["episodes"]
+
+    if episodes:
+
+        print(
+            f"{algorithm:<25}"
+            f"Points plotted: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"No data within selected episode range."
+        )
+
+
+# ============================================================
+# GAN-PPO CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print("GAN-PPO CHECK")
+print("=" * 70)
+
+if data["GAN-PPO"]["episodes"]:
+
+    print("GAN-PPO detected successfully.")
+
+    print(
+        f"Reward points: "
+        f"{len(data['GAN-PPO']['episodes'])}"
+    )
+
+else:
+
+    print(
+        "GAN-PPO is not present in the input file."
+    )
+
+    print("\nIMPORTANT:")
+
+    print(
+        "GAN-PPO reward lines must be written as:"
+    )
+
+    print(
+        "GAN-PPO Episode 050 | Reward = 0.6502"
+    )
+
+
+# ============================================================
+# PLOT SETTINGS
+# ============================================================
+
+plt.rcParams["font.family"] = "Times New Roman"
+
+fig, ax = plt.subplots(
+    figsize=(13, 8)
+)
+
+
+# ============================================================
+# PLOT PPO
+# ============================================================
+
+if plot_data["PPO"]["episodes"]:
+
+    episodes = np.asarray(
+        plot_data["PPO"]["episodes"]
+    )
+
+    rewards = np.asarray(
+        plot_data["PPO"]["rewards"]
+    )
+
+    smoothed_rewards = smooth(
+        rewards,
+        SMOOTH_WINDOW
+    )
+
+    ax.plot(
+        episodes,
+        smoothed_rewards,
+        marker="o",
+        markersize=5.5,
+        linewidth=2.2,
+        markevery=max(1, len(episodes) // 25),
+        label="PPO"
+    )
+
+
+# ============================================================
+# PLOT SLAM-LSTM-PPO AS OURS
+# ============================================================
+
+if plot_data["SLAM-LSTM-PPO"]["episodes"]:
+
+    episodes = np.asarray(
+        plot_data["SLAM-LSTM-PPO"]["episodes"]
+    )
+
+    rewards = np.asarray(
+        plot_data["SLAM-LSTM-PPO"]["rewards"]
+    )
+
+    smoothed_rewards = smooth(
+        rewards,
+        SMOOTH_WINDOW
+    )
+
+    ax.plot(
+        episodes,
+        smoothed_rewards,
+        marker="s",
+        markersize=5.5,
+        linewidth=2.2,
+        markevery=max(1, len(episodes) // 25),
+        label="Ours"
+    )
+
+
+# ============================================================
+# PLOT GAN-PPO
+# ============================================================
+
+if plot_data["GAN-PPO"]["episodes"]:
+
+    episodes = np.asarray(
+        plot_data["GAN-PPO"]["episodes"]
+    )
+
+    rewards = np.asarray(
+        plot_data["GAN-PPO"]["rewards"]
+    )
+
+    smoothed_rewards = smooth(
+        rewards,
+        SMOOTH_WINDOW
+    )
+
+    ax.plot(
+        episodes,
+        smoothed_rewards,
+        marker="^",
+        markersize=6,
+        linewidth=2.2,
+        markevery=max(1, len(episodes) // 25),
+        label="GAN-PPO"
+    )
+
+
+# ============================================================
+# AXIS LABELS
+# ============================================================
+
+ax.set_xlabel(
+    "Episode",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+ax.set_ylabel(
+    "Scheduling Reward",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+
+# ============================================================
+# TICKS
+# ============================================================
+
+ax.tick_params(
+    axis="both",
+    labelsize=18
+)
+
+for label in ax.get_xticklabels():
+    label.set_fontname("Times New Roman")
+
+for label in ax.get_yticklabels():
+    label.set_fontname("Times New Roman")
+
+
+# ============================================================
+# AXIS LIMIT
+# ============================================================
+
+ax.set_xlim(
+    0,
+    MAX_EPISODE
+)
+
+
+# ============================================================
+# GRID
+# ============================================================
+
+ax.grid(
+    True,
+    linestyle="--",
+    linewidth=0.8
+)
+
+
+# ============================================================
+# LEGEND
+# ============================================================
+
+legend = ax.legend(
+    loc="lower center",
+    bbox_to_anchor=(0.5, 1.02),
+    fontsize=17,
+    ncol=3,
+    frameon=True
+)
+
+for text_item in legend.get_texts():
+    text_item.set_fontname("Times New Roman")
+
+
+# ============================================================
+# LAYOUT
+# ============================================================
+
+fig.tight_layout()
+
+
+# ============================================================
+# SAVE PNG
+# ============================================================
+
+fig.savefig(
+    OUTPUT_PNG,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+
+# ============================================================
+# SAVE EPS
+# ============================================================
+
+fig.savefig(
+    OUTPUT_EPS,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+
+# ============================================================
+# DISPLAY
+# ============================================================
+
+plt.show()
+
+
+# ============================================================
+# RAW REWARD STATISTICS
+# ============================================================
+
+print("\n" + "=" * 70)
+print(
+    f"REWARD STATISTICS — UP TO {MAX_EPISODE} EPISODES"
+)
+print("=" * 70)
+
+for algorithm in [
+    "PPO",
+    "SLAM-LSTM-PPO",
+    "GAN-PPO"
+]:
+
+    rewards = plot_data[algorithm]["rewards"]
+
+    if not rewards:
+        continue
+
+    print(
+        f"{algorithm:<25}"
+        f"Min = {min(rewards):>10.4f}   "
+        f"Max = {max(rewards):>10.4f}   "
+        f"Mean = {sum(rewards) / len(rewards):>10.4f}"
+    )
+
+
+# ============================================================
+# OUTPUT FILES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("FIGURES SAVED")
+print("=" * 70)
+
+print(f"PNG: {OUTPUT_PNG}")
+print(f"EPS: {OUTPUT_EPS}")
+
+print(
+    f"\nSmoothing method: Centered moving average"
+    f"\nSmoothing window: {SMOOTH_WINDOW} points"
+)
+import os
+import re
+import matplotlib.pyplot as plt
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+DATA_FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+FILE_NAME = "combinedPPOSLAMv.txt"
+
+FILE_PATH = os.path.join(DATA_FOLDER, FILE_NAME)
+
+OUTPUT_PNG = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.png"
+)
+
+OUTPUT_EPS = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.eps"
+)
+
+# Plot only the first 600 episodes
+#MAX_EPISODE = 100000
+MAX_EPISODE = 100000
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+if not os.path.isfile(FILE_PATH):
+    raise FileNotFoundError(
+        f"File not found:\n{FILE_PATH}"
+    )
+
+print("\nReading data from:")
+print(FILE_PATH)
+
+with open(FILE_PATH, "r", encoding="utf-8", errors="ignore") as file:
+    text = file.read()
+
+print(f"\nFile size: {len(text)} characters")
+
+# ============================================================
+# REWARD PARSER
+# ============================================================
+#
+# Recognizes:
+#
+# PPO Episode 050 | Reward = 0.6502
+# SLAM-LSTM-PPO Episode 050 | Reward = 0.1234
+# GAN-PPO Episode 050 | Reward = -0.5234
+#
+# ============================================================
+
+pattern = re.compile(
+    r"^\s*"
+    r"(PPO|SLAM-LSTM-PPO|GAN-PPO)"
+    r"\s+Episode\s+(\d+)"
+    r"\s*\|\s*Reward\s*=\s*"
+    r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"
+    r"\s*$",
+    re.IGNORECASE | re.MULTILINE
+)
+
+# ============================================================
+# EXTRACT DATA
+# ============================================================
+
+data = {
+    "PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for match in pattern.finditer(text):
+
+    algorithm = match.group(1).upper()
+
+    episode = int(match.group(2))
+    reward = float(match.group(3))
+
+    # Preserve proper algorithm spelling
+    if algorithm == "PPO":
+        algorithm = "PPO"
+
+    elif algorithm == "SLAM-LSTM-PPO":
+        algorithm = "SLAM-LSTM-PPO"
+
+    elif algorithm == "GAN-PPO":
+        algorithm = "GAN-PPO"
+
+    data[algorithm]["episodes"].append(episode)
+    data[algorithm]["rewards"].append(reward)
+
+# ============================================================
+# SORT DATA
+# ============================================================
+
+for algorithm in data:
+
+    combined = sorted(
+        zip(
+            data[algorithm]["episodes"],
+            data[algorithm]["rewards"]
+        ),
+        key=lambda x: x[0]
+    )
+
+    data[algorithm]["episodes"] = [
+        item[0] for item in combined
+    ]
+
+    data[algorithm]["rewards"] = [
+        item[1] for item in combined
+    ]
+
+# ============================================================
+# LIMIT DATA TO FIRST 600 EPISODES
+# ============================================================
+
+plot_data = {
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "PPO": {
+            "episodes": [],
+            "rewards": []
+        },
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for algorithm in data:
+
+    for episode, reward in zip(
+        data[algorithm]["episodes"],
+        data[algorithm]["rewards"]
+    ):
+
+        if episode <= MAX_EPISODE:
+
+            plot_data[algorithm]["episodes"].append(
+                episode
+            )
+
+            plot_data[algorithm]["rewards"].append(
+                reward
+            )
+
+# ============================================================
+# DISPLAY DETECTED DATA
+# ============================================================
+
+print("\n" + "=" * 70)
+print("DETECTED ALGORITHMS")
+print("=" * 70)
+
+for algorithm in data:
+
+    episodes = data[algorithm]["episodes"]
+
+    if len(episodes) > 0:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: 0"
+        )
+
+# ============================================================
+# FIRST 600 EPISODES CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print("PLOTTING DATA: FIRST 600 EPISODES")
+print("=" * 70)
+
+for algorithm in plot_data:
+
+    episodes = plot_data[algorithm]["episodes"]
+
+    if episodes:
+
+        print(
+            f"{algorithm:<25}"
+            f"Points plotted: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"No data within first 600 episodes."
+        )
+
+# ============================================================
+# GAN-PPO CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print("GAN-PPO CHECK")
+print("=" * 70)
+
+if data["GAN-PPO"]["episodes"]:
+
+    print(
+        "GAN-PPO detected successfully."
+    )
+
+    print(
+        f"Reward points: "
+        f"{len(data['GAN-PPO']['episodes'])}"
+    )
+
+else:
+
+    print(
+        "GAN-PPO is not present in LSTMPPOD1.txt."
+    )
+
+    print(
+        "\nIMPORTANT:"
+    )
+
+    print(
+        "Your GAN-PPO reward lines must be written as:"
+    )
+
+    print(
+        "GAN-PPO Episode 050 | Reward = 0.6502"
+    )
+
+# ============================================================
+# PLOT SETTINGS
+# ============================================================
+
+plt.rcParams["font.family"] = "Times New Roman"
+
+fig, ax = plt.subplots(
+    figsize=(13, 8)
+)
+
+# ============================================================
+# PLOT PPO
+# ============================================================
+
+if plot_data["PPO"]["episodes"]:
+
+    ax.plot(
+        plot_data["PPO"]["episodes"],
+        plot_data["PPO"]["rewards"],
+        marker="o",
+        markersize=5.5,
+        linewidth=2.2,
+        label="PPO"
+    )
+
+# ============================================================
+# PLOT SLAM-LSTM-PPO AS OURS
+# ============================================================
+
+if plot_data["SLAM-LSTM-PPO"]["episodes"]:
+
+    ax.plot(
+        plot_data["SLAM-LSTM-PPO"]["episodes"],
+        plot_data["SLAM-LSTM-PPO"]["rewards"],
+        marker="s",
+        markersize=5.5,
+        linewidth=2.2,
+        label="Ours"
+    )
+
+# ============================================================
+# PLOT GAN-PPO
+# ============================================================
+
+if plot_data["GAN-PPO"]["episodes"]:
+
+    ax.plot(
+        plot_data["GAN-PPO"]["episodes"],
+        plot_data["GAN-PPO"]["rewards"],
+        marker="^",
+        markersize=6,
+        linewidth=2.2,
+        label="GAN-PPO"
+    )
+
+# ============================================================
+# AXIS LABELS
+# ============================================================
+
+ax.set_xlabel(
+    "Episode",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+ax.set_ylabel(
+    "Scheduling Reward",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+# ============================================================
+# TICKS
+# ============================================================
+
+ax.tick_params(
+    axis="both",
+    labelsize=18
+)
+
+for label in ax.get_xticklabels():
+    label.set_fontname("Times New Roman")
+
+for label in ax.get_yticklabels():
+    label.set_fontname("Times New Roman")
+
+# ============================================================
+# AXIS LIMIT
+# ============================================================
+
+ax.set_xlim(
+    0,
+    MAX_EPISODE
+)
+
+# ============================================================
+# GRID
+# ============================================================
+
+ax.grid(
+    True,
+    linestyle="--",
+    linewidth=0.8
+)
+
+# ============================================================
+# LEGEND
+# ============================================================
+# Legend placed above the figure.
+
+legend = ax.legend(
+    loc="lower center",
+    bbox_to_anchor=(0.5, 1.02),
+    fontsize=17,
+    ncol=3,
+    frameon=True
+)
+
+for text_item in legend.get_texts():
+    text_item.set_fontname("Times New Roman")
+
+# ============================================================
+# LAYOUT
+# ============================================================
+
+fig.tight_layout()
+
+# ============================================================
+# SAVE PNG
+# ============================================================
+
+fig.savefig(
+    OUTPUT_PNG,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# SAVE EPS
+# ============================================================
+
+fig.savefig(
+    OUTPUT_EPS,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# DISPLAY
+# ============================================================
+
+plt.show()
+
+# ============================================================
+# STATISTICS FOR FIRST 600 EPISODES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("REWARD STATISTICS — FIRST 600 EPISODES")
+print("=" * 70)
+
+for algorithm in [
+    "PPO",
+    "SLAM-LSTM-PPO",
+    "GAN-PPO"
+]:
+
+    rewards = plot_data[algorithm]["rewards"]
+
+    if not rewards:
+        continue
+
+    print(
+        f"{algorithm:<25}"
+        f"Min = {min(rewards):>10.4f}   "
+        f"Max = {max(rewards):>10.4f}   "
+        f"Mean = {sum(rewards) / len(rewards):>10.4f}"
+    )
+
+# ============================================================
+# OUTPUT FILES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("FIGURES SAVED")
+print("=" * 70)
+
+print(f"PNG: {OUTPUT_PNG}")
+print(f"EPS: {OUTPUT_EPS}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import os
+import re
+import matplotlib.pyplot as plt
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+DATA_FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+FILE_NAME = "LSTMPPOD1.txt"
+
+FILE_PATH = os.path.join(DATA_FOLDER, FILE_NAME)
+
+OUTPUT_PNG = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.png"
+)
+
+OUTPUT_EPS = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.eps"
+)
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+if not os.path.isfile(FILE_PATH):
+    raise FileNotFoundError(
+        f"File not found:\n{FILE_PATH}"
+    )
+
+print("\nReading data from:")
+print(FILE_PATH)
+
+with open(FILE_PATH, "r", encoding="utf-8", errors="ignore") as file:
+    text = file.read()
+
+print(f"\nFile size: {len(text)} characters")
+
+# ============================================================
+# REWARD PARSER
+# ============================================================
+#
+# Recognizes:
+#
+# PPO Episode 050 | Reward = 0.6502
+# SLAM-LSTM-PPO Episode 050 | Reward = 0.1234
+# GAN-PPO Episode 050 | Reward = -0.5234
+#
+# ============================================================
+
+pattern = re.compile(
+    r"^\s*"
+    r"(PPO|SLAM-LSTM-PPO|GAN-PPO)"
+    r"\s+Episode\s+(\d+)"
+    r"\s*\|\s*Reward\s*=\s*"
+    r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"
+    r"\s*$",
+    re.IGNORECASE | re.MULTILINE
+)
+
+# ============================================================
+# EXTRACT DATA
+# ============================================================
+
+data = {
+    "PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for match in pattern.finditer(text):
+
+    algorithm = match.group(1).upper()
+
+    episode = int(match.group(2))
+    reward = float(match.group(3))
+
+    # Preserve proper algorithm spelling
+    if algorithm == "PPO":
+        algorithm = "PPO"
+
+    elif algorithm == "SLAM-LSTM-PPO":
+        algorithm = "SLAM-LSTM-PPO"
+
+    elif algorithm == "GAN-PPO":
+        algorithm = "GAN-PPO"
+
+    data[algorithm]["episodes"].append(episode)
+    data[algorithm]["rewards"].append(reward)
+
+# ============================================================
+# SORT DATA
+# ============================================================
+
+for algorithm in data:
+    combined = sorted(
+        zip(
+            data[algorithm]["episodes"],
+            data[algorithm]["rewards"]
+        ),
+        key=lambda x: x[0]
+    )
+
+    data[algorithm]["episodes"] = [
+        item[0] for item in combined
+    ]
+
+    data[algorithm]["rewards"] = [
+        item[1] for item in combined
+    ]
+
+# ============================================================
+# DISPLAY DETECTED DATA
+# ============================================================
+
+print("\n" + "=" * 70)
+print("DETECTED ALGORITHMS")
+print("=" * 70)
+
+for algorithm in data:
+
+    episodes = data[algorithm]["episodes"]
+
+    if len(episodes) > 0:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: 0"
+        )
+
+# ============================================================
+# GAN-PPO CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print("GAN-PPO CHECK")
+print("=" * 70)
+
+if data["GAN-PPO"]["episodes"]:
+
+    print(
+        "GAN-PPO detected successfully."
+    )
+
+    print(
+        f"Reward points: "
+        f"{len(data['GAN-PPO']['episodes'])}"
+    )
+
+else:
+
+    print(
+        "GAN-PPO is not present in LSTMPPOD1.txt."
+    )
+
+    print(
+        "\nIMPORTANT:"
+    )
+
+    print(
+        "Your GAN-PPO reward lines must be written as:"
+    )
+
+    print(
+        "GAN-PPO Episode 050 | Reward = 0.6502"
+    )
+
+# ============================================================
+# PLOT SETTINGS
+# ============================================================
+
+plt.rcParams["font.family"] = "Times New Roman"
+
+fig, ax = plt.subplots(
+    figsize=(13, 8)
+)
+
+# ============================================================
+# PLOT PPO
+# ============================================================
+
+if data["PPO"]["episodes"]:
+    ax.plot(
+        data["PPO"]["episodes"],
+        data["PPO"]["rewards"],
+        marker="o",
+        markersize=5.5,
+        linewidth=2.2,
+        label="PPO"
+    )
+
+# ============================================================
+# PLOT SLAM-LSTM-PPO
+# ============================================================
+
+if data["SLAM-LSTM-PPO"]["episodes"]:
+    ax.plot(
+        data["SLAM-LSTM-PPO"]["episodes"],
+        data["SLAM-LSTM-PPO"]["rewards"],
+        marker="s",
+        markersize=5.5,
+        linewidth=2.2,
+        label="SLAM-LSTM-PPO"
+    )
+
+# ============================================================
+# PLOT GAN-PPO
+# ============================================================
+
+if data["GAN-PPO"]["episodes"]:
+    ax.plot(
+        data["GAN-PPO"]["episodes"],
+        data["GAN-PPO"]["rewards"],
+        marker="^",
+        markersize=6,
+        linewidth=2.2,
+        label="GAN-PPO"
+    )
+
+# ============================================================
+# AXIS LABELS
+# ============================================================
+
+ax.set_xlabel(
+    "Episode",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+ax.set_ylabel(
+    "Scheduling Reward",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+# ============================================================
+# TICKS
+# ============================================================
+
+ax.tick_params(
+    axis="both",
+    labelsize=18
+)
+
+for label in ax.get_xticklabels():
+    label.set_fontname("Times New Roman")
+
+for label in ax.get_yticklabels():
+    label.set_fontname("Times New Roman")
+
+# ============================================================
+# AXIS LIMIT
+# ============================================================
+
+ax.set_xlim(left=0)
+
+# ============================================================
+# GRID
+# ============================================================
+# No transparency is used so EPS does not generate the
+# PostScript transparency warning.
+
+ax.grid(
+    True,
+    linestyle="--",
+    linewidth=0.8
+)
+
+# ============================================================
+# LEGEND
+# ============================================================
+
+legend = ax.legend(
+    loc="best",
+    fontsize=17,
+    ncol=3,
+    frameon=True
+)
+
+for text_item in legend.get_texts():
+    text_item.set_fontname("Times New Roman")
+
+# ============================================================
+# LAYOUT
+# ============================================================
+
+fig.tight_layout()
+
+# ============================================================
+# SAVE PNG
+# ============================================================
+
+fig.savefig(
+    OUTPUT_PNG,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# SAVE EPS
+# ============================================================
+
+fig.savefig(
+    OUTPUT_EPS,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# DISPLAY
+# ============================================================
+
+plt.show()
+
+# ============================================================
+# STATISTICS
+# ============================================================
+
+print("\n" + "=" * 70)
+print("REWARD STATISTICS")
+print("=" * 70)
+
+for algorithm in [
+    "PPO",
+    "SLAM-LSTM-PPO",
+    "GAN-PPO"
+]:
+
+    rewards = data[algorithm]["rewards"]
+
+    if not rewards:
+        continue
+
+    print(
+        f"{algorithm:<25}"
+        f"Min = {min(rewards):>10.4f}   "
+        f"Max = {max(rewards):>10.4f}   "
+        f"Mean = {sum(rewards) / len(rewards):>10.4f}"
+    )
+
+# ============================================================
+# OUTPUT FILES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("FIGURES SAVED")
+print("=" * 70)
+
+print(f"PNG: {OUTPUT_PNG}")
+print(f"EPS: {OUTPUT_EPS}")
+# ============================================================
+# BLOCK 1: CONFIGURATION
+# ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import os
+import time
+import random
+import sqlite3
+import warnings
+
+import numpy as np
+import pandas as pd
+
+warnings.filterwarnings("ignore")
+import re
+import os
+import matplotlib.pyplot as plt
+
+
+# ============================================================
+# Configuration
+# ============================================================
+import re
+import os
+import matplotlib.pyplot as plt
+
+
+import re
+import os
+import matplotlib.pyplot as plt
+
+
+# ============================================================
+# FILE LOCATION
+# ============================================================
+DATA_FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+FILE_NAME = "LSTMPPOD1.txt"
+
+file_path = os.path.join(DATA_FOLDER, FILE_NAME)
+
+
+# ============================================================
+# CHECK FILE
+# ============================================================
+if not os.path.isfile(file_path):
+    raise FileNotFoundError(
+        f"\nCannot find:\n{file_path}"
+    )
+
+print("\nReading data from:")
+print(file_path)
+
+
+# ============================================================
+# REWARD REGEX
+# ============================================================
+# IMPORTANT:
+# We do NOT use ^ or $.
+#
+# Therefore, the reward can be detected even if the line
+# contains additional text before or after it.
+#
+# Examples detected:
+#
+# GAN-PPO Episode 050 | Reward = 0.1910
+#
+# Some text GAN-PPO Episode 100 | Reward = -0.3943
+#
+# ============================================================
+
+pattern = re.compile(
+    r"([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)"
+    r"\s+Episode\s+(\d+)"
+    r"\s*\|\s*Reward\s*=\s*"
+    r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)",
+    re.IGNORECASE
+)
+
+
+# ============================================================
+# STORAGE
+# ============================================================
+rewards = {}
+
+
+# ============================================================
+# READ FILE
+# ============================================================
+with open(file_path, "r", encoding="utf-8") as file:
+
+    text = file.read()
+
+
+# ============================================================
+# FIND ALL REWARD RECORDS
+# ============================================================
+matches = pattern.findall(text)
+
+
+for algorithm, episode, reward in matches:
+
+    algorithm = algorithm.strip()
+    episode = int(episode)
+    reward = float(reward)
+
+    if algorithm not in rewards:
+
+        rewards[algorithm] = {
+            "episodes": [],
+            "rewards": []
+        }
+
+    rewards[algorithm]["episodes"].append(episode)
+    rewards[algorithm]["rewards"].append(reward)
+
+
+# ============================================================
+# DETECTED ALGORITHMS
+# ============================================================
+print("\n" + "=" * 70)
+print("DETECTED ALGORITHMS")
+print("=" * 70)
+
+for algorithm, data in rewards.items():
+
+    print(
+        f"{algorithm:<25}"
+        f"Reward points: {len(data['episodes']):<6}"
+        f"Episode range: "
+        f"{min(data['episodes'])} - {max(data['episodes'])}"
+    )
+
+
+# ============================================================
+# SPECIFIC CHECK FOR GAN-PPO
+# ============================================================
+print("\n" + "=" * 70)
+print("GAN-PPO CHECK")
+print("=" * 70)
+
+if "GAN-PPO" in rewards:
+
+    gan_data = rewards["GAN-PPO"]
+
+    print(
+        f"GAN-PPO successfully detected: "
+        f"{len(gan_data['episodes'])} reward points"
+    )
+
+    print(
+        f"Episode range: "
+        f"{min(gan_data['episodes'])} - "
+        f"{max(gan_data['episodes'])}"
+    )
+
+    print("\nFirst GAN-PPO rewards:")
+
+    for episode, reward in zip(
+        gan_data["episodes"][:10],
+        gan_data["rewards"][:10]
+    ):
+
+        print(
+            f"Episode {episode:04d} | "
+            f"Reward = {reward:.4f}"
+        )
+
+else:
+
+    print("WARNING: GAN-PPO was NOT found in PPODATA.txt.")
+
+
+# ============================================================
+# CHECK
+# ============================================================
+if not rewards:
+
+    raise ValueError(
+        "\nNo reward records were detected."
+    )
+
+
+# ============================================================
+# PLOT
+# ============================================================
+plt.figure(figsize=(12, 7))
+
+
+for algorithm, data in rewards.items():
+
+    # Sort by episode
+    sorted_data = sorted(
+        zip(
+            data["episodes"],
+            data["rewards"]
+        ),
+        key=lambda x: x[0]
+    )
+
+    episodes = [
+        x[0]
+        for x in sorted_data
+    ]
+
+    reward_values = [
+        x[1]
+        for x in sorted_data
+    ]
+
+    plt.plot(
+        episodes,
+        reward_values,
+        marker="o",
+        markersize=4,
+        linewidth=2.0,
+        label=algorithm
+    )
+
+
+# ============================================================
+# PLOT FORMATTING
+# ============================================================
+plt.xlabel(
+    "Episode",
+    fontsize=20
+)
+
+plt.ylabel(
+    "Reward",
+    fontsize=20
+)
+
+plt.xticks(
+    fontsize=18
+)
+
+plt.yticks(
+    fontsize=18
+)
+
+plt.grid(
+    True,
+    linestyle="--",
+    linewidth=0.7,
+    alpha=0.6
+)
+
+plt.legend(
+    fontsize=15,
+    loc="best",
+    ncol=3
+)
+
+plt.xlim(
+    left=0
+)
+
+plt.tight_layout()
+
+
+# ============================================================
+# SAVE FIGURES
+# ============================================================
+png_path = os.path.join(
+    DATA_FOLDER,
+    "reward_comparison.png"
+)
+
+eps_path = os.path.join(
+    DATA_FOLDER,
+    "reward_comparison.eps"
+)
+
+plt.savefig(
+    png_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    eps_path,
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+# ============================================================
+# STATISTICS
+# ============================================================
+print("\n" + "=" * 70)
+print("REWARD STATISTICS")
+print("=" * 70)
+
+for algorithm, data in rewards.items():
+
+    values = data["rewards"]
+
+    average_reward = sum(values) / len(values)
+
+    print(
+        f"{algorithm:<25}"
+        f"Min = {min(values):>9.4f} | "
+        f"Max = {max(values):>9.4f} | "
+        f"Average = {average_reward:>9.4f}"
+    )
+
+
+# ============================================================
+# OUTPUT
+# ============================================================
+print("\n" + "=" * 70)
+print("FIGURES SAVED")
+print("=" * 70)
+
+print(f"PNG: {png_path}")
+print(f"EPS: {eps_path}")#---------------------------
+# Paths
+# ------------------------------------------------------------
+
+PROJECT_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+
+DB_PATH = os.path.join(
+    PROJECT_DIR,
+    "Lower_Layer_Data.db"
+)
+
+RESULT_DIR = os.path.join(
+    PROJECT_DIR,
+    "five_model_results"
+)
+
+MODEL_DIR = os.path.join(
+    RESULT_DIR,
+    "models"
+)
+
+os.makedirs(RESULT_DIR, exist_ok=True)
+os.makedirs(MODEL_DIR, exist_ok=True)
+
+# ------------------------------------------------------------
+# Reproducibility
+# ------------------------------------------------------------
+
+SEED = 420
+
+random.seed(SEED)
+np.random.seed(SEED)
+
+# ------------------------------------------------------------
+# User scalability levels
+# ------------------------------------------------------------
+
+USER_LEVELS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+
+# ------------------------------------------------------------
+# Dataset
+# ------------------------------------------------------------
+
+TABLE_NAME = "lower_layer_data"
+
+TARGET_COLUMN = "attack_category"
+
+# ------------------------------------------------------------
+# Radio / physical-layer features
+# ------------------------------------------------------------
+
+FEATURE_COLUMNS = [
+    "dlBytes",
+    "dlMcs",
+    "dlBler",
+    "ulBytes",
+    "ulMcs",
+    "ulBler",
+    "ri",
+    "phr",
+    "pcmax",
+    "rsrq",
+    "sinr",
+    "rsrp",
+    "rssi",
+    "cqi",
+    "pucchSnr",
+    "puschSnr"
+]
+
+# ------------------------------------------------------------
+# Resource configuration
+# ------------------------------------------------------------
+
+MAX_BW = 100.0
+MAX_RB = 273.0
+
+MIN_BW = 20.0
+MIN_RB = 52.0
+
+# ------------------------------------------------------------
+# QoS thresholds
+# ------------------------------------------------------------
+
+BLER_THRESHOLD = 0.10
+SINR_THRESHOLD = 0.0
+CQI_THRESHOLD = 7.0
+
+print("=" * 70)
+print("FIVE-MODEL O-RAN EXPERIMENT")
+print("=" * 70)
+print(f"Database : {DB_PATH}")
+print(f"Results  : {RESULT_DIR}")
+print(f"Users    : {USER_LEVELS}")
+
+
+# ============================================================
+# BLOCK 2: LOAD DATASET
+# ============================================================
+
+if not os.path.exists(DB_PATH):
+    raise FileNotFoundError(
+        f"Database not found:\n{DB_PATH}"
+    )
+
+connection = sqlite3.connect(DB_PATH)
+
+# Check available tables
+tables = pd.read_sql_query(
+    "SELECT name FROM sqlite_master WHERE type='table';",
+    connection
+)
+
+print("\nAvailable tables:")
+print(tables)
+
+if TABLE_NAME not in tables["name"].values:
+    raise ValueError(
+        f"Table '{TABLE_NAME}' was not found in the database."
+    )
+
+# Load complete dataset
+df = pd.read_sql_query(
+    f"SELECT * FROM {TABLE_NAME}",
+    connection
+)
+
+connection.close()
+
+print("\nDataset shape:", df.shape)
+
+print("\nColumns:")
+print(df.columns.tolist())
+
+missing_features = [
+    col for col in FEATURE_COLUMNS
+    if col not in df.columns
+]
+
+if missing_features:
+    raise ValueError(
+        f"Missing required features: {missing_features}"
+    )
+
+if TARGET_COLUMN not in df.columns:
+    raise ValueError(
+        f"Target column '{TARGET_COLUMN}' not found."
+    )
+
+print("\nAttack categories:")
+print(df[TARGET_COLUMN].value_counts())
+
+print("\nDataset loaded successfully.")
+
+# ============================================================
+# BLOCK 3: DATA CLEANING AND NORMALIZATION
+# ============================================================
+
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+
+# Convert radio features to numeric
+for column in FEATURE_COLUMNS:
+    df[column] = pd.to_numeric(
+        df[column],
+        errors="coerce"
+    )
+
+# Remove rows with missing values
+df = df.dropna(
+    subset=FEATURE_COLUMNS + [TARGET_COLUMN]
+).reset_index(drop=True)
+
+X = df[FEATURE_COLUMNS].values.astype(np.float32)
+
+# Encode attack categories
+label_encoder = LabelEncoder()
+
+y = label_encoder.fit_transform(
+    df[TARGET_COLUMN].astype(str)
+)
+
+print("\nClasses:")
+for index, label in enumerate(label_encoder.classes_):
+    print(index, "->", label)
+
+# ------------------------------------------------------------
+# Train / validation / test split
+# ------------------------------------------------------------
+
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X,
+    y,
+    test_size=0.30,
+    random_state=SEED,
+    stratify=y
+)
+
+X_val, X_test, y_val, y_test = train_test_split(
+    X_temp,
+    y_temp,
+    test_size=0.50,
+    random_state=SEED,
+    stratify=y_temp
+)
+
+# ------------------------------------------------------------
+# Scaling
+# ------------------------------------------------------------
+
+scaler = StandardScaler()
+
+X_train_scaled = scaler.fit_transform(X_train).astype(np.float32)
+X_val_scaled = scaler.transform(X_val).astype(np.float32)
+X_test_scaled = scaler.transform(X_test).astype(np.float32)
+
+print("\nTrain:", X_train_scaled.shape)
+print("Validation:", X_val_scaled.shape)
+print("Test:", X_test_scaled.shape)
+
+
+
+
+# ============================================================
+# BLOCK: CREATE TEST SEQUENCES FOR SLAM-LSTM
+# ============================================================
+
+SEQ_LEN = 5
+
+
+def create_sequences(X, seq_len=5):
+    sequences = []
+
+    for i in range(len(X) - seq_len + 1):
+        sequences.append(
+            X[i:i + seq_len]
+        )
+
+    return np.asarray(sequences, dtype=np.float32)
+
+
+X_test_seq = create_sequences(
+    X_test_scaled,
+    SEQ_LEN
+)
+
+print("\nTest sequence shape:", X_test_seq.shape)
+# ============================================================
+# BLOCK 4: O-RAN RESOURCE ENVIRONMENT
+# ============================================================
+
+class ORANEnvironment:
+
+    def __init__(self, feature_data, seed=42):
+
+        self.X = feature_data
+        self.rng = np.random.default_rng(seed)
+
+        self.max_bw = MAX_BW
+        self.max_rb = MAX_RB
+
+        self.min_bw = MIN_BW
+        self.min_rb = MIN_RB
+
+    def reset(self):
+
+        index = self.rng.integers(
+            0,
+            len(self.X)
+        )
+
+        self.features = self.X[index].copy()
+
+        self.bw = self.rng.uniform(
+            self.min_bw,
+            self.max_bw * 0.80
+        )
+
+        self.rb = self.rng.uniform(
+            self.min_rb,
+            self.max_rb * 0.80
+        )
+
+        return self._state()
+
+    def _state(self):
+
+        return np.concatenate([
+            self.features,
+            [
+                self.bw / self.max_bw,
+                self.rb / self.max_rb
+            ]
+        ]).astype(np.float32)
+
+    def step(self, action):
+
+        old_bw = self.bw
+        old_rb = self.rb
+
+        if action == 0:
+            # Maintain
+            pass
+
+        elif action == 1:
+            # Moderate increase
+            self.bw *= 1.10
+            self.rb *= 1.10
+
+        elif action == 2:
+            # Aggressive increase
+            self.bw *= 1.25
+            self.rb *= 1.25
+
+        elif action == 3:
+            # Decrease
+            self.bw *= 0.90
+            self.rb *= 0.90
+
+        self.bw = np.clip(
+            self.bw,
+            self.min_bw,
+            self.max_bw
+        )
+
+        self.rb = np.clip(
+            self.rb,
+            self.min_rb,
+            self.max_rb
+        )
+
+        # ----------------------------------------------------
+        # Radio conditions
+        # ----------------------------------------------------
+
+        dl_bler = float(self.features[2])
+        ul_bler = float(self.features[5])
+        sinr = float(self.features[10])
+        cqi = float(self.features[13])
+
+        # ----------------------------------------------------
+        # QoS condition
+        # ----------------------------------------------------
+
+        qos_violation = (
+            dl_bler > BLER_THRESHOLD
+            or
+            ul_bler > BLER_THRESHOLD
+            or
+            sinr < SINR_THRESHOLD
+            or
+            cqi < CQI_THRESHOLD
+        )
+
+        # ----------------------------------------------------
+        # Resource efficiency
+        # ----------------------------------------------------
+
+        bw_utilization = self.bw / self.max_bw
+        rb_utilization = self.rb / self.max_rb
+
+        resource_efficiency = (
+            1.0 - abs(
+                0.70 -
+                (0.5 * bw_utilization +
+                 0.5 * rb_utilization)
+            )
+        )
+
+        resource_efficiency = np.clip(
+            resource_efficiency,
+            0.0,
+            1.0
+        )
+
+        # ----------------------------------------------------
+        # Scheduling efficiency
+        # ----------------------------------------------------
+
+        resource_gain = (
+            (self.bw - old_bw) / self.max_bw
+            +
+            (self.rb - old_rb) / self.max_rb
+        )
+
+        scheduling_efficiency = (
+            1.0
+            - 0.5 * float(qos_violation)
+            + 0.25 * resource_efficiency
+            - 0.10 * abs(resource_gain)
+        )
+
+        scheduling_efficiency = np.clip(
+            scheduling_efficiency,
+            0.0,
+            1.0
+        )
+
+        # ----------------------------------------------------
+        # Reward
+        # ----------------------------------------------------
+
+        reward = (
+            scheduling_efficiency
+            +
+            resource_efficiency
+            -
+            1.5 * float(qos_violation)
+        )
+
+        next_state = self._state()
+
+        return (
+            next_state,
+            float(reward),
+            {
+                "qos_violation": int(qos_violation),
+                "resource_efficiency": float(
+                    resource_efficiency
+                ),
+                "scheduling_efficiency": float(
+                    scheduling_efficiency
+                ),
+                "bw": float(self.bw),
+                "rb": float(self.rb)
+            }
+        )
+# ============================================================
+# BLOCK 5: PPO AGENT
+# ============================================================
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.distributions import Categorical
+
+
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available()
+    else "cpu"
+)
+
+print("\nDevice:", DEVICE)
+
+
+class ActorCritic(nn.Module):
+
+    def __init__(
+        self,
+        state_dim,
+        action_dim,
+        hidden_dim=128
+    ):
+
+        super().__init__()
+
+        self.shared = nn.Sequential(
+            nn.Linear(state_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU()
+        )
+
+        self.actor = nn.Linear(
+            hidden_dim,
+            action_dim
+        )
+
+        self.critic = nn.Linear(
+            hidden_dim,
+            1
+        )
+
+    def forward(self, state):
+
+        h = self.shared(state)
+
+        logits = self.actor(h)
+        value = self.critic(h)
+
+        return logits, value
+
+
+class PPOAgent:
+
+    def __init__(
+        self,
+        state_dim,
+        action_dim,
+        lr=5e-4,
+         #lr=0.001,
+        gamma=0.99,
+        clip_eps=0.25
+    ):
+
+        self.gamma = gamma
+        self.clip_eps = clip_eps
+
+        self.network = ActorCritic(
+            state_dim,
+            action_dim
+        ).to(DEVICE)
+
+        self.optimizer = optim.Adam(
+            self.network.parameters(),
+            lr=lr
+        )
+
+    def select_action(self, state):
+
+        state_tensor = torch.tensor(
+            state,
+            dtype=torch.float32,
+            device=DEVICE
+        ).unsqueeze(0)
+
+        with torch.no_grad():
+
+            logits, value = self.network(
+                state_tensor
+            )
+
+            distribution = Categorical(
+                logits=logits
+            )
+
+            action = distribution.sample()
+
+            log_probability = distribution.log_prob(
+                action
+            )
+
+        return (
+            action.item(),
+            log_probability.item(),
+            value.item()
+        )
+
+    def update(
+        self,
+        states,
+        actions,
+        old_log_probs,
+        rewards,
+        values
+    ):
+
+        states = torch.tensor(
+            np.array(states),
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        actions = torch.tensor(
+            actions,
+            dtype=torch.long,
+            device=DEVICE
+        )
+
+        old_log_probs = torch.tensor(
+            old_log_probs,
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        rewards = torch.tensor(
+            rewards,
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        values = torch.tensor(
+            values,
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        # Discounted returns
+        returns = []
+
+        discounted = 0.0
+
+        for reward in reversed(rewards):
+
+            discounted = (
+                reward
+                +
+                self.gamma * discounted
+            )
+
+            returns.insert(
+                0,
+                discounted
+            )
+
+        returns = torch.tensor(
+            returns,
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        advantages = returns - values
+
+        advantages = (
+            advantages -
+            advantages.mean()
+        ) / (
+            advantages.std() + 1e-8
+        )
+
+        for _ in range(5):
+
+            logits, new_values = self.network(
+                states
+            )
+
+            distribution = Categorical(
+                logits=logits
+            )
+
+            new_log_probs = distribution.log_prob(
+                actions
+            )
+
+            ratio = torch.exp(
+                new_log_probs -
+                old_log_probs
+            )
+
+            clipped_ratio = torch.clamp(
+                ratio,
+                1.0 - self.clip_eps,
+                1.0 + self.clip_eps
+            )
+
+            actor_loss = -torch.min(
+                ratio * advantages,
+                clipped_ratio * advantages
+            ).mean()
+
+            critic_loss = (
+                returns -
+                new_values.squeeze()
+            ).pow(2).mean()
+
+            loss = (
+                actor_loss
+                +
+                0.5 * critic_loss
+            )
+
+            self.optimizer.zero_grad()
+            loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(
+                self.network.parameters(),
+                1.0
+            )
+
+            self.optimizer.step()
+
+# ============================================================
+# BLOCK 6: TRAIN PPO BASELINE
+# ============================================================
+
+
+def train_ppo(
+    feature_data,
+    episodes=1,
+    steps_per_episode=20
+):
+
+    environment = ORANEnvironment(
+        feature_data,
+        seed=SEED
+    )
+
+    initial_state = environment.reset()
+
+    state_dim = len(initial_state)
+    action_dim = 4
+
+    agent = PPOAgent(
+        state_dim,
+        action_dim
+    )
+
+    rewards_history = []
+
+    for episode in range(episodes):
+
+        state = environment.reset()
+
+        states = []
+        actions = []
+        log_probs = []
+        rewards = []
+        values = []
+
+        episode_reward = 0.0
+
+        for _ in range(steps_per_episode):
+
+            action, log_prob, value = (
+                agent.select_action(state)
+            )
+
+            next_state, reward, info = (
+                environment.step(action)
+            )
+
+            states.append(state)
+            actions.append(action)
+            log_probs.append(log_prob)
+            rewards.append(reward)
+            values.append(value)
+
+            state = next_state
+
+            episode_reward += reward
+
+        agent.update(
+            states,
+            actions,
+            log_probs,
+            rewards,
+            values
+        )
+
+        rewards_history.append(
+            episode_reward
+        )
+
+        if (episode + 1) % 50 == 0:
+
+            print(
+                f"PPO Episode "
+                f"{episode + 1:03d} | "
+                f"Reward = "
+                f"{np.mean(rewards_history[-50:]):.4f}"
+            )
+
+    torch.save(
+        agent.network.state_dict(),
+        os.path.join(
+            MODEL_DIR,
+            "ppo.pt"
+        )
+    )
+
+    return agent
+
+
+ppo_agent = train_ppo(
+    X_train_scaled
+)
+# ============================================================
+# BLOCK 7: SLAM-LSTM
+# ============================================================
+
+class SLAMLSTM(nn.Module):
+
+    def __init__(
+        self,
+        input_dim=16,
+        hidden_dim=128,
+        layers=10,
+        num_classes=6
+    ):
+
+        super().__init__()
+
+        self.lstm = nn.LSTM(
+            input_dim,
+            hidden_dim,
+            num_layers=layers,
+            batch_first=True
+        )
+
+        self.attention = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, 1)
+        )
+
+        self.classifier = nn.Linear(
+            hidden_dim,
+            num_classes
+        )
+
+    def forward(self, x):
+
+        lstm_output, _ = self.lstm(x)
+
+        attention_scores = self.attention(
+            lstm_output
+        )
+
+        attention_weights = torch.softmax(
+            attention_scores,
+            dim=1
+        )
+
+        context = torch.sum(
+            attention_weights *
+            lstm_output,
+            dim=1
+        )
+
+        logits = self.classifier(
+            context
+        )
+
+        return logits, context
+
+# ============================================================
+# BLOCK 8: CREATE LSTM SEQUENCES
+# ============================================================
+
+SEQUENCE_LENGTH = 5
+
+
+def create_sequences(X, y, sequence_length=5):
+
+    sequences = []
+    labels = []
+
+    for i in range(
+        len(X) - sequence_length + 1
+    ):
+
+        sequences.append(
+            X[
+                i:i + sequence_length
+            ]
+        )
+
+        labels.append(
+            y[
+                i + sequence_length - 1
+            ]
+        )
+
+    return (
+        np.asarray(
+            sequences,
+            dtype=np.float32
+        ),
+        np.asarray(
+            labels,
+            dtype=np.int64
+        )
+    )
+
+
+X_train_seq, y_train_seq = create_sequences(
+    X_train_scaled,
+    y_train,
+    SEQUENCE_LENGTH
+)
+
+X_val_seq, y_val_seq = create_sequences(
+    X_val_scaled,
+    y_val,
+    SEQUENCE_LENGTH
+)
+
+print(
+    "\nLSTM sequence shape:",
+    X_train_seq.shape
+)
+
+# ============================================================
+# BLOCK 9: TRAIN SLAM-LSTM
+# ============================================================
+
+def train_slam_lstm(
+    X_seq,
+    y_seq,
+    epochs=2,
+    batch_size=128
+):
+
+    model = SLAMLSTM(
+        input_dim=16,
+        hidden_dim=128,
+        layers=2,
+        num_classes=len(
+            label_encoder.classes_
+        )
+    ).to(DEVICE)
+
+    optimizer = optim.Adam(
+        model.parameters(),
+        lr=5e-4,
+    )
+
+    criterion = nn.CrossEntropyLoss()
+
+    X_tensor = torch.tensor(
+        X_seq,
+        dtype=torch.float32
+    )
+
+    y_tensor = torch.tensor(
+        y_seq,
+        dtype=torch.long
+    )
+
+    dataset = torch.utils.data.TensorDataset(
+        X_tensor,
+        y_tensor
+    )
+
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True
+    )
+
+    for epoch in range(epochs):
+
+        model.train()
+
+        epoch_loss = 0.0
+        correct = 0
+        total = 0
+
+        for batch_x, batch_y in loader:
+
+            batch_x = batch_x.to(DEVICE)
+            batch_y = batch_y.to(DEVICE)
+
+            logits, _ = model(batch_x)
+
+            loss = criterion(
+                logits,
+                batch_y
+            )
+
+            optimizer.zero_grad()
+
+            loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(),
+                1.0
+            )
+
+            optimizer.step()
+
+            epoch_loss += loss.item()
+
+            predictions = torch.argmax(
+                logits,
+                dim=1
+            )
+
+            correct += (
+                predictions == batch_y
+            ).sum().item()
+
+            total += len(batch_y)
+
+        accuracy = correct / total
+
+        print(
+            f"SLAM-LSTM Epoch "
+            f"{epoch + 1:02d}/{epochs} | "
+            f"Loss = "
+            f"{epoch_loss / len(loader):.6f} | "
+            f"Accuracy = "
+            f"{accuracy:.4f}"
+        )
+
+    torch.save(
+        model.state_dict(),
+        os.path.join(
+            MODEL_DIR,
+            "slam_lstm.pt"
+        )
+    )
+
+    return model
+
+
+slam_lstm = train_slam_lstm(
+    X_train_seq,
+    y_train_seq
+)
+
+
+# ============================================================
+# BLOCK 10: SLAM-LSTM + PPO
+# ============================================================
+
+class SLAMPPOAgent:
+
+    def __init__(
+        self,
+        lstm_model
+    ):
+
+        self.lstm_model = lstm_model
+
+        for parameter in self.lstm_model.parameters():
+            parameter.requires_grad = False
+
+        self.lstm_model.eval()
+
+        self.context_dim = 128
+
+        # 16 raw features
+        # + 128 LSTM context
+        # + BW
+        # + RB
+        # + anomaly probability
+        state_dim = (
+            16 +
+            self.context_dim +
+            2 +
+            1
+        )
+
+        self.ppo = PPOAgent(
+            state_dim=state_dim,
+            action_dim=4
+        )
+
+    def construct_state(
+        self,
+        sequence,
+        bw,
+        rb
+    ):
+
+        tensor = torch.tensor(
+            sequence,
+            dtype=torch.float32,
+            device=DEVICE
+        ).unsqueeze(0)
+
+        with torch.no_grad():
+
+            logits, context = (
+                self.lstm_model(tensor)
+            )
+
+            probabilities = torch.softmax(
+                logits,
+                dim=1
+            )
+
+            anomaly_probability = (
+                1.0 -
+                probabilities[:, 0:1]
+            )
+
+        latest_features = sequence[-1]
+
+        state = torch.cat(
+            [
+                torch.tensor(
+                    latest_features,
+                    dtype=torch.float32,
+                    device=DEVICE
+                ).unsqueeze(0),
+
+                context,
+
+                torch.tensor(
+                    [
+                        bw / MAX_BW,
+                        rb / MAX_RB
+                    ],
+                    dtype=torch.float32,
+                    device=DEVICE
+                ).unsqueeze(0),
+
+                anomaly_probability
+            ],
+            dim=1
+        )
+
+        return state.cpu().numpy()[0]
+
+
+def train_slam_ppo(
+    lstm_model,
+    X_sequences,
+    episodes=1000000,
+    steps_per_episode=20
+):
+
+    agent = SLAMPPOAgent(
+        lstm_model
+    )
+
+    environment = ORANEnvironment(
+        X_train_scaled,
+        seed=SEED
+    )
+
+    rewards_history = []
+
+    for episode in range(episodes):
+
+        state = environment.reset()
+
+        states = []
+        actions = []
+        log_probs = []
+        rewards = []
+        values = []
+
+        sequence = X_sequences[
+            np.random.randint(
+                len(X_sequences)
+            )
+        ]
+
+        episode_reward = 0.0
+
+        for step in range(
+            steps_per_episode
+        ):
+
+            state = agent.construct_state(
+                sequence,
+                environment.bw,
+                environment.rb
+            )
+
+            action, log_prob, value = (
+                agent.ppo.select_action(
+                    state
+                )
+            )
+
+            next_state, reward, info = (
+                environment.step(action)
+            )
+
+            states.append(state)
+            actions.append(action)
+            log_probs.append(log_prob)
+            rewards.append(reward)
+            values.append(value)
+
+            episode_reward += reward
+
+        agent.ppo.update(
+            states,
+            actions,
+            log_probs,
+            rewards,
+            values
+        )
+
+        rewards_history.append(
+            episode_reward
+        )
+
+        if (episode + 1) % 50 == 0:
+
+            print(
+                f"SLAM-LSTM-PPO Episode "
+                f"{episode + 1:03d} | "
+                f"Reward = "
+                f"{np.mean(rewards_history[-50:]):.4f}"
+            )
+
+    torch.save(
+        agent.ppo.network.state_dict(),
+        os.path.join(
+            MODEL_DIR,
+            "slam_lstm_ppo.pt"
+        )
+    )
+
+    return agent
+
+
+ours_agent = train_slam_ppo(
+    slam_lstm,
+    X_train_seq
+)
+
+
+# ============================================================
+# BLOCK 11: K-MEANS + DECISION
+# ============================================================
+
+from sklearn.cluster import KMeans
+
+
+class KMeansDecision:
+
+    def __init__(self, n_clusters=6):
+
+        self.kmeans = KMeans(
+            n_clusters=n_clusters,
+            random_state=SEED,
+            n_init=10
+        )
+
+        self.cluster_actions = {}
+
+    def fit(self, X, y):
+
+        clusters = self.kmeans.fit_predict(X)
+
+        for cluster in np.unique(clusters):
+
+            indices = (
+                clusters == cluster
+            )
+
+            cluster_labels = y[indices]
+
+            # Determine dominant attack category
+            dominant = np.bincount(
+                cluster_labels
+            ).argmax()
+
+            # Non-benign cluster -> increase resources
+            if dominant != 0:
+
+                self.cluster_actions[
+                    cluster
+                ] = 1
+
+            else:
+
+                self.cluster_actions[
+                    cluster
+                ] = 0
+
+        return self
+
+    def predict_action(self, x):
+
+        cluster = self.kmeans.predict(
+            x.reshape(1, -1)
+        )[0]
+
+        return self.cluster_actions.get(
+            cluster,
+            0
+        )
+
+
+kmeans_model = KMeansDecision()
+
+kmeans_model.fit(
+    X_train_scaled,
+    y_train
+)
+
+
+# ============================================================
+# BLOCK 12: KNOWLEDGE GRAPH BASELINE
+# ============================================================
+
+class KnowledgeGraphModel:
+
+    def __init__(self):
+
+        self.feature_weights = None
+        self.threshold = None
+
+    def fit(self, X, y):
+
+        # ----------------------------------------------------
+        # Estimate feature relevance
+        # ----------------------------------------------------
+
+        correlations = []
+
+        for j in range(X.shape[1]):
+
+            feature = X[:, j]
+
+            if np.std(feature) == 0:
+
+                correlations.append(0.0)
+
+            else:
+
+                correlations.append(
+                    abs(
+                        np.corrcoef(
+                            feature,
+                            y
+                        )[0, 1]
+                    )
+                )
+
+        self.feature_weights = np.nan_to_num(
+            correlations
+        )
+
+        weighted_score = np.sum(
+            np.abs(X) *
+            self.feature_weights,
+            axis=1
+        )
+
+        self.threshold = np.percentile(
+            weighted_score,
+            70
+        )
+
+        return self
+
+    def predict_action(self, x):
+
+        score = np.sum(
+            np.abs(x) *
+            self.feature_weights
+        )
+
+        if score >= self.threshold:
+
+            return 1
+
+        return 0
+
+
+kg_model = KnowledgeGraphModel()
+
+kg_model.fit(
+    X_train_scaled,
+    y_train
+)
+
+
+# ============================================================
+# BLOCK 13: GAN FOR DATA AUGMENTATION
+# ============================================================
+
+class Generator(nn.Module):
+
+    def __init__(
+        self,
+        latent_dim=32,
+        output_dim=16
+    ):
+        super().__init__()
+
+        self.network = nn.Sequential(
+            nn.Linear(latent_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Linear(128, output_dim)
+        )
+
+    def forward(self, z):
+        return self.network(z)
+
+
+class Discriminator(nn.Module):
+
+    def __init__(
+        self,
+        input_dim=16
+    ):
+        super().__init__()
+
+        self.network = nn.Sequential(
+            nn.Linear(input_dim, 128),
+            nn.LeakyReLU(0.2),
+            nn.Linear(128, 64),
+            nn.LeakyReLU(0.2),
+            nn.Linear(64, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        return self.network(x)
+# ============================================================
+# BLOCK 14: TRAIN GAN
+# ============================================================
+
+def train_gan(
+    X,
+    epochs=1,
+    batch_size=128
+):
+
+    generator = Generator().to(DEVICE)
+
+    discriminator = Discriminator().to(DEVICE)
+
+    criterion = nn.BCELoss()
+
+    g_optimizer = optim.Adam(
+        generator.parameters(),
+        #lr=0.0002
+        lr=5e-4
+    )
+
+    d_optimizer = optim.Adam(
+        discriminator.parameters(),
+        lr=5e-4
+    )
+
+    dataset = torch.tensor(
+        X,
+        dtype=torch.float32
+    )
+
+    for epoch in range(epochs):
+
+        permutation = torch.randperm(
+            len(dataset)
+        )
+
+        epoch_d_loss = 0.0
+        epoch_g_loss = 0.0
+
+        for i in range(
+            0,
+            len(dataset),
+            batch_size
+        ):
+
+            indices = permutation[
+                i:i + batch_size
+            ]
+
+            real = dataset[
+                indices
+            ].to(DEVICE)
+
+            current_batch = len(real)
+
+            real_labels = torch.ones(
+                current_batch,
+                1,
+                device=DEVICE
+            )
+
+            fake_labels = torch.zeros(
+                current_batch,
+                1,
+                device=DEVICE
+            )
+
+            # ------------------------------------------------
+            # Train discriminator
+            # ------------------------------------------------
+
+            z = torch.randn(
+                current_batch,
+                32,
+                device=DEVICE
+            )
+
+            fake = generator(z)
+
+            d_real = discriminator(real)
+
+            d_fake = discriminator(
+                fake.detach()
+            )
+
+            d_loss = (
+                criterion(
+                    d_real,
+                    real_labels
+                )
+                +
+                criterion(
+                    d_fake,
+                    fake_labels
+                )
+            )
+
+            d_optimizer.zero_grad()
+
+            d_loss.backward()
+
+            d_optimizer.step()
+
+            # ------------------------------------------------
+            # Train generator
+            # ------------------------------------------------
+
+            z = torch.randn(
+                current_batch,
+                32,
+                device=DEVICE
+            )
+
+            fake = generator(z)
+
+            d_fake = discriminator(fake)
+
+            g_loss = criterion(
+                d_fake,
+                real_labels
+            )
+
+            g_optimizer.zero_grad()
+
+            g_loss.backward()
+
+            g_optimizer.step()
+
+            epoch_d_loss += d_loss.item()
+            epoch_g_loss += g_loss.item()
+
+        if (epoch + 1) % 10 == 0:
+
+            print(
+                f"GAN Epoch "
+                f"{epoch + 1:03d}/{epochs} | "
+                f"D Loss = "
+                f"{epoch_d_loss:.4f} | "
+                f"G Loss = "
+                f"{epoch_g_loss:.4f}"
+            )
+
+    torch.save(
+        generator.state_dict(),
+        os.path.join(
+            MODEL_DIR,
+            "gan_generator.pt"
+        )
+    )
+
+    return generator
+
+# ============================================================
+# BLOCK 15: TRAIN GAN
+# ============================================================
+
+gan_generator = train_gan(
+    X_train_scaled,
+    epochs=1,
+    batch_size=128
+)
+
+print("\nGAN training completed successfully.")
+# ============================================================
+# BLOCK 16: TRAIN GAN-PPO
+# ============================================================
+# ============================================================
+# BLOCK 16: GENERATE SYNTHETIC DATA FROM GAN
+# ============================================================
+
+def generate_synthetic_data(generator, number_of_samples):
+    generator.eval()
+
+    with torch.no_grad():
+        z = torch.randn(
+            number_of_samples,
+            32,
+            device=DEVICE
+        )
+
+        synthetic = generator(z)
+
+    return synthetic.cpu().numpy()
+
+
+# Generate synthetic samples
+synthetic_X = generate_synthetic_data(
+    gan_generator,
+    len(X_train_scaled)
+)
+
+print("\nSynthetic GAN data shape:", synthetic_X.shape)
+gan_augmented_X = np.vstack([
+    X_train_scaled,
+    synthetic_X
+])
+
+print(
+    "GAN-PPO training samples:",
+    len(gan_augmented_X)
+)
+
+gan_ppo_agent = train_ppo(
+    gan_augmented_X,
+    episodes=1000000,
+    steps_per_episode=20
+)
+
+# Rename saved model
+gan_ppo_path = os.path.join(
+    MODEL_DIR,
+    "gan_ppo.pt"
+)
+
+ppo_path = os.path.join(
+    MODEL_DIR,
+    "ppo.pt"
+)
+
+if os.path.exists(ppo_path):
+
+    import shutil
+
+    shutil.copy(
+        ppo_path,
+        gan_ppo_path
+    )
+
+
+# ============================================================
+# BLOCK 17: UNIFIED MODEL ACTION INTERFACE
+# ============================================================
+
+class ModelWrapper:
+
+    def __init__(
+        self,
+        name,
+        model,
+        model_type
+    ):
+
+        self.name = name
+        self.model = model
+        self.model_type = model_type
+
+    def action(
+        self,
+        x,
+        environment,
+        sequence=None
+    ):
+
+        if self.model_type == "ppo":
+
+            state = environment._state()
+
+            action, _, _ = (
+                self.model.select_action(
+                    state
+                )
+            )
+
+            return action
+
+        elif self.model_type == "slam_ppo":
+
+            state = self.model.construct_state(
+                sequence,
+                environment.bw,
+                environment.rb
+            )
+
+            action, _, _ = (
+                self.model.ppo.select_action(
+                    state
+                )
+            )
+
+            return action
+
+        elif self.model_type == "kmeans":
+
+            return self.model.predict_action(
+                x
+            )
+
+        elif self.model_type == "kg":
+
+            return self.model.predict_action(
+                x
+            )
+
+
+# ============================================================
+# BLOCK 18: FIVE MODELS
+# ============================================================
+
+models = {
+
+    "Ours (SLAM-LSTM-PPO)": ModelWrapper(
+        "Ours (SLAM-LSTM-PPO)",
+        ours_agent,
+        "slam_ppo"
+    ),
+
+    "Kmeans+Decision": ModelWrapper(
+        "Kmeans+Decision",
+        kmeans_model,
+        "kmeans"
+    ),
+
+    "Knowledge Graph": ModelWrapper(
+        "Knowledge Graph",
+        kg_model,
+        "kg"
+    ),
+
+    "GAN PPO": ModelWrapper(
+        "GAN PPO",
+        gan_ppo_agent,
+        "ppo"
+    ),
+
+    "PPO": ModelWrapper(
+        "PPO",
+        ppo_agent,
+        "ppo"
+    )
+}
+
+print("\nModels:")
+for model_name in models:
+    print(" -", model_name)
+
+
+# ============================================================
+# BLOCK 19: SCALABILITY EXPERIMENT
+# ============================================================
+
+def simulate_model(
+    model_wrapper,
+    user_count,
+    feature_data,
+    sequences=None,
+    seed=42
+):
+
+    rng = np.random.default_rng(seed)
+
+    selected_indices = rng.choice(
+        len(feature_data),
+        size=user_count,
+        replace=True
+    )
+
+    environment = ORANEnvironment(
+        feature_data,
+        seed=seed
+    )
+
+    total_scheduling = 0.0
+    total_qos = 0
+    total_resource = 0.0
+
+    start_time = time.perf_counter()
+
+    for index in selected_indices:
+
+        x = feature_data[index]
+
+        environment.features = x.copy()
+
+        environment.bw = rng.uniform(
+            MIN_BW,
+            MAX_BW * 0.80
+        )
+
+        environment.rb = rng.uniform(
+            MIN_RB,
+            MAX_RB * 0.80
+        )
+
+        sequence = None
+
+        if (
+            model_wrapper.model_type
+            == "slam_ppo"
+        ):
+
+            if sequences is not None:
+
+                sequence = sequences[
+                    index %
+                    len(sequences)
+                ]
+
+        action = model_wrapper.action(
+            x,
+            environment,
+            sequence
+        )
+
+        _, _, info = environment.step(
+            action
+        )
+
+        total_scheduling += (
+            info["scheduling_efficiency"]
+        )
+
+        total_qos += (
+            info["qos_violation"]
+        )
+
+        total_resource += (
+            info["resource_efficiency"]
+        )
+
+    elapsed = (
+        time.perf_counter() -
+        start_time
+    )
+
+    return {
+
+        "users": user_count,
+
+        "execution_time_ms":
+            elapsed * 1000,
+
+        "processing_time_ms_per_user":
+            elapsed * 1000 / user_count,
+
+        "scheduling_efficiency":
+            100.0 *
+            total_scheduling /
+            user_count,
+
+        "qos_violation_rate":
+            100.0 *
+            total_qos /
+            user_count,
+
+        "resource_allocation_efficiency":
+            100.0 *
+            total_resource /
+            user_count
+    }
+
+
+# ============================================================
+# BLOCK 20: RUN FIVE-MODEL EXPERIMENT
+# ============================================================
+
+all_results = []
+
+for model_name, model_wrapper in models.items():
+
+    print("\n")
+    print("=" * 70)
+    print(model_name)
+    print("=" * 70)
+
+    for users in USER_LEVELS:
+
+        result = simulate_model(
+            model_wrapper,
+            users,
+            X_test_scaled,
+            X_test_seq,
+            seed=SEED + users
+        )
+
+        result["model"] = model_name
+
+        all_results.append(
+            result
+        )
+
+        print(
+            f"Users={users:4d} | "
+            f"Time={result['execution_time_ms']:.3f} ms | "
+            f"Scheduling={result['scheduling_efficiency']:.2f}% | "
+            f"QoS violation={result['qos_violation_rate']:.2f}% | "
+            f"Resource efficiency={result['resource_allocation_efficiency']:.2f}%"
+        )
+
+results_df = pd.DataFrame(
+    all_results
+)
+
+results_path = os.path.join(
+    RESULT_DIR,
+    "five_model_results.csv"
+)
+
+results_df.to_csv(
+    results_path,
+    index=False
+)
+
+print(
+    "\nResults saved to:",
+    results_path
+)
+
+# ============================================================
+# BLOCK 21: SAVE INDIVIDUAL METRICS
+# ============================================================
+
+scalability_df = results_df[
+    [
+        "model",
+        "users",
+        "execution_time_ms",
+        "processing_time_ms_per_user"
+    ]
+]
+
+scheduling_df = results_df[
+    [
+        "model",
+        "users",
+        "scheduling_efficiency"
+    ]
+]
+
+qos_df = results_df[
+    [
+        "model",
+        "users",
+        "qos_violation_rate"
+    ]
+]
+
+resource_df = results_df[
+    [
+        "model",
+        "users",
+        "resource_allocation_efficiency"
+    ]
+]
+
+scalability_df.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "scalability.csv"
+    ),
+    index=False
+)
+
+scheduling_df.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "scheduling.csv"
+    ),
+    index=False
+)
+
+qos_df.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "qos_violation.csv"
+    ),
+    index=False
+)
+
+resource_df.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "resource_allocation_efficiency.csv"
+    ),
+    index=False
+)
+
+print("\nAll metric files saved.")
+
+
+# ============================================================
+# BLOCK 22: IEEE-STYLE PLOTS
+# ============================================================
+
+import matplotlib.pyplot as plt
+
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 18
+
+MODEL_ORDER = [
+    "Ours (SLAM-LSTM-PPO)",
+    "Kmeans+Decision",
+    "Knowledge Graph",
+    "GAN PPO",
+    "PPO"
+]
+
+
+def plot_metric(
+    dataframe,
+    metric,
+    ylabel,
+    filename,
+    ymin=None,
+    ymax=None
+):
+
+    fig, ax = plt.subplots(
+        figsize=(10, 6)
+    )
+
+    for model_name in MODEL_ORDER:
+
+        subset = dataframe[
+            dataframe["model"] ==
+            model_name
+        ].sort_values("users")
+
+        ax.plot(
+            subset["users"],
+            subset[metric],
+            marker="o",
+            linewidth=2.2,
+            markersize=7,
+            label=model_name
+        )
+
+    ax.set_xlabel(
+        "Number of users",
+        fontsize=20
+    )
+
+    ax.set_ylabel(
+        ylabel,
+        fontsize=20
+    )
+
+    ax.set_xlim(
+        100,
+        1000
+    )
+
+    if ymin is not None:
+        ax.set_ylim(
+            bottom=ymin
+        )
+
+    if ymax is not None:
+        ax.set_ylim(
+            top=ymax
+        )
+
+    ax.grid(
+        True,
+        linestyle="--",
+        alpha=0.5
+    )
+
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.18),
+        ncol=3,
+        fontsize=13
+    )
+
+    plt.tight_layout()
+
+    plt.savefig(
+        os.path.join(
+            RESULT_DIR,
+            filename + ".png"
+        ),
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.savefig(
+        os.path.join(
+            RESULT_DIR,
+            filename + ".eps"
+        ),
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.show()
+
+
+# ------------------------------------------------------------
+# 1. Scalability
+# ------------------------------------------------------------
+
+plot_metric(
+    scalability_df,
+    "processing_time_ms_per_user",
+    "Processing time per user (ms)",
+    "fig_scalability",
+    ymin=0
+)
+
+
+# ------------------------------------------------------------
+# 2. Scheduling
+# ------------------------------------------------------------
+
+plot_metric(
+    scheduling_df,
+    "scheduling_efficiency",
+    "Scheduling efficiency (%)",
+    "fig_scheduling",
+    ymin=0,
+    ymax=100
+)
+
+
+# ------------------------------------------------------------
+# 3. QoS violation
+# ------------------------------------------------------------
+
+plot_metric(
+    qos_df,
+    "qos_violation_rate",
+    "QoS violation rate (%)",
+    "fig_qos_violation",
+    ymin=0
+)
+
+
+# ------------------------------------------------------------
+# 4. Resource allocation
+# ------------------------------------------------------------
+
+plot_metric(
+    resource_df,
+    "resource_allocation_efficiency",
+    "Resource allocation efficiency (%)",
+    "fig_resource_allocation",
+    ymin=0,
+    ymax=100
+)
+
+# ============================================================
+# BLOCK 23: FINAL COMPARISON
+# ============================================================
+
+summary_1000 = results_df[
+    results_df["users"] == 1000
+].copy()
+
+summary_1000 = summary_1000[
+    [
+        "model",
+        "execution_time_ms",
+        "processing_time_ms_per_user",
+        "scheduling_efficiency",
+        "qos_violation_rate",
+        "resource_allocation_efficiency"
+    ]
+]
+
+summary_1000 = summary_1000.set_index(
+    "model"
+).loc[MODEL_ORDER].reset_index()
+
+print("\n")
+print("=" * 100)
+print("FINAL COMPARISON AT 1000 USERS")
+print("=" * 100)
+
+print(
+    summary_1000.to_string(
+        index=False,
+        float_format=lambda x: f"{x:.4f}"
+    )
+)
+
+summary_1000.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "comparison_1000_users.csv"
+    ),
+    index=False
+)
