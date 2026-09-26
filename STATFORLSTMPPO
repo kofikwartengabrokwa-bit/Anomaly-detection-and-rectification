@@ -1,0 +1,666 @@
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Scripts\python.exe E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\main.py 
+================================================================================
+SLAM-LSTM-PPO LEARNING-RATE COMPARISON
+================================================================================
+Device      : cpu
+Database    : E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\Lower_Layer_Data.db
+Results     : E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison
+================================================================================
+
+Physical-layer features:
+ 1. dlBytes
+ 2. dlMcs
+ 3. dlBler
+ 4. ulBytes
+ 5. ulMcs
+ 6. ulBler
+ 7. ri
+ 8. phr
+ 9. pcmax
+10. rsrq
+11. sinr
+12. rsrp
+13. rssi
+14. cqi
+15. pucchSnr
+16. puschSnr
+
+Actions:
+0: Maintain
+1: +10%
+2: +25%
+3: -10%
+
+================================================================================
+LOADING DATASET
+================================================================================
+Original dataset shape: (45244, 25)
+Clean dataset shape: (45244, 17)
+
+Attack classes:
+0: Benign
+1: BruteForce
+2: DDoS
+3: DoS
+4: Probe
+5: Web Attacks
+
+Feature matrix: (45244, 16)
+Target vector : (45244,)
+
+================================================================================
+DATA SPLITTING AND SCALING
+================================================================================
+Training   : (31670, 16)
+Validation : (6787, 16)
+Testing    : (6787, 16)
+
+Sequence shapes:
+Train: (31666, 5, 16)
+Validation: (6783, 5, 16)
+Test: (6783, 5, 16)
+
+
+================================================================================
+STARTING TRAINING | LEARNING RATE = 1e-05
+================================================================================
+LR=1e-05 | Episode=    1/10000 | Reward=  11.6011 | AvgReward=  11.6011 | Actor= -0.00024 | Critic= 32.77805 | PPO= 16.37493 | Entropy= 1.38522 | Sched= 46.535% | ResEff= 39.606%
+LR=1e-05 | Episode=  100/10000 | Reward=   2.3362 | AvgReward=   5.2087 | Actor= -0.00003 | Critic=  0.72914 | PPO=  0.35069 | Entropy= 1.38527 | Sched= 19.587% | ResEff= 17.521%
+LR=1e-05 | Episode=  200/10000 | Reward=   5.7532 | AvgReward=   5.5403 | Actor= -0.00007 | Critic=  5.98820 | PPO=  2.98018 | Entropy= 1.38464 | Sched= 23.858% | ResEff= 43.149%
+LR=1e-05 | Episode=  300/10000 | Reward=   5.0236 | AvgReward=   5.1466 | Actor=  0.00004 | Critic=  3.19657 | PPO=  1.58452 | Entropy= 1.38011 | Sched= 22.946% | ResEff= 37.677%
+LR=1e-05 | Episode=  400/10000 | Reward=   8.7296 | AvgReward=   5.8893 | Actor=  0.00017 | Critic=  9.52300 | PPO=  4.74801 | Entropy= 1.36594 | Sched= 40.792% | ResEff= 22.377%
+LR=1e-05 | Episode=  500/10000 | Reward=  10.1593 | AvgReward=   5.6980 | Actor=  0.00003 | Critic= 11.21193 | PPO=  5.59233 | Entropy= 1.36555 | Sched= 43.652% | ResEff= 30.956%
+LR=1e-05 | Episode=  600/10000 | Reward=   4.5691 | AvgReward=   5.8629 | Actor= -0.00040 | Critic=  2.28045 | PPO=  1.12657 | Entropy= 1.32528 | Sched= 22.378% | ResEff= 34.268%
+LR=1e-05 | Episode=  700/10000 | Reward=  12.4610 | AvgReward=   6.7894 | Actor= -0.00007 | Critic= 18.77071 | PPO=  9.37213 | Entropy= 1.31544 | Sched= 48.255% | ResEff= 44.766%
+LR=1e-05 | Episode=  800/10000 | Reward=  11.2843 | AvgReward=   7.9390 | Actor=  0.00008 | Critic= 12.49236 | PPO=  6.23343 | Entropy= 1.28302 | Sched= 45.902% | ResEff= 37.706%
+LR=1e-05 | Episode=  900/10000 | Reward=   8.9842 | AvgReward=   8.5209 | Actor= -0.00019 | Critic=  5.96803 | PPO=  2.97129 | Entropy= 1.25395 | Sched= 41.302% | ResEff= 23.905%
+LR=1e-05 | Episode= 1000/10000 | Reward=   7.7034 | AvgReward=   6.8905 | Actor= -0.00171 | Critic=  4.46028 | PPO=  2.21562 | Entropy= 1.28039 | Sched= 26.296% | ResEff= 57.775%
+LR=1e-05 | Episode= 1100/10000 | Reward=  -2.8639 | AvgReward=   6.4110 | Actor=  0.00012 | Critic= 21.76560 | PPO= 10.86960 | Entropy= 1.33260 | Sched=  0.000% | ResEff= 21.361%
+LR=1e-05 | Episode= 1200/10000 | Reward=   0.0392 | AvgReward=   5.9234 | Actor=  0.00070 | Critic=  7.54141 | PPO=  3.75801 | Entropy= 1.33934 | Sched=  0.000% | ResEff= 50.392%
+LR=1e-05 | Episode= 1300/10000 | Reward=  -2.5877 | AvgReward=   6.9400 | Actor=  0.00019 | Critic= 16.79936 | PPO=  8.38655 | Entropy= 1.33160 | Sched=  0.000% | ResEff= 24.123%
+LR=1e-05 | Episode= 1400/10000 | Reward=   8.4010 | AvgReward=   7.4168 | Actor= -0.00033 | Critic=  6.63332 | PPO=  3.30305 | Entropy= 1.32730 | Sched= 40.135% | ResEff= 20.406%
+LR=1e-05 | Episode= 1500/10000 | Reward=  10.4989 | AvgReward=   6.0985 | Actor= -0.00003 | Critic= 10.72388 | PPO=  5.34879 | Entropy= 1.31159 | Sched= 44.331% | ResEff= 32.993%
+LR=1e-05 | Episode= 1600/10000 | Reward=  13.2704 | AvgReward=   6.4551 | Actor= -0.00039 | Critic= 25.02888 | PPO= 12.50075 | Entropy= 1.32974 | Sched= 49.874% | ResEff= 49.622%
+LR=1e-05 | Episode= 1700/10000 | Reward=   6.7019 | AvgReward=   7.2425 | Actor=  0.00011 | Critic=  3.64910 | PPO=  1.81242 | Entropy= 1.22417 | Sched= 36.737% | ResEff= 10.211%
+LR=1e-05 | Episode= 1800/10000 | Reward=   7.8349 | AvgReward=   6.9702 | Actor= -0.00032 | Critic=  5.64530 | PPO=  2.81021 | Entropy= 1.21250 | Sched= 39.003% | ResEff= 17.009%
+LR=1e-05 | Episode= 1900/10000 | Reward=  13.6420 | AvgReward=   8.0692 | Actor=  0.00005 | Critic= 17.36638 | PPO=  8.67285 | Entropy= 1.03956 | Sched= 50.617% | ResEff= 51.852%
+LR=1e-05 | Episode= 2000/10000 | Reward=  14.1261 | AvgReward=   9.3656 | Actor=  0.00017 | Critic= 17.39925 | PPO=  8.69047 | Entropy= 0.93269 | Sched= 51.585% | ResEff= 54.756%
+LR=1e-05 | Episode= 2100/10000 | Reward=  13.8853 | AvgReward=   9.1014 | Actor=  0.00009 | Critic= 19.73959 | PPO=  9.85950 | Entropy= 1.03931 | Sched= 51.104% | ResEff= 53.312%
+LR=1e-05 | Episode= 2200/10000 | Reward=   7.0377 | AvgReward=   8.4100 | Actor= -0.00004 | Critic=  5.47585 | PPO=  2.72840 | Entropy= 0.94808 | Sched= 25.464% | ResEff= 52.783%
+LR=1e-05 | Episode= 2300/10000 | Reward=   8.6410 | AvgReward=   9.5940 | Actor=  0.00001 | Critic=  6.04203 | PPO=  3.01378 | Entropy= 0.72413 | Sched= 27.468% | ResEff= 64.807%
+LR=1e-05 | Episode= 2400/10000 | Reward=  15.8012 | AvgReward=   9.9364 | Actor=  0.00001 | Critic= 22.31122 | PPO= 11.15010 | Entropy= 0.55248 | Sched= 54.936% | ResEff= 64.807%
+LR=1e-05 | Episode= 2500/10000 | Reward=   7.9122 | AvgReward=   9.5036 | Actor= -0.00005 | Critic=  4.80741 | PPO=  2.39574 | Entropy= 0.79096 | Sched= 26.557% | ResEff= 59.341%
+LR=1e-05 | Episode= 2600/10000 | Reward=   8.1780 | AvgReward=   8.4553 | Actor= -0.00010 | Critic=  5.58716 | PPO=  2.78638 | Entropy= 0.70967 | Sched= 26.889% | ResEff= 61.335%
+LR=1e-05 | Episode= 2700/10000 | Reward=   8.1780 | AvgReward=  10.0200 | Actor= -0.00012 | Critic=  6.12966 | PPO=  3.05789 | Entropy= 0.68192 | Sched= 26.889% | ResEff= 61.335%
+LR=1e-05 | Episode= 2800/10000 | Reward=   6.8556 | AvgReward=  10.3074 | Actor= -0.00019 | Critic=  3.21643 | PPO=  1.59778 | Entropy= 1.02429 | Sched= 25.236% | ResEff= 51.417%
+LR=1e-05 | Episode= 2900/10000 | Reward=  12.3125 | AvgReward=   9.7201 | Actor= -0.00064 | Critic= 10.50848 | PPO=  5.24544 | Entropy= 0.81565 | Sched= 47.958% | ResEff= 43.875%
+LR=1e-05 | Episode= 3000/10000 | Reward=  15.8012 | AvgReward=  10.4277 | Actor=  0.00001 | Critic= 21.71228 | PPO= 10.84771 | Entropy= 0.84374 | Sched= 54.936% | ResEff= 64.807%
+LR=1e-05 | Episode= 3100/10000 | Reward=   6.5773 | AvgReward=   9.6457 | Actor= -0.00042 | Critic=  6.14860 | PPO=  3.06461 | Entropy= 0.92736 | Sched= 24.888% | ResEff= 49.330%
+LR=1e-05 | Episode= 3200/10000 | Reward=   7.2982 | AvgReward=   9.7106 | Actor= -0.00037 | Critic=  4.54665 | PPO=  2.26234 | Entropy= 1.06174 | Sched= 25.789% | ResEff= 54.737%
+LR=1e-05 | Episode= 3300/10000 | Reward=  -1.4363 | AvgReward=   7.4227 | Actor= -0.00039 | Critic=  0.21206 | PPO=  0.09185 | Entropy= 1.37934 | Sched=  0.000% | ResEff= 35.637%
+LR=1e-05 | Episode= 3400/10000 | Reward=  13.3710 | AvgReward=   8.4923 | Actor= -0.00007 | Critic= 12.51137 | PPO=  6.24622 | Entropy= 0.93964 | Sched= 50.075% | ResEff= 50.226%
+LR=1e-05 | Episode= 3500/10000 | Reward=   7.0014 | AvgReward=   7.9078 | Actor= -0.00009 | Critic=  3.35340 | PPO=  1.66462 | Entropy= 1.19930 | Sched= 25.418% | ResEff= 52.511%
+LR=1e-05 | Episode= 3600/10000 | Reward=  12.2015 | AvgReward=   8.2535 | Actor= -0.00014 | Critic= 13.20565 | PPO=  6.59299 | Entropy= 0.96944 | Sched= 47.736% | ResEff= 43.209%
+LR=1e-05 | Episode= 3700/10000 | Reward=  12.8100 | AvgReward=   7.2931 | Actor=  0.00037 | Critic= 13.20603 | PPO=  6.59144 | Entropy= 1.19488 | Sched= 48.953% | ResEff= 46.860%
+LR=1e-05 | Episode= 3800/10000 | Reward=  13.4576 | AvgReward=   7.4116 | Actor= -0.00002 | Critic= 13.34741 | PPO=  6.66210 | Entropy= 1.15817 | Sched= 50.249% | ResEff= 50.746%
+LR=1e-05 | Episode= 3900/10000 | Reward=  -3.8067 | AvgReward=   7.0797 | Actor= -0.00013 | Critic=  1.58834 | PPO=  0.78037 | Entropy= 1.36669 | Sched=  0.000% | ResEff= 11.933%
+LR=1e-05 | Episode= 4000/10000 | Reward=   3.6771 | AvgReward=   7.2815 | Actor=  0.00006 | Critic= 10.28384 | PPO=  5.12959 | Entropy= 1.23962 | Sched= 21.263% | ResEff= 27.578%
+LR=1e-05 | Episode= 4100/10000 | Reward=  10.2488 | AvgReward=   6.4209 | Actor= -0.00030 | Critic=  8.36600 | PPO=  4.17018 | Entropy= 1.25182 | Sched= 43.831% | ResEff= 31.493%
+LR=1e-05 | Episode= 4200/10000 | Reward=   8.8360 | AvgReward=   5.8165 | Actor= -0.00014 | Critic=  8.18652 | PPO=  4.08010 | Entropy= 1.30210 | Sched= 41.005% | ResEff= 23.016%
+LR=1e-05 | Episode= 4300/10000 | Reward=   0.8987 | AvgReward=   6.7844 | Actor= -0.00007 | Critic=  1.25808 | PPO=  0.61545 | Entropy= 1.35229 | Sched=  0.000% | ResEff= 58.987%
+LR=1e-05 | Episode= 4400/10000 | Reward=   9.6021 | AvgReward=   6.0357 | Actor= -0.00071 | Critic=  7.54607 | PPO=  3.75956 | Entropy= 1.27674 | Sched= 42.538% | ResEff= 27.613%
+LR=1e-05 | Episode= 4500/10000 | Reward=   6.5302 | AvgReward=   6.7398 | Actor= -0.00015 | Critic=  3.08781 | PPO=  1.53057 | Entropy= 1.31834 | Sched= 24.829% | ResEff= 48.977%
+LR=1e-05 | Episode= 4600/10000 | Reward=   3.2672 | AvgReward=   7.2260 | Actor=  0.00007 | Critic=  2.26979 | PPO=  1.12185 | Entropy= 1.31206 | Sched= 20.751% | ResEff= 24.504%
+LR=1e-05 | Episode= 4700/10000 | Reward=   8.8689 | AvgReward=   7.1897 | Actor= -0.00063 | Critic=  6.42760 | PPO=  3.20070 | Entropy= 1.24693 | Sched= 41.071% | ResEff= 23.214%
+LR=1e-05 | Episode= 4800/10000 | Reward=  -0.1516 | AvgReward=   6.5823 | Actor=  0.00001 | Critic=  0.36102 | PPO=  0.16730 | Entropy= 1.32188 | Sched=  0.000% | ResEff= 48.484%
+LR=1e-05 | Episode= 4900/10000 | Reward=   6.2792 | AvgReward=   7.4816 | Actor=  0.00028 | Critic=  9.01516 | PPO=  4.49542 | Entropy= 1.24361 | Sched= 35.892% | ResEff=  7.675%
+LR=1e-05 | Episode= 5000/10000 | Reward=  12.3989 | AvgReward=   7.9475 | Actor= -0.00021 | Critic= 14.02129 | PPO=  6.99831 | Entropy= 1.21278 | Sched= 48.131% | ResEff= 44.393%
+LR=1e-05 | Episode= 5100/10000 | Reward=  14.5760 | AvgReward=   8.5423 | Actor= -0.00007 | Critic= 16.44042 | PPO=  8.20863 | Entropy= 1.15103 | Sched= 52.485% | ResEff= 57.456%
+LR=1e-05 | Episode= 5200/10000 | Reward=   6.2302 | AvgReward=   7.6009 | Actor= -0.00003 | Critic=  3.67962 | PPO=  1.82767 | Entropy= 1.21018 | Sched= 24.454% | ResEff= 46.726%
+LR=1e-05 | Episode= 5300/10000 | Reward=   6.6878 | AvgReward=   7.8670 | Actor=  0.00012 | Critic=  4.12514 | PPO=  2.05064 | Entropy= 1.20512 | Sched= 25.026% | ResEff= 50.159%
+LR=1e-05 | Episode= 5400/10000 | Reward=   7.2012 | AvgReward=   7.7967 | Actor= -0.00001 | Critic=  3.67274 | PPO=  1.82426 | Entropy= 1.20960 | Sched= 25.668% | ResEff= 54.009%
+LR=1e-05 | Episode= 5500/10000 | Reward=  13.9495 | AvgReward=   8.2153 | Actor= -0.00003 | Critic= 15.83198 | PPO=  7.90432 | Entropy= 1.16437 | Sched= 51.232% | ResEff= 53.697%
+LR=1e-05 | Episode= 5600/10000 | Reward=  13.0847 | AvgReward=   8.0711 | Actor= -0.00050 | Critic= 12.07106 | PPO=  6.02490 | Entropy= 1.01302 | Sched= 49.503% | ResEff= 48.508%
+LR=1e-05 | Episode= 5700/10000 | Reward=  13.4765 | AvgReward=   9.0937 | Actor= -0.00005 | Critic= 14.46345 | PPO=  7.22136 | Entropy= 1.03108 | Sched= 50.286% | ResEff= 50.859%
+LR=1e-05 | Episode= 5800/10000 | Reward=  13.0735 | AvgReward=   9.2379 | Actor= -0.00034 | Critic= 13.72377 | PPO=  6.85378 | Entropy= 0.77679 | Sched= 49.480% | ResEff= 48.441%
+LR=1e-05 | Episode= 5900/10000 | Reward=   8.1262 | AvgReward=  10.0023 | Actor= -0.00020 | Critic=  7.11681 | PPO=  3.54998 | Entropy= 0.82292 | Sched= 26.824% | ResEff= 60.946%
+LR=1e-05 | Episode= 6000/10000 | Reward=  14.8816 | AvgReward=   9.9752 | Actor=  0.00009 | Critic= 15.72113 | PPO=  7.85309 | Entropy= 0.75595 | Sched= 53.096% | ResEff= 59.289%
+LR=1e-05 | Episode= 6100/10000 | Reward=  12.2229 | AvgReward=   9.8764 | Actor= -0.00004 | Critic= 11.95096 | PPO=  5.96672 | Entropy= 0.87243 | Sched= 47.779% | ResEff= 43.338%
+LR=1e-05 | Episode= 6200/10000 | Reward=  13.7060 | AvgReward=   9.2528 | Actor= -0.00005 | Critic= 13.73025 | PPO=  6.85449 | Entropy= 1.05867 | Sched= 50.745% | ResEff= 52.236%
+LR=1e-05 | Episode= 6300/10000 | Reward=   5.8057 | AvgReward=   9.2515 | Actor=  0.00003 | Critic= 10.27057 | PPO=  5.12605 | Entropy= 0.92624 | Sched= 23.924% | ResEff= 43.543%
+LR=1e-05 | Episode= 6400/10000 | Reward=   6.0875 | AvgReward=   9.5699 | Actor=  0.00005 | Critic=  6.52308 | PPO=  3.25128 | Entropy= 1.03143 | Sched= 24.276% | ResEff= 45.656%
+LR=1e-05 | Episode= 6500/10000 | Reward=  11.4561 | AvgReward=   8.6864 | Actor= -0.00050 | Critic= 10.96436 | PPO=  5.47204 | Entropy= 0.96413 | Sched= 46.246% | ResEff= 38.737%
+LR=1e-05 | Episode= 6600/10000 | Reward=   7.2738 | AvgReward=   8.2813 | Actor= -0.00007 | Critic=  4.25716 | PPO=  2.11888 | Entropy= 0.96303 | Sched= 25.759% | ResEff= 54.554%
+LR=1e-05 | Episode= 6700/10000 | Reward=   8.1996 | AvgReward=   9.5721 | Actor=  0.00007 | Critic=  3.53250 | PPO=  1.75698 | Entropy= 0.93427 | Sched= 26.916% | ResEff= 61.497%
+LR=1e-05 | Episode= 6800/10000 | Reward=   7.9562 | AvgReward=   8.2922 | Actor=  0.00001 | Critic=  3.41411 | PPO=  1.69752 | Entropy= 0.95487 | Sched= 26.612% | ResEff= 59.672%
+LR=1e-05 | Episode= 6900/10000 | Reward=   0.6963 | AvgReward=   8.5890 | Actor=  0.00000 | Critic=  0.03223 | PPO=  0.00732 | Entropy= 0.87994 | Sched=  0.000% | ResEff= 56.963%
+LR=1e-05 | Episode= 7000/10000 | Reward=   0.2084 | AvgReward=   8.6129 | Actor= -0.00007 | Critic=  0.22295 | PPO=  0.10183 | Entropy= 0.95764 | Sched=  0.000% | ResEff= 52.084%
+LR=1e-05 | Episode= 7100/10000 | Reward=   6.7546 | AvgReward=   9.7479 | Actor=  0.00037 | Critic=  5.19171 | PPO=  2.58719 | Entropy= 0.90364 | Sched= 25.110% | ResEff= 50.659%
+LR=1e-05 | Episode= 7200/10000 | Reward=  14.1147 | AvgReward=   9.3098 | Actor= -0.00016 | Critic= 12.88728 | PPO=  6.43336 | Entropy= 1.01184 | Sched= 51.563% | ResEff= 54.688%
+LR=1e-05 | Episode= 7300/10000 | Reward=   7.8757 | AvgReward=   8.8261 | Actor= -0.00108 | Critic=  3.32453 | PPO=  1.65121 | Entropy= 0.99830 | Sched= 26.511% | ResEff= 59.068%
+LR=1e-05 | Episode= 7400/10000 | Reward=  13.4432 | AvgReward=   9.7115 | Actor=  0.00016 | Critic= 12.24028 | PPO=  6.11027 | Entropy= 1.00226 | Sched= 50.220% | ResEff= 50.659%
+LR=1e-05 | Episode= 7500/10000 | Reward=   5.7617 | AvgReward=   9.1932 | Actor= -0.00036 | Critic=  3.22416 | PPO=  1.60149 | Entropy= 1.02288 | Sched= 23.869% | ResEff= 43.213%
+LR=1e-05 | Episode= 7600/10000 | Reward=  12.7341 | AvgReward=   9.5740 | Actor= -0.00031 | Critic= 10.92953 | PPO=  5.45412 | Entropy= 1.03330 | Sched= 48.801% | ResEff= 46.404%
+LR=1e-05 | Episode= 7700/10000 | Reward=   4.1560 | AvgReward=   8.9147 | Actor= -0.00033 | Critic= 23.84996 | PPO= 11.91253 | Entropy= 1.21218 | Sched= 21.862% | ResEff= 31.170%
+LR=1e-05 | Episode= 7800/10000 | Reward=   7.3176 | AvgReward=   8.9213 | Actor= -0.00018 | Critic=  2.88884 | PPO=  1.43279 | Entropy= 1.14528 | Sched= 25.814% | ResEff= 54.882%
+LR=1e-05 | Episode= 7900/10000 | Reward=   9.6748 | AvgReward=   8.4057 | Actor= -0.00000 | Critic= 14.99797 | PPO=  7.48651 | Entropy= 1.24750 | Sched= 42.683% | ResEff= 28.049%
+LR=1e-05 | Episode= 8000/10000 | Reward=  11.0729 | AvgReward=   7.8703 | Actor= -0.00036 | Critic= 11.44488 | PPO=  5.70970 | Entropy= 1.23783 | Sched= 45.479% | ResEff= 36.438%
+LR=1e-05 | Episode= 8100/10000 | Reward=  14.0882 | AvgReward=   7.1933 | Actor= -0.00015 | Critic= 13.29177 | PPO=  6.63260 | Entropy= 1.31378 | Sched= 51.510% | ResEff= 54.529%
+LR=1e-05 | Episode= 8200/10000 | Reward=   7.7002 | AvgReward=   6.9025 | Actor= -0.00036 | Critic= 13.76504 | PPO=  6.86902 | Entropy= 1.31422 | Sched= 38.734% | ResEff= 16.201%
+LR=1e-05 | Episode= 8300/10000 | Reward=  12.6386 | AvgReward=   6.7041 | Actor= -0.00028 | Critic= 13.11435 | PPO=  6.54369 | Entropy= 1.32064 | Sched= 48.611% | ResEff= 45.832%
+LR=1e-05 | Episode= 8400/10000 | Reward=   1.1853 | AvgReward=   7.0741 | Actor= -0.00041 | Critic= 10.30689 | PPO=  5.14033 | Entropy= 1.27066 | Sched= 18.148% | ResEff=  8.890%
+LR=1e-05 | Episode= 8500/10000 | Reward=   4.4763 | AvgReward=   6.7937 | Actor= -0.00017 | Critic=  2.80692 | PPO=  1.39036 | Entropy= 1.29378 | Sched= 22.262% | ResEff= 33.572%
+LR=1e-05 | Episode= 8600/10000 | Reward=  12.5579 | AvgReward=   7.8829 | Actor= -0.00012 | Critic= 11.97367 | PPO=  5.97396 | Entropy= 1.27541 | Sched= 48.449% | ResEff= 45.348%
+LR=1e-05 | Episode= 8700/10000 | Reward=  11.8340 | AvgReward=   7.0446 | Actor=  0.00052 | Critic= 12.98583 | PPO=  6.48056 | Entropy= 1.28687 | Sched= 47.001% | ResEff= 41.004%
+LR=1e-05 | Episode= 8800/10000 | Reward=   5.0939 | AvgReward=   7.2658 | Actor= -0.00020 | Critic=  3.49930 | PPO=  1.73706 | Entropy= 1.23854 | Sched= 23.034% | ResEff= 38.204%
+LR=1e-05 | Episode= 8900/10000 | Reward=   4.3272 | AvgReward=   7.1841 | Actor= -0.00002 | Critic=  6.59879 | PPO=  3.28672 | Entropy= 1.26505 | Sched= 22.076% | ResEff= 32.454%
+LR=1e-05 | Episode= 9000/10000 | Reward=   4.9288 | AvgReward=   6.1110 | Actor=  0.00016 | Critic=  1.85727 | PPO=  0.91596 | Entropy= 1.28386 | Sched= 22.828% | ResEff= 36.966%
+LR=1e-05 | Episode= 9100/10000 | Reward=   2.1368 | AvgReward=   7.3906 | Actor= -0.00015 | Critic=  5.86633 | PPO=  2.92056 | Entropy= 1.24545 | Sched= 19.338% | ResEff= 16.026%
+LR=1e-05 | Episode= 9200/10000 | Reward=  -1.3747 | AvgReward=   6.8758 | Actor= -0.00007 | Critic=  0.83150 | PPO=  0.40482 | Entropy= 1.08529 | Sched=  0.000% | ResEff= 36.253%
+LR=1e-05 | Episode= 9300/10000 | Reward=   0.9574 | AvgReward=   7.0931 | Actor= -0.00036 | Critic=  0.07364 | PPO=  0.02545 | Entropy= 1.10101 | Sched=  0.000% | ResEff= 59.574%
+LR=1e-05 | Episode= 9400/10000 | Reward=  -0.5859 | AvgReward=   7.2732 | Actor= -0.00072 | Critic=  0.30169 | PPO=  0.13953 | Entropy= 1.05973 | Sched=  0.000% | ResEff= 44.141%
+LR=1e-05 | Episode= 9500/10000 | Reward=   6.3445 | AvgReward=   6.5703 | Actor=  0.00007 | Critic=  3.50393 | PPO=  1.74025 | Entropy= 1.17819 | Sched= 24.597% | ResEff= 47.584%
+LR=1e-05 | Episode= 9600/10000 | Reward=  10.1365 | AvgReward=   7.1170 | Actor= -0.00020 | Critic=  8.70985 | PPO=  4.34228 | Entropy= 1.24485 | Sched= 43.606% | ResEff= 30.819%
+LR=1e-05 | Episode= 9700/10000 | Reward=   9.2116 | AvgReward=   7.6973 | Actor= -0.00011 | Critic= 10.92472 | PPO=  5.45020 | Entropy= 1.20503 | Sched= 41.757% | ResEff= 25.270%
+LR=1e-05 | Episode= 9800/10000 | Reward=   0.2704 | AvgReward=   8.6928 | Actor= -0.00030 | Critic=  0.14142 | PPO=  0.06348 | Entropy= 0.69387 | Sched=  0.000% | ResEff= 52.704%
+LR=1e-05 | Episode= 9900/10000 | Reward=   5.7470 | AvgReward=   8.2715 | Actor= -0.00050 | Critic=  5.70292 | PPO=  2.83925 | Entropy= 1.17062 | Sched= 23.850% | ResEff= 43.103%
+LR=1e-05 | Episode=10000/10000 | Reward=   2.9351 | AvgReward=   7.8864 | Actor= -0.00090 | Critic=  8.77425 | PPO=  4.37525 | Entropy= 1.09856 | Sched= 20.336% | ResEff= 22.014%
+
+
+COMPLETED LEARNING RATE = 1e-05
+
+
+================================================================================
+STARTING TRAINING | LEARNING RATE = 1e-04
+================================================================================
+LR=1e-04 | Episode=    1/10000 | Reward=   1.9291 | AvgReward=   1.9291 | Actor= -0.00148 | Critic=  0.63374 | PPO=  0.30155 | Entropy= 1.38340 | Sched= 19.078% | ResEff= 14.468%
+LR=1e-04 | Episode=  100/10000 | Reward=  14.7450 | AvgReward=   5.4364 | Actor=  0.00087 | Critic= 41.39494 | PPO= 20.68510 | Entropy= 1.32377 | Sched= 52.823% | ResEff= 58.470%
+LR=1e-04 | Episode=  200/10000 | Reward=  14.8502 | AvgReward=   9.5348 | Actor= -0.00014 | Critic= 18.84201 | PPO=  9.41433 | Entropy= 0.65339 | Sched= 53.034% | ResEff= 59.101%
+LR=1e-04 | Episode=  300/10000 | Reward=  11.3757 | AvgReward=   9.8564 | Actor=  0.00121 | Critic= 11.22988 | PPO=  5.60681 | Entropy= 0.93416 | Sched= 46.085% | ResEff= 38.254%
+LR=1e-04 | Episode=  400/10000 | Reward=  11.8871 | AvgReward=   5.7139 | Actor= -0.00818 | Critic= 12.09625 | PPO=  6.02708 | Entropy= 1.28708 | Sched= 47.108% | ResEff= 41.323%
+LR=1e-04 | Episode=  500/10000 | Reward=   1.3975 | AvgReward=   5.7623 | Actor= -0.00615 | Critic=  0.16964 | PPO=  0.06489 | Entropy= 1.37793 | Sched= 18.414% | ResEff= 10.481%
+LR=1e-04 | Episode=  600/10000 | Reward=  10.0253 | AvgReward=   5.4247 | Actor=  0.00554 | Critic=  8.58304 | PPO=  4.28637 | Entropy= 1.07017 | Sched= 43.384% | ResEff= 30.152%
+LR=1e-04 | Episode=  700/10000 | Reward=   4.5282 | AvgReward=   8.0119 | Actor=  0.00171 | Critic=  7.07055 | PPO=  3.52654 | Entropy= 1.04463 | Sched= 22.327% | ResEff= 33.961%
+LR=1e-04 | Episode=  800/10000 | Reward=   7.5434 | AvgReward=   9.2877 | Actor=  0.00601 | Critic=  9.98220 | PPO=  4.98872 | Entropy= 0.83894 | Sched= 26.096% | ResEff= 56.576%
+LR=1e-04 | Episode=  900/10000 | Reward=   7.3242 | AvgReward=  10.6766 | Actor= -0.00149 | Critic=  3.98068 | PPO=  1.97744 | Entropy= 1.14091 | Sched= 25.822% | ResEff= 54.932%
+LR=1e-04 | Episode= 1000/10000 | Reward=   7.3332 | AvgReward=   8.9734 | Actor= -0.00237 | Critic=  1.20363 | PPO=  0.59049 | Entropy= 0.89558 | Sched= 25.833% | ResEff= 54.999%
+LR=1e-04 | Episode= 1100/10000 | Reward=   5.3336 | AvgReward=   7.8734 | Actor= -0.00013 | Critic=  2.74601 | PPO=  1.36142 | Entropy= 1.14594 | Sched= 23.334% | ResEff= 40.002%
+LR=1e-04 | Episode= 1200/10000 | Reward=  12.1609 | AvgReward=   8.2852 | Actor= -0.00006 | Critic= 10.38327 | PPO=  5.18702 | Entropy= 0.45523 | Sched= 47.655% | ResEff= 42.965%
+LR=1e-04 | Episode= 1300/10000 | Reward=  11.6606 | AvgReward=   8.2530 | Actor=  0.00031 | Critic= 13.67648 | PPO=  6.83340 | Entropy= 0.51472 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-04 | Episode= 1400/10000 | Reward=   6.6252 | AvgReward=   7.9567 | Actor= -0.00053 | Critic=  2.77847 | PPO=  1.38178 | Entropy= 0.69273 | Sched= 24.948% | ResEff= 49.689%
+LR=1e-04 | Episode= 1500/10000 | Reward=  11.6606 | AvgReward=   7.5671 | Actor= -0.00000 | Critic= 10.62972 | PPO=  5.31191 | Entropy= 0.29437 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-04 | Episode= 1600/10000 | Reward=  12.8113 | AvgReward=   8.4800 | Actor=  0.00096 | Critic= 10.75524 | PPO=  5.37501 | Entropy= 0.35680 | Sched= 48.956% | ResEff= 46.868%
+LR=1e-04 | Episode= 1700/10000 | Reward=  11.6606 | AvgReward=   8.5155 | Actor=  0.00000 | Critic= 10.40202 | PPO=  5.19974 | Entropy= 0.12699 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-04 | Episode= 1800/10000 | Reward=  11.6606 | AvgReward=   7.7099 | Actor=  0.00000 | Critic= 10.38430 | PPO=  5.19108 | Entropy= 0.10711 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-04 | Episode= 1900/10000 | Reward=   8.0802 | AvgReward=   7.8863 | Actor=  0.00013 | Critic= 12.58912 | PPO=  6.28988 | Entropy= 0.48094 | Sched= 26.767% | ResEff= 60.601%
+LR=1e-04 | Episode= 2000/10000 | Reward=   6.8492 | AvgReward=   8.8016 | Actor=  0.00020 | Critic=  2.26749 | PPO=  1.12565 | Entropy= 0.83012 | Sched= 25.228% | ResEff= 51.369%
+LR=1e-04 | Episode= 2100/10000 | Reward=   3.3355 | AvgReward=   6.8612 | Actor=  0.00295 | Critic=  2.16958 | PPO=  1.07605 | Entropy= 1.16873 | Sched= 20.836% | ResEff= 25.016%
+LR=1e-04 | Episode= 2200/10000 | Reward=   6.2859 | AvgReward=   5.9015 | Actor=  0.00143 | Critic=  4.74718 | PPO=  2.36379 | Entropy= 1.12253 | Sched= 24.524% | ResEff= 47.144%
+LR=1e-04 | Episode= 2300/10000 | Reward=   7.0087 | AvgReward=   7.9753 | Actor= -0.00069 | Critic=  6.13909 | PPO=  3.06011 | Entropy= 0.87458 | Sched= 25.428% | ResEff= 52.565%
+LR=1e-04 | Episode= 2400/10000 | Reward=   1.0897 | AvgReward=   7.1098 | Actor= -0.00837 | Critic=  0.05788 | PPO=  0.01513 | Entropy= 0.54371 | Sched=  0.000% | ResEff= 60.897%
+LR=1e-04 | Episode= 2500/10000 | Reward=   1.2335 | AvgReward=   7.8936 | Actor= -0.00071 | Critic=  0.10326 | PPO=  0.04426 | Entropy= 0.66604 | Sched=  0.000% | ResEff= 62.335%
+LR=1e-04 | Episode= 2600/10000 | Reward=  10.2977 | AvgReward=   7.3092 | Actor= -0.00015 | Critic=  8.56641 | PPO=  4.27404 | Entropy= 0.90190 | Sched= 43.929% | ResEff= 31.786%
+LR=1e-04 | Episode= 2700/10000 | Reward=  -0.3429 | AvgReward=   7.6021 | Actor= -0.00116 | Critic=  5.67678 | PPO=  2.82613 | Entropy= 1.10966 | Sched=  0.000% | ResEff= 46.571%
+LR=1e-04 | Episode= 2800/10000 | Reward=  13.2816 | AvgReward=   7.0016 | Actor=  0.00486 | Critic= 23.59965 | PPO= 11.79650 | Entropy= 0.81838 | Sched= 49.896% | ResEff= 49.689%
+LR=1e-04 | Episode= 2900/10000 | Reward=  11.6606 | AvgReward=   8.3134 | Actor=  0.00000 | Critic= 10.67832 | PPO=  5.33359 | Entropy= 0.55697 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-04 | Episode= 3000/10000 | Reward=  -0.2147 | AvgReward=   7.9014 | Actor= -0.00192 | Critic=  7.04397 | PPO=  3.51036 | Entropy= 0.96993 | Sched=  0.000% | ResEff= 47.853%
+LR=1e-04 | Episode= 3100/10000 | Reward=   5.5111 | AvgReward=   8.1358 | Actor= -0.00383 | Critic=  2.13633 | PPO=  1.05393 | Entropy= 1.04061 | Sched= 23.556% | ResEff= 41.333%
+LR=1e-04 | Episode= 3200/10000 | Reward=  11.3993 | AvgReward=   8.4503 | Actor= -0.01162 | Critic=  8.76362 | PPO=  4.36519 | Entropy= 0.49994 | Sched= 46.132% | ResEff= 38.396%
+LR=1e-04 | Episode= 3300/10000 | Reward=  11.2603 | AvgReward=   8.1461 | Actor= -0.01073 | Critic=  8.35538 | PPO=  4.16247 | Entropy= 0.44889 | Sched= 45.854% | ResEff= 37.562%
+LR=1e-04 | Episode= 3400/10000 | Reward=   4.6067 | AvgReward=   7.3754 | Actor= -0.01866 | Critic=  1.95511 | PPO=  0.94940 | Entropy= 0.94917 | Sched= 22.425% | ResEff= 34.550%
+LR=1e-04 | Episode= 3500/10000 | Reward=   5.9338 | AvgReward=   7.4036 | Actor=  0.01829 | Critic=  3.65482 | PPO=  1.83359 | Entropy= 1.21058 | Sched= 24.084% | ResEff= 44.503%
+LR=1e-04 | Episode= 3600/10000 | Reward=   6.6161 | AvgReward=   8.0740 | Actor=  0.01106 | Critic=  3.16818 | PPO=  1.58472 | Entropy= 1.04293 | Sched= 24.937% | ResEff= 49.621%
+LR=1e-04 | Episode= 3700/10000 | Reward=  11.2176 | AvgReward=   7.4239 | Actor= -0.00262 | Critic=  9.24906 | PPO=  4.61478 | Entropy= 0.71291 | Sched= 45.768% | ResEff= 37.305%
+LR=1e-04 | Episode= 3800/10000 | Reward=   2.7213 | AvgReward=   7.7514 | Actor= -0.00221 | Critic=  1.76318 | PPO=  0.87008 | Entropy= 0.93009 | Sched= 20.068% | ResEff= 20.410%
+LR=1e-04 | Episode= 3900/10000 | Reward=   4.8510 | AvgReward=   7.5123 | Actor=  0.00722 | Critic=  3.59386 | PPO=  1.79439 | Entropy= 0.97644 | Sched= 22.730% | ResEff= 36.382%
+LR=1e-04 | Episode= 4000/10000 | Reward=   5.7791 | AvgReward=   9.1214 | Actor= -0.02754 | Critic=  3.02158 | PPO=  1.47221 | Entropy= 1.10435 | Sched= 23.891% | ResEff= 43.343%
+LR=1e-04 | Episode= 4100/10000 | Reward=   1.4807 | AvgReward=   7.4433 | Actor= -0.00118 | Critic=  0.60288 | PPO=  0.29616 | Entropy= 0.40968 | Sched=  0.000% | ResEff= 64.807%
+LR=1e-04 | Episode= 4200/10000 | Reward=   8.4113 | AvgReward=   7.7662 | Actor= -0.00539 | Critic=  4.54993 | PPO=  2.26222 | Entropy= 0.73599 | Sched= 40.156% | ResEff= 20.468%
+LR=1e-04 | Episode= 4300/10000 | Reward=  14.8701 | AvgReward=   7.8603 | Actor=  0.00112 | Critic= 16.43222 | PPO=  8.21193 | Entropy= 0.53093 | Sched= 53.074% | ResEff= 59.221%
+LR=1e-04 | Episode= 4400/10000 | Reward=   1.4807 | AvgReward=   9.2510 | Actor= -0.00706 | Critic=  0.18166 | PPO=  0.07710 | Entropy= 0.66666 | Sched=  0.000% | ResEff= 64.807%
+LR=1e-04 | Episode= 4500/10000 | Reward=   6.6685 | AvgReward=   8.8639 | Actor=  0.00082 | Critic=  2.27108 | PPO=  1.12807 | Entropy= 0.82942 | Sched= 25.002% | ResEff= 50.014%
+LR=1e-04 | Episode= 4600/10000 | Reward=   9.8306 | AvgReward=   6.5116 | Actor= -0.03064 | Critic=  7.25982 | PPO=  3.59413 | Entropy= 0.51409 | Sched= 42.994% | ResEff= 28.983%
+LR=1e-04 | Episode= 4700/10000 | Reward=  11.5856 | AvgReward=   8.3628 | Actor= -0.00253 | Critic= 10.20294 | PPO=  5.09278 | Entropy= 0.61622 | Sched= 46.504% | ResEff= 39.513%
+LR=1e-04 | Episode= 4800/10000 | Reward=   4.5861 | AvgReward=   7.7014 | Actor=  0.00218 | Critic=  2.29945 | PPO=  1.14538 | Entropy= 0.65313 | Sched= 22.399% | ResEff= 34.395%
+LR=1e-04 | Episode= 4900/10000 | Reward=   6.3465 | AvgReward=   6.0066 | Actor= -0.01946 | Critic=  3.11431 | PPO=  1.52924 | Entropy= 0.84526 | Sched= 24.600% | ResEff= 47.598%
+LR=1e-04 | Episode= 5000/10000 | Reward=  15.4354 | AvgReward=   8.5711 | Actor=  0.04994 | Critic=  7.73414 | PPO=  3.91261 | Entropy= 0.44004 | Sched= 54.204% | ResEff= 62.613%
+LR=1e-04 | Episode= 5100/10000 | Reward=  10.4780 | AvgReward=   6.0969 | Actor= -0.01470 | Critic=  9.84166 | PPO=  4.90142 | Entropy= 0.47112 | Sched= 44.289% | ResEff= 32.868%
+LR=1e-04 | Episode= 5200/10000 | Reward=  11.2037 | AvgReward=   5.6579 | Actor=  0.00013 | Critic=  8.79390 | PPO=  4.39208 | Entropy= 0.49975 | Sched= 45.741% | ResEff= 37.222%
+LR=1e-04 | Episode= 5300/10000 | Reward=   8.8621 | AvgReward=   7.3138 | Actor= -0.01211 | Critic=  4.73368 | PPO=  2.35159 | Entropy= 0.31417 | Sched= 41.058% | ResEff= 23.173%
+LR=1e-04 | Episode= 5400/10000 | Reward=   4.4333 | AvgReward=   6.5393 | Actor= -0.02311 | Critic=  1.38742 | PPO=  0.66340 | Entropy= 0.71979 | Sched= 22.208% | ResEff= 33.249%
+LR=1e-04 | Episode= 5500/10000 | Reward=   5.5965 | AvgReward=   8.1912 | Actor=  0.00624 | Critic=  3.32601 | PPO=  1.66317 | Entropy= 0.60776 | Sched= 23.662% | ResEff= 41.974%
+LR=1e-04 | Episode= 5600/10000 | Reward=  12.0117 | AvgReward=   7.6885 | Actor= -0.02901 | Critic= 10.44859 | PPO=  5.19066 | Entropy= 0.46278 | Sched= 47.357% | ResEff= 42.070%
+LR=1e-04 | Episode= 5700/10000 | Reward=   0.5346 | AvgReward=   8.4818 | Actor= -0.00503 | Critic=  0.11630 | PPO=  0.04746 | Entropy= 0.56529 | Sched=  0.000% | ResEff= 55.346%
+LR=1e-04 | Episode= 5800/10000 | Reward=  12.7494 | AvgReward=   7.4517 | Actor=  0.00140 | Critic= 10.87597 | PPO=  5.43483 | Entropy= 0.45475 | Sched= 48.832% | ResEff= 46.497%
+LR=1e-04 | Episode= 5900/10000 | Reward=   9.3632 | AvgReward=   7.5512 | Actor= -0.01233 | Critic=  6.39160 | PPO=  3.17800 | Entropy= 0.54661 | Sched= 42.060% | ResEff= 26.179%
+LR=1e-04 | Episode= 6000/10000 | Reward=   6.9636 | AvgReward=   7.8517 | Actor= -0.00611 | Critic=  0.83258 | PPO=  0.40583 | Entropy= 0.43517 | Sched= 37.261% | ResEff= 11.782%
+LR=1e-04 | Episode= 6100/10000 | Reward=   9.8614 | AvgReward=   7.5796 | Actor= -0.00559 | Critic=  8.23724 | PPO=  4.10900 | Entropy= 0.40198 | Sched= 43.056% | ResEff= 29.168%
+LR=1e-04 | Episode= 6200/10000 | Reward=   9.6264 | AvgReward=   7.4584 | Actor=  0.00101 | Critic=  8.29595 | PPO=  4.14477 | Entropy= 0.42123 | Sched= 42.586% | ResEff= 27.759%
+LR=1e-04 | Episode= 6300/10000 | Reward=  14.2070 | AvgReward=  10.2253 | Actor= -0.00533 | Critic=  9.28383 | PPO=  4.63445 | Entropy= 0.21384 | Sched= 51.747% | ResEff= 55.242%
+LR=1e-04 | Episode= 6400/10000 | Reward=  11.4040 | AvgReward=   9.6521 | Actor=  0.01273 | Critic= 13.51492 | PPO=  6.76648 | Entropy= 0.37067 | Sched= 46.141% | ResEff= 38.424%
+LR=1e-04 | Episode= 6500/10000 | Reward=  10.9858 | AvgReward=   7.4519 | Actor= -0.01147 | Critic=  9.01051 | PPO=  4.48871 | Entropy= 0.50723 | Sched= 45.305% | ResEff= 35.915%
+LR=1e-04 | Episode= 6600/10000 | Reward=   1.7754 | AvgReward=   6.3543 | Actor= -0.00858 | Critic=  1.93301 | PPO=  0.95281 | Entropy= 0.51173 | Sched= 18.886% | ResEff= 13.316%
+LR=1e-04 | Episode= 6700/10000 | Reward=   1.1092 | AvgReward=   6.4378 | Actor= -0.01323 | Critic=  0.16098 | PPO=  0.05995 | Entropy= 0.73055 | Sched=  0.000% | ResEff= 61.092%
+LR=1e-04 | Episode= 6800/10000 | Reward=   5.9185 | AvgReward=   6.7314 | Actor=  0.00029 | Critic=  2.82114 | PPO=  1.40307 | Entropy= 0.77933 | Sched= 24.065% | ResEff= 44.389%
+LR=1e-04 | Episode= 6900/10000 | Reward=   3.5074 | AvgReward=   7.1470 | Actor= -0.00522 | Critic=  2.82334 | PPO=  1.40294 | Entropy= 0.35044 | Sched= 21.051% | ResEff= 26.306%
+LR=1e-04 | Episode= 7000/10000 | Reward=   0.9383 | AvgReward=   6.2933 | Actor= -0.00009 | Critic=  0.16605 | PPO=  0.07499 | Entropy= 0.79429 | Sched=  0.000% | ResEff= 59.383%
+LR=1e-04 | Episode= 7100/10000 | Reward=   0.4800 | AvgReward=   8.7086 | Actor=  0.00409 | Critic=  0.54143 | PPO=  0.26740 | Entropy= 0.74009 | Sched=  0.000% | ResEff= 54.800%
+LR=1e-04 | Episode= 7200/10000 | Reward=  10.0839 | AvgReward=   9.5060 | Actor=  0.00606 | Critic= 14.84766 | PPO=  7.42646 | Entropy= 0.34250 | Sched= 43.501% | ResEff= 30.503%
+LR=1e-04 | Episode= 7300/10000 | Reward=   6.6136 | AvgReward=   4.4155 | Actor= -0.00140 | Critic=  4.35122 | PPO=  2.17218 | Entropy= 0.20308 | Sched= 36.561% | ResEff=  9.682%
+LR=1e-04 | Episode= 7400/10000 | Reward=   8.6099 | AvgReward=   9.3469 | Actor=  0.01495 | Critic=  3.32833 | PPO=  1.67696 | Entropy= 0.21562 | Sched= 27.429% | ResEff= 64.575%
+LR=1e-04 | Episode= 7500/10000 | Reward=  14.0435 | AvgReward=  10.3414 | Actor= -0.00330 | Critic= 13.14583 | PPO=  6.56239 | Entropy= 0.72223 | Sched= 51.420% | ResEff= 54.261%
+LR=1e-04 | Episode= 7600/10000 | Reward=   7.1029 | AvgReward=   7.1680 | Actor= -0.00650 | Critic= 11.07129 | PPO=  5.52417 | Entropy= 0.49654 | Sched= 37.539% | ResEff= 12.617%
+LR=1e-04 | Episode= 7700/10000 | Reward=   7.5325 | AvgReward=   8.1331 | Actor= -0.00385 | Critic=  9.33875 | PPO=  4.65261 | Entropy= 1.29155 | Sched= 26.082% | ResEff= 56.494%
+LR=1e-04 | Episode= 7800/10000 | Reward=   6.1860 | AvgReward=   6.9947 | Actor=  0.00573 | Critic=  2.26671 | PPO=  1.12778 | Entropy= 1.13136 | Sched= 24.399% | ResEff= 46.395%
+LR=1e-04 | Episode= 7900/10000 | Reward=  13.4287 | AvgReward=   7.3532 | Actor=  0.00332 | Critic= 14.26910 | PPO=  7.12901 | Entropy= 0.88558 | Sched= 50.191% | ResEff= 50.572%
+LR=1e-04 | Episode= 8000/10000 | Reward=  11.1954 | AvgReward=   7.1928 | Actor=  0.00010 | Critic=  9.53566 | PPO=  4.75878 | Entropy= 0.91501 | Sched= 45.724% | ResEff= 37.173%
+LR=1e-04 | Episode= 8100/10000 | Reward=   9.6193 | AvgReward=   7.7359 | Actor= -0.01855 | Critic= 10.33395 | PPO=  5.14089 | Entropy= 0.75368 | Sched= 42.572% | ResEff= 27.716%
+LR=1e-04 | Episode= 8200/10000 | Reward=  -3.1981 | AvgReward=   6.1806 | Actor=  0.00164 | Critic=  0.92675 | PPO=  0.45947 | Entropy= 0.55395 | Sched=  0.000% | ResEff= 18.019%
+LR=1e-04 | Episode= 8300/10000 | Reward=  12.8565 | AvgReward=   6.3999 | Actor= -0.01251 | Critic= 14.37619 | PPO=  7.16768 | Entropy= 0.79110 | Sched= 49.046% | ResEff= 47.139%
+LR=1e-04 | Episode= 8400/10000 | Reward=   3.5978 | AvgReward=   7.2238 | Actor= -0.01673 | Critic=  1.32661 | PPO=  0.63632 | Entropy= 1.02603 | Sched= 21.164% | ResEff= 26.983%
+LR=1e-04 | Episode= 8500/10000 | Reward=   8.2675 | AvgReward=   7.4401 | Actor=  0.00275 | Critic=  9.92205 | PPO=  4.95456 | Entropy= 0.92178 | Sched= 39.868% | ResEff= 19.605%
+LR=1e-04 | Episode= 8600/10000 | Reward=  -2.8914 | AvgReward=   6.9425 | Actor= -0.01168 | Critic=  0.32682 | PPO=  0.14380 | Entropy= 0.79258 | Sched=  0.000% | ResEff= 21.086%
+LR=1e-04 | Episode= 8700/10000 | Reward=  10.5864 | AvgReward=   7.7658 | Actor=  0.01118 | Critic= 10.25018 | PPO=  5.12842 | Entropy= 0.78464 | Sched= 44.506% | ResEff= 33.519%
+LR=1e-04 | Episode= 8800/10000 | Reward=  11.6175 | AvgReward=   6.3528 | Actor= -0.00900 | Critic=  9.52103 | PPO=  4.74521 | Entropy= 0.63053 | Sched= 46.568% | ResEff= 39.705%
+LR=1e-04 | Episode= 8900/10000 | Reward=   4.7568 | AvgReward=   6.4392 | Actor= -0.00299 | Critic=  2.00267 | PPO=  0.98818 | Entropy= 1.01603 | Sched= 22.613% | ResEff= 35.676%
+LR=1e-04 | Episode= 9000/10000 | Reward=  -3.4661 | AvgReward=   7.9725 | Actor= -0.00268 | Critic=  1.24112 | PPO=  0.61057 | Entropy= 0.73121 | Sched=  0.000% | ResEff= 15.339%
+LR=1e-04 | Episode= 9100/10000 | Reward=  11.6708 | AvgReward=   6.9871 | Actor= -0.02526 | Critic= 11.04039 | PPO=  5.48613 | Entropy= 0.88010 | Sched= 46.675% | ResEff= 40.025%
+LR=1e-04 | Episode= 9200/10000 | Reward=   4.7161 | AvgReward=   5.9771 | Actor= -0.00249 | Critic=  2.12443 | PPO=  1.05024 | Entropy= 0.94902 | Sched= 22.562% | ResEff= 35.371%
+LR=1e-04 | Episode= 9300/10000 | Reward=   3.9393 | AvgReward=   8.3016 | Actor= -0.00133 | Critic=  1.71929 | PPO=  0.84949 | Entropy= 0.88303 | Sched= 21.591% | ResEff= 29.544%
+LR=1e-04 | Episode= 9400/10000 | Reward=  -2.1520 | AvgReward=   6.4354 | Actor=  0.00465 | Critic=  0.31561 | PPO=  0.15257 | Entropy= 0.98832 | Sched=  0.000% | ResEff= 28.480%
+LR=1e-04 | Episode= 9500/10000 | Reward=   9.8881 | AvgReward=   5.9288 | Actor=  0.00177 | Critic=  7.76237 | PPO=  3.87387 | Entropy= 0.90862 | Sched= 43.110% | ResEff= 29.329%
+LR=1e-04 | Episode= 9600/10000 | Reward=   6.4484 | AvgReward=   6.9882 | Actor= -0.00552 | Critic=  2.55140 | PPO=  1.25934 | Entropy= 1.08345 | Sched= 24.727% | ResEff= 48.363%
+LR=1e-04 | Episode= 9700/10000 | Reward=   8.6537 | AvgReward=   6.4246 | Actor= -0.00387 | Critic=  8.06628 | PPO=  4.02131 | Entropy= 0.79593 | Sched= 40.641% | ResEff= 21.922%
+LR=1e-04 | Episode= 9800/10000 | Reward=  13.0052 | AvgReward=   6.1804 | Actor= -0.02459 | Critic= 13.51277 | PPO=  6.72215 | Entropy= 0.96435 | Sched= 49.344% | ResEff= 48.031%
+LR=1e-04 | Episode= 9900/10000 | Reward=   7.6199 | AvgReward=   9.7293 | Actor= -0.01116 | Critic=  1.39260 | PPO=  0.67811 | Entropy= 0.70250 | Sched= 26.192% | ResEff= 57.149%
+LR=1e-04 | Episode=10000/10000 | Reward=   5.9227 | AvgReward=   6.3285 | Actor=  0.00372 | Critic=  3.95089 | PPO=  1.96941 | Entropy= 0.97570 | Sched= 24.070% | ResEff= 44.421%
+
+
+COMPLETED LEARNING RATE = 1e-04
+
+
+================================================================================
+STARTING TRAINING | LEARNING RATE = 1e-03
+================================================================================
+LR=1e-03 | Episode=    1/10000 | Reward=   7.7660 | AvgReward=   7.7660 | Actor= -0.01314 | Critic= 13.74449 | PPO=  6.84526 | Entropy= 1.38481 | Sched= 38.865% | ResEff= 16.596%
+LR=1e-03 | Episode=  100/10000 | Reward=  -4.1771 | AvgReward=   6.3155 | Actor=  0.00191 | Critic=  3.24982 | PPO=  1.61403 | Entropy= 1.27834 | Sched=  0.000% | ResEff=  8.229%
+LR=1e-03 | Episode=  200/10000 | Reward=   7.7083 | AvgReward=   8.8917 | Actor= -0.00192 | Critic=  3.19850 | PPO=  1.58835 | Entropy= 0.89791 | Sched= 26.302% | ResEff= 57.812%
+LR=1e-03 | Episode=  300/10000 | Reward=  14.3379 | AvgReward=   8.6669 | Actor=  0.01223 | Critic= 16.53839 | PPO=  8.27614 | Entropy= 0.52903 | Sched= 52.009% | ResEff= 56.027%
+LR=1e-03 | Episode=  400/10000 | Reward=   5.3284 | AvgReward=   8.2106 | Actor=  0.00000 | Critic=  7.02668 | PPO=  3.51316 | Entropy= 0.01796 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode=  500/10000 | Reward=  11.6606 | AvgReward=   7.6656 | Actor= -0.00000 | Critic= 10.73675 | PPO=  5.36827 | Entropy= 0.01114 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode=  600/10000 | Reward=   5.0403 | AvgReward=   7.6987 | Actor=  0.00351 | Critic=  1.99983 | PPO=  0.99492 | Entropy= 0.84995 | Sched= 22.967% | ResEff= 37.802%
+LR=1e-03 | Episode=  700/10000 | Reward=   5.3284 | AvgReward=   7.1297 | Actor= -0.00000 | Critic=  2.17304 | PPO=  1.08503 | Entropy= 0.14889 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode=  800/10000 | Reward=   5.3284 | AvgReward=   7.3330 | Actor= -0.00000 | Critic=  2.37732 | PPO=  1.18585 | Entropy= 0.28138 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode=  900/10000 | Reward=  11.6606 | AvgReward=   8.8177 | Actor= -0.00000 | Critic= 10.66225 | PPO=  5.33102 | Entropy= 0.01013 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 1000/10000 | Reward=  11.6606 | AvgReward=   7.9748 | Actor=  0.00000 | Critic= 10.49884 | PPO=  5.24941 | Entropy= 0.00067 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 1100/10000 | Reward=   5.3284 | AvgReward=   7.1410 | Actor=  0.00000 | Critic=  2.17705 | PPO=  1.08713 | Entropy= 0.13916 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 1200/10000 | Reward=   5.3284 | AvgReward=   8.4006 | Actor=  0.00000 | Critic=  8.93845 | PPO=  4.46922 | Entropy= 0.00067 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 1300/10000 | Reward=   0.0802 | AvgReward=   6.7973 | Actor= -0.04449 | Critic=  0.21510 | PPO=  0.05528 | Entropy= 0.77745 | Sched=  0.000% | ResEff= 50.802%
+LR=1e-03 | Episode= 1400/10000 | Reward=   5.3284 | AvgReward=   7.5668 | Actor=  0.00000 | Critic=  2.22968 | PPO=  1.11389 | Entropy= 0.09549 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 1500/10000 | Reward=  14.8276 | AvgReward=   8.2305 | Actor=  0.05673 | Critic= 16.58638 | PPO=  8.34540 | Entropy= 0.45298 | Sched= 52.989% | ResEff= 58.966%
+LR=1e-03 | Episode= 1600/10000 | Reward=   5.3284 | AvgReward=   7.4503 | Actor= -0.00000 | Critic=  2.35736 | PPO=  1.17639 | Entropy= 0.22900 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 1700/10000 | Reward=  11.6606 | AvgReward=   7.4754 | Actor=  0.00000 | Critic= 10.56075 | PPO=  5.28034 | Entropy= 0.00386 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 1800/10000 | Reward=  11.6606 | AvgReward=   8.1699 | Actor= -0.00000 | Critic= 10.03837 | PPO=  5.01917 | Entropy= 0.00129 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 1900/10000 | Reward=   5.3284 | AvgReward=   7.4596 | Actor=  0.00000 | Critic=  2.19008 | PPO=  1.09490 | Entropy= 0.01423 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 2000/10000 | Reward=   5.3284 | AvgReward=   7.0505 | Actor= -0.00000 | Critic=  2.17255 | PPO=  1.08603 | Entropy= 0.02421 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 2100/10000 | Reward=  11.6606 | AvgReward=   8.1824 | Actor= -0.00000 | Critic= 10.32313 | PPO=  5.16001 | Entropy= 0.15533 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 2200/10000 | Reward=  -2.8806 | AvgReward=   6.2282 | Actor= -0.02830 | Critic=  1.06342 | PPO=  0.49646 | Entropy= 0.69566 | Sched=  0.000% | ResEff= 21.194%
+LR=1e-03 | Episode= 2300/10000 | Reward=  11.8897 | AvgReward=   4.7136 | Actor=  0.05475 | Critic= 15.42123 | PPO=  7.75589 | Entropy= 0.94820 | Sched= 47.113% | ResEff= 41.338%
+LR=1e-03 | Episode= 2400/10000 | Reward=  -3.6232 | AvgReward=   2.8781 | Actor=  0.04191 | Critic=  0.65546 | PPO=  0.35926 | Entropy= 1.03869 | Sched=  0.000% | ResEff= 13.768%
+LR=1e-03 | Episode= 2500/10000 | Reward=  11.6606 | AvgReward=   5.5363 | Actor= -0.00000 | Critic= 10.80097 | PPO=  5.39644 | Entropy= 0.40447 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 2600/10000 | Reward=   5.3284 | AvgReward=   6.5351 | Actor= -0.00000 | Critic=  2.22240 | PPO=  1.11046 | Entropy= 0.07421 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 2700/10000 | Reward=   1.4807 | AvgReward=   5.7787 | Actor= -0.00021 | Critic=  3.94776 | PPO=  1.97316 | Entropy= 0.05088 | Sched=  0.000% | ResEff= 64.807%
+LR=1e-03 | Episode= 2800/10000 | Reward=  12.0078 | AvgReward=   7.9930 | Actor= -0.00327 | Critic= 13.22140 | PPO=  6.60362 | Entropy= 0.38072 | Sched= 47.349% | ResEff= 42.047%
+LR=1e-03 | Episode= 2900/10000 | Reward=   6.6136 | AvgReward=   5.3619 | Actor= -0.00003 | Critic=  0.34874 | PPO=  0.17425 | Entropy= 0.00954 | Sched= 36.561% | ResEff=  9.682%
+LR=1e-03 | Episode= 3000/10000 | Reward=  10.9901 | AvgReward=   5.5709 | Actor= -0.00075 | Critic=  9.73045 | PPO=  4.86125 | Entropy= 0.32318 | Sched= 45.314% | ResEff= 35.941%
+LR=1e-03 | Episode= 3100/10000 | Reward=   1.4807 | AvgReward=   9.8793 | Actor= -0.00020 | Critic=  0.50964 | PPO=  0.25338 | Entropy= 0.12312 | Sched=  0.000% | ResEff= 64.807%
+LR=1e-03 | Episode= 3200/10000 | Reward=  15.6375 | AvgReward=  11.4082 | Actor=  0.01290 | Critic=  1.61992 | PPO=  0.82161 | Entropy= 0.12425 | Sched= 54.608% | ResEff= 63.825%
+LR=1e-03 | Episode= 3300/10000 | Reward=   8.1988 | AvgReward=  10.9433 | Actor= -0.03398 | Critic=  0.91862 | PPO=  0.41939 | Entropy= 0.59399 | Sched= 26.915% | ResEff= 61.491%
+LR=1e-03 | Episode= 3400/10000 | Reward=  11.6606 | AvgReward=   8.3191 | Actor= -0.00000 | Critic= 10.43780 | PPO=  5.21861 | Entropy= 0.02944 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 3500/10000 | Reward=   1.4807 | AvgReward=   8.3675 | Actor= -0.00005 | Critic=  0.30879 | PPO=  0.15423 | Entropy= 0.01189 | Sched=  0.000% | ResEff= 64.807%
+LR=1e-03 | Episode= 3600/10000 | Reward=  15.7624 | AvgReward=   9.5076 | Actor= -0.02492 | Critic=  0.60156 | PPO=  0.27461 | Entropy= 0.12453 | Sched= 54.858% | ResEff= 64.575%
+LR=1e-03 | Episode= 3700/10000 | Reward=  15.5327 | AvgReward=  11.6593 | Actor= -0.02960 | Critic=  0.99221 | PPO=  0.46551 | Entropy= 0.10006 | Sched= 54.399% | ResEff= 63.196%
+LR=1e-03 | Episode= 3800/10000 | Reward=   8.0197 | AvgReward=   9.5114 | Actor= -0.00547 | Critic=  1.83480 | PPO=  0.90988 | Entropy= 0.20504 | Sched= 26.691% | ResEff= 60.147%
+LR=1e-03 | Episode= 3900/10000 | Reward=  -1.4840 | AvgReward=   9.8813 | Actor= -0.01642 | Critic=  0.18735 | PPO=  0.07209 | Entropy= 0.51624 | Sched=  0.000% | ResEff= 35.160%
+LR=1e-03 | Episode= 4000/10000 | Reward=   5.3284 | AvgReward=   8.1060 | Actor= -0.00000 | Critic=  2.23982 | PPO=  1.11947 | Entropy= 0.04400 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 4100/10000 | Reward=  11.6606 | AvgReward=   7.1366 | Actor=  0.00000 | Critic= 10.41898 | PPO=  5.20933 | Entropy= 0.01578 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 4200/10000 | Reward=   5.3284 | AvgReward=   7.2229 | Actor= -0.00000 | Critic=  2.22012 | PPO=  1.11005 | Entropy= 0.00107 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 4300/10000 | Reward=  11.6606 | AvgReward=   6.4489 | Actor= -0.00000 | Critic= 11.03157 | PPO=  5.51578 | Entropy= 0.00040 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 4400/10000 | Reward=   5.3284 | AvgReward=   7.9187 | Actor=  0.00000 | Critic=  2.30845 | PPO=  1.15313 | Entropy= 0.10943 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 4500/10000 | Reward=   8.6410 | AvgReward=   8.5098 | Actor=  0.00498 | Critic=  0.21203 | PPO=  0.11069 | Entropy= 0.03050 | Sched= 27.468% | ResEff= 64.807%
+LR=1e-03 | Episode= 4600/10000 | Reward=   8.6410 | AvgReward=  11.3410 | Actor= -0.01678 | Critic=  0.12354 | PPO=  0.04351 | Entropy= 0.14787 | Sched= 27.468% | ResEff= 64.807%
+LR=1e-03 | Episode= 4700/10000 | Reward=   4.5120 | AvgReward=   9.8382 | Actor=  0.00302 | Critic=  3.64869 | PPO=  1.82212 | Entropy= 0.52465 | Sched= 22.307% | ResEff= 33.840%
+LR=1e-03 | Episode= 4800/10000 | Reward=   5.3284 | AvgReward=   6.6382 | Actor= -0.00000 | Critic=  2.15487 | PPO=  1.07630 | Entropy= 0.11380 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 4900/10000 | Reward=   5.3284 | AvgReward=   6.6618 | Actor= -0.00000 | Critic=  4.77457 | PPO=  2.38690 | Entropy= 0.03815 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 5000/10000 | Reward=  11.6606 | AvgReward=   7.3472 | Actor= -0.00000 | Critic= 10.78338 | PPO=  5.39163 | Entropy= 0.00662 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 5100/10000 | Reward=   5.3284 | AvgReward=   6.1588 | Actor= -0.00000 | Critic=  2.29173 | PPO=  1.14577 | Entropy= 0.00992 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 5200/10000 | Reward=   5.3284 | AvgReward=   6.6160 | Actor= -0.00000 | Critic=  2.92962 | PPO=  1.46481 | Entropy= 0.00047 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 5300/10000 | Reward=  11.6606 | AvgReward=   7.1435 | Actor= -0.00000 | Critic= 10.50311 | PPO=  5.25155 | Entropy= 0.00005 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 5400/10000 | Reward=  11.6606 | AvgReward=   7.8090 | Actor=  0.00000 | Critic= 10.51901 | PPO=  5.25950 | Entropy= 0.00005 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 5500/10000 | Reward=   5.3284 | AvgReward=   8.0045 | Actor= -0.00000 | Critic=  2.17425 | PPO=  1.08709 | Entropy= 0.00381 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 5600/10000 | Reward=  -4.0318 | AvgReward=   7.1183 | Actor= -0.00057 | Critic=  1.15163 | PPO=  0.57456 | Entropy= 0.06822 | Sched=  0.000% | ResEff=  9.682%
+LR=1e-03 | Episode= 5700/10000 | Reward=   5.3284 | AvgReward=   6.8906 | Actor= -0.00000 | Critic=  2.20099 | PPO=  1.10044 | Entropy= 0.00588 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 5800/10000 | Reward=   5.3284 | AvgReward=   7.4579 | Actor= -0.00000 | Critic=  2.13879 | PPO=  1.06926 | Entropy= 0.01337 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 5900/10000 | Reward=  11.6606 | AvgReward=   7.2430 | Actor=  0.00000 | Critic= 10.60996 | PPO=  5.30497 | Entropy= 0.00049 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 6000/10000 | Reward=   5.3284 | AvgReward=   7.4946 | Actor= -0.00000 | Critic=  2.18867 | PPO=  1.09419 | Entropy= 0.01495 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 6100/10000 | Reward=  11.6606 | AvgReward=   6.6767 | Actor= -0.00000 | Critic= 10.70538 | PPO=  5.35269 | Entropy= 0.00002 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 6200/10000 | Reward=   5.3284 | AvgReward=   7.9990 | Actor= -0.00000 | Critic=  2.20610 | PPO=  1.10301 | Entropy= 0.00349 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 6300/10000 | Reward=   5.3284 | AvgReward=   7.0415 | Actor=  0.00000 | Critic=  2.14150 | PPO=  1.07074 | Entropy= 0.00107 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 6400/10000 | Reward=   5.3284 | AvgReward=   5.9045 | Actor=  0.00000 | Critic=  2.17292 | PPO=  1.08643 | Entropy= 0.00336 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 6500/10000 | Reward=   5.3284 | AvgReward=   7.3677 | Actor= -0.00000 | Critic=  2.51464 | PPO=  1.25730 | Entropy= 0.00200 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 6600/10000 | Reward=  11.6606 | AvgReward=   7.8339 | Actor= -0.00000 | Critic= 10.60275 | PPO=  5.30138 | Entropy= 0.00001 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 6700/10000 | Reward=  11.6606 | AvgReward=   7.7379 | Actor=  0.00000 | Critic= 10.50885 | PPO=  5.25442 | Entropy= 0.00000 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 6800/10000 | Reward=  11.6606 | AvgReward=   7.1704 | Actor= -0.00000 | Critic= 10.53876 | PPO=  5.26938 | Entropy= 0.00000 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 6900/10000 | Reward=   1.4807 | AvgReward=   8.0792 | Actor=  0.00000 | Critic=  0.02651 | PPO=  0.01325 | Entropy= 0.00010 | Sched=  0.000% | ResEff= 64.807%
+LR=1e-03 | Episode= 7000/10000 | Reward=   5.3284 | AvgReward=   7.1823 | Actor=  0.00000 | Critic=  2.20580 | PPO=  1.10290 | Entropy= 0.00013 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 7100/10000 | Reward=   5.3284 | AvgReward=   7.6889 | Actor=  0.00000 | Critic=  2.17148 | PPO=  1.08574 | Entropy= 0.00009 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 7200/10000 | Reward=   5.3284 | AvgReward=   8.0328 | Actor= -0.00000 | Critic=  2.19580 | PPO=  1.09790 | Entropy= 0.00005 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 7300/10000 | Reward=   5.3284 | AvgReward=   7.0172 | Actor=  0.00000 | Critic=  2.20960 | PPO=  1.10480 | Entropy= 0.00008 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 7400/10000 | Reward=   5.3284 | AvgReward=   8.1585 | Actor=  0.00000 | Critic=  2.19078 | PPO=  1.09539 | Entropy= 0.00005 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 7500/10000 | Reward=   5.3284 | AvgReward=   7.4568 | Actor=  0.00000 | Critic=  2.21847 | PPO=  1.10924 | Entropy= 0.00013 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 7600/10000 | Reward=   5.3284 | AvgReward=   6.9837 | Actor=  0.00000 | Critic=  2.26971 | PPO=  1.13485 | Entropy= 0.00015 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 7700/10000 | Reward=   5.3284 | AvgReward=   8.1593 | Actor= -0.00000 | Critic=  2.17431 | PPO=  1.08715 | Entropy= 0.00021 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 7800/10000 | Reward=  11.6606 | AvgReward=   6.9263 | Actor=  0.00000 | Critic= 10.56469 | PPO=  5.28234 | Entropy= 0.00001 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 7900/10000 | Reward=  11.6606 | AvgReward=   8.2385 | Actor= -0.00000 | Critic= 10.50799 | PPO=  5.25400 | Entropy= 0.00001 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 8000/10000 | Reward=  11.6606 | AvgReward=   7.0412 | Actor= -0.00000 | Critic= 10.65172 | PPO=  5.32586 | Entropy= 0.00031 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 8100/10000 | Reward=   5.3284 | AvgReward=   6.4549 | Actor= -0.00000 | Critic=  2.14959 | PPO=  1.07479 | Entropy= 0.00042 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 8200/10000 | Reward=   5.3284 | AvgReward=   6.5364 | Actor=  0.00000 | Critic=  2.20170 | PPO=  1.10084 | Entropy= 0.00080 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 8300/10000 | Reward=  11.6606 | AvgReward=   7.0798 | Actor=  0.00000 | Critic= 10.63738 | PPO=  5.31869 | Entropy= 0.00045 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 8400/10000 | Reward=   5.5191 | AvgReward=   7.4234 | Actor=  0.01428 | Critic=  2.04809 | PPO=  1.03546 | Entropy= 0.28653 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-03 | Episode= 8500/10000 | Reward=   5.3284 | AvgReward=   4.3249 | Actor=  0.00000 | Critic=  2.18379 | PPO=  1.09186 | Entropy= 0.00339 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 8600/10000 | Reward=   5.5191 | AvgReward=   3.8457 | Actor= -0.02826 | Critic=  1.39700 | PPO=  0.66997 | Entropy= 0.02707 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-03 | Episode= 8700/10000 | Reward=   5.3284 | AvgReward=   3.8148 | Actor= -0.00000 | Critic=  2.18736 | PPO=  1.09368 | Entropy= 0.00006 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 8800/10000 | Reward=  11.6606 | AvgReward=   3.9945 | Actor= -0.00000 | Critic= 10.39048 | PPO=  5.19385 | Entropy= 0.13843 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 8900/10000 | Reward=   5.3284 | AvgReward=   6.9357 | Actor= -0.00000 | Critic= 12.38215 | PPO=  6.19107 | Entropy= 0.00019 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 9000/10000 | Reward=  11.6606 | AvgReward=   6.5100 | Actor= -0.00000 | Critic= 10.85856 | PPO=  5.42928 | Entropy= 0.00021 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 9100/10000 | Reward=  11.6606 | AvgReward=   6.8957 | Actor= -0.00000 | Critic= 13.57737 | PPO=  6.78869 | Entropy= 0.00000 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 9200/10000 | Reward=   5.3284 | AvgReward=   7.3873 | Actor=  0.00000 | Critic=  2.21892 | PPO=  1.10946 | Entropy= 0.00004 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 9300/10000 | Reward=  11.6606 | AvgReward=   8.3321 | Actor=  0.00000 | Critic= 10.63129 | PPO=  5.31564 | Entropy= 0.00041 | Sched= 46.654% | ResEff= 39.963%
+LR=1e-03 | Episode= 9400/10000 | Reward=   5.3284 | AvgReward=   7.0023 | Actor= -0.00000 | Critic=  2.19390 | PPO=  1.09695 | Entropy= 0.00011 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 9500/10000 | Reward=   5.3284 | AvgReward=   7.5958 | Actor=  0.00000 | Critic=  2.23782 | PPO=  1.11891 | Entropy= 0.00003 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 9600/10000 | Reward=   0.4153 | AvgReward=   8.0404 | Actor= -0.00495 | Critic=  1.68016 | PPO=  0.83086 | Entropy= 0.42662 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-03 | Episode= 9700/10000 | Reward=  -4.6885 | AvgReward=   6.2747 | Actor= -0.00000 | Critic=  1.04907 | PPO=  0.52450 | Entropy= 0.00348 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-03 | Episode= 9800/10000 | Reward=   5.3284 | AvgReward=   6.7387 | Actor=  0.00000 | Critic=  2.18766 | PPO=  1.09383 | Entropy= 0.00001 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode= 9900/10000 | Reward=   5.3284 | AvgReward=   6.7018 | Actor= -0.00000 | Critic=  2.17499 | PPO=  1.08750 | Entropy= 0.00001 | Sched= 23.327% | ResEff= 39.963%
+LR=1e-03 | Episode=10000/10000 | Reward=   5.3284 | AvgReward=   7.2027 | Actor= -0.00000 | Critic=  2.18541 | PPO=  1.09271 | Entropy= 0.00004 | Sched= 23.327% | ResEff= 39.963%
+
+
+COMPLETED LEARNING RATE = 1e-03
+
+
+================================================================================
+STARTING TRAINING | LEARNING RATE = 1e-02
+================================================================================
+LR=1e-02 | Episode=    1/10000 | Reward=   7.7919 | AvgReward=   7.7919 | Actor=  0.00191 | Critic=  8.41467 | PPO=  4.19876 | Entropy= 1.04861 | Sched= 38.917% | ResEff= 16.751%
+LR=1e-02 | Episode=  100/10000 | Reward=   1.2909 | AvgReward=   2.8807 | Actor=  0.00000 | Critic=  3.01780 | PPO=  1.50890 | Entropy= 0.00001 | Sched= 18.280% | ResEff=  9.682%
+LR=1e-02 | Episode=  200/10000 | Reward=   0.4153 | AvgReward=   5.1849 | Actor= -0.00000 | Critic=  1.00468 | PPO=  0.50234 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode=  300/10000 | Reward=  -4.6885 | AvgReward=   2.3547 | Actor=  0.00000 | Critic= 17.10182 | PPO=  8.55091 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode=  400/10000 | Reward=   5.5191 | AvgReward=   2.0996 | Actor=  0.00000 | Critic=  4.74094 | PPO=  2.37047 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode=  500/10000 | Reward=   5.5191 | AvgReward=   2.1506 | Actor=  0.00000 | Critic=  2.22067 | PPO=  1.11033 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode=  600/10000 | Reward=   0.4153 | AvgReward=   2.5079 | Actor= -0.00000 | Critic=  0.43991 | PPO=  0.21996 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode=  700/10000 | Reward=   5.5191 | AvgReward=   2.8651 | Actor=  0.00000 | Critic=  2.22060 | PPO=  1.11030 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode=  800/10000 | Reward=  -4.6885 | AvgReward=   1.9975 | Actor= -0.00000 | Critic=  1.87496 | PPO=  0.93748 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode=  900/10000 | Reward=   0.4153 | AvgReward=   2.3547 | Actor= -0.00000 | Critic=  1.55193 | PPO=  0.77596 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 1000/10000 | Reward=   0.4153 | AvgReward=   2.3037 | Actor= -0.00000 | Critic=  4.26449 | PPO=  2.13224 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 1100/10000 | Reward=   0.4153 | AvgReward=   2.2527 | Actor= -0.00000 | Critic=  9.89406 | PPO=  4.94703 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 1200/10000 | Reward=  -4.6885 | AvgReward=   1.6912 | Actor=  0.00000 | Critic= 18.33371 | PPO=  9.16685 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 1300/10000 | Reward=   5.5191 | AvgReward=   1.9975 | Actor= -0.00000 | Critic=  7.59179 | PPO=  3.79589 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 1400/10000 | Reward=   0.4153 | AvgReward=   2.6610 | Actor= -0.00000 | Critic=  2.54220 | PPO=  1.27110 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 1500/10000 | Reward=   5.5191 | AvgReward=   1.6912 | Actor= -0.00000 | Critic=  5.33228 | PPO=  2.66614 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 1600/10000 | Reward=   0.4153 | AvgReward=   2.5079 | Actor= -0.00000 | Critic=  9.98344 | PPO=  4.99172 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 1700/10000 | Reward=   0.4153 | AvgReward=   2.0996 | Actor=  0.00000 | Critic=  0.14226 | PPO=  0.07113 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 1800/10000 | Reward=   5.5191 | AvgReward=   1.4871 | Actor=  0.00000 | Critic=  2.78473 | PPO=  1.39237 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 1900/10000 | Reward=   0.4153 | AvgReward=   1.7933 | Actor=  0.00000 | Critic=  0.15949 | PPO=  0.07975 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 2000/10000 | Reward=   5.5191 | AvgReward=   2.3547 | Actor=  0.00000 | Critic=  4.54707 | PPO=  2.27354 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 2100/10000 | Reward=   5.5191 | AvgReward=   2.8651 | Actor=  0.00000 | Critic=  2.11950 | PPO=  1.05975 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 2200/10000 | Reward=   5.5191 | AvgReward=   2.3037 | Actor= -0.00000 | Critic=  5.03217 | PPO=  2.51609 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 2300/10000 | Reward=   5.5191 | AvgReward=   2.1506 | Actor=  0.00000 | Critic=  5.57596 | PPO=  2.78798 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 2400/10000 | Reward=   0.4153 | AvgReward=   2.3547 | Actor= -0.00000 | Critic=  2.98566 | PPO=  1.49283 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 2500/10000 | Reward=   0.4153 | AvgReward=   1.7933 | Actor=  0.00000 | Critic=  0.40592 | PPO=  0.20296 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 2600/10000 | Reward=  -4.6885 | AvgReward=   1.6912 | Actor=  0.00000 | Critic=  5.00013 | PPO=  2.50006 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 2700/10000 | Reward=   5.5191 | AvgReward=   2.5589 | Actor= -0.00000 | Critic=  9.41338 | PPO=  4.70669 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 2800/10000 | Reward=   5.5191 | AvgReward=   2.2527 | Actor=  0.00000 | Critic=  2.30109 | PPO=  1.15055 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 2900/10000 | Reward=   0.4153 | AvgReward=   2.4568 | Actor=  0.00000 | Critic=  8.82290 | PPO=  4.41145 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 3000/10000 | Reward=   0.4153 | AvgReward=   1.8954 | Actor=  0.00000 | Critic= 11.71417 | PPO=  5.85708 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 3100/10000 | Reward=   5.5191 | AvgReward=   1.6912 | Actor= -0.00000 | Critic=  6.15357 | PPO=  3.07678 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 3200/10000 | Reward=   5.5191 | AvgReward=   1.9975 | Actor=  0.00000 | Critic=  2.86779 | PPO=  1.43389 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 3300/10000 | Reward=   5.5191 | AvgReward=   2.7120 | Actor=  0.00000 | Critic=  7.46281 | PPO=  3.73141 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 3400/10000 | Reward=   5.5191 | AvgReward=   2.4058 | Actor= -0.00000 | Critic=  2.14690 | PPO=  1.07345 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 3500/10000 | Reward=   0.4153 | AvgReward=   1.9464 | Actor=  0.00000 | Critic=  1.05476 | PPO=  0.52738 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 3600/10000 | Reward=   0.4153 | AvgReward=   1.4871 | Actor= -0.00000 | Critic=  0.38743 | PPO=  0.19372 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 3700/10000 | Reward=   5.5191 | AvgReward=   2.8141 | Actor=  0.00000 | Critic=  3.83922 | PPO=  1.91961 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 3800/10000 | Reward=   5.5191 | AvgReward=   2.2016 | Actor= -0.00000 | Critic=  2.62557 | PPO=  1.31279 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 3900/10000 | Reward=   0.4153 | AvgReward=   2.1506 | Actor=  0.00000 | Critic=  0.05496 | PPO=  0.02748 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 4000/10000 | Reward=   5.5191 | AvgReward=   2.0485 | Actor=  0.00000 | Critic=  9.55322 | PPO=  4.77661 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 4100/10000 | Reward=   0.4153 | AvgReward=   2.0996 | Actor=  0.00000 | Critic=  0.56528 | PPO=  0.28264 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 4200/10000 | Reward=   5.5191 | AvgReward=   2.2016 | Actor= -0.00000 | Critic=  2.20661 | PPO=  1.10330 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 4300/10000 | Reward=   5.5191 | AvgReward=   2.2016 | Actor= -0.00000 | Critic=  2.72993 | PPO=  1.36497 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 4400/10000 | Reward=   0.4153 | AvgReward=   2.6610 | Actor= -0.00000 | Critic=  1.20768 | PPO=  0.60384 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 4500/10000 | Reward=  -4.6885 | AvgReward=   2.3547 | Actor=  0.00000 | Critic= 15.26245 | PPO=  7.63122 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 4600/10000 | Reward=   5.5191 | AvgReward=   2.5079 | Actor= -0.00000 | Critic=  3.64346 | PPO=  1.82173 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 4700/10000 | Reward=   5.5191 | AvgReward=   1.8954 | Actor= -0.00000 | Critic= 20.80273 | PPO= 10.40136 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 4800/10000 | Reward=  -4.6885 | AvgReward=   2.0996 | Actor=  0.00000 | Critic=  4.27748 | PPO=  2.13874 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 4900/10000 | Reward=  -4.6885 | AvgReward=   2.4568 | Actor= -0.00000 | Critic= 32.16042 | PPO= 16.08021 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 5000/10000 | Reward=   5.5191 | AvgReward=   2.5079 | Actor=  0.00000 | Critic=  2.26557 | PPO=  1.13279 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 5100/10000 | Reward=   5.5191 | AvgReward=   1.9975 | Actor= -0.00000 | Critic=  2.57984 | PPO=  1.28992 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 5200/10000 | Reward=   5.5191 | AvgReward=   1.9464 | Actor= -0.00000 | Critic=  2.18927 | PPO=  1.09464 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 5300/10000 | Reward=   0.4153 | AvgReward=   1.7933 | Actor=  0.00000 | Critic=  4.02205 | PPO=  2.01103 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 5400/10000 | Reward=   5.5191 | AvgReward=   1.8444 | Actor= -0.00000 | Critic=  2.32466 | PPO=  1.16233 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 5500/10000 | Reward=   0.4153 | AvgReward=   2.8141 | Actor= -0.00000 | Critic=  0.93074 | PPO=  0.46537 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 5600/10000 | Reward=   0.4153 | AvgReward=   2.0485 | Actor=  0.00000 | Critic=  4.74267 | PPO=  2.37133 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 5700/10000 | Reward=   5.5191 | AvgReward=   2.4568 | Actor= -0.00000 | Critic=  3.73733 | PPO=  1.86866 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 5800/10000 | Reward=   5.5191 | AvgReward=   2.0996 | Actor=  0.00000 | Critic= 10.22246 | PPO=  5.11123 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 5900/10000 | Reward=   5.5191 | AvgReward=   2.0485 | Actor= -0.00000 | Critic=  3.28995 | PPO=  1.64498 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 6000/10000 | Reward=   0.4153 | AvgReward=   2.0996 | Actor= -0.00000 | Critic=  0.64126 | PPO=  0.32063 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 6100/10000 | Reward=  -4.6885 | AvgReward=   1.8954 | Actor=  0.00000 | Critic= 10.71024 | PPO=  5.35512 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 6200/10000 | Reward=   0.4153 | AvgReward=   2.3037 | Actor= -0.00000 | Critic=  4.64365 | PPO=  2.32183 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 6300/10000 | Reward=   5.5191 | AvgReward=   2.4568 | Actor=  0.00000 | Critic=  2.89438 | PPO=  1.44719 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 6400/10000 | Reward=   5.5191 | AvgReward=   2.5079 | Actor=  0.00000 | Critic= 16.77243 | PPO=  8.38621 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 6500/10000 | Reward=  -4.6885 | AvgReward=   2.9672 | Actor= -0.00000 | Critic= 20.99862 | PPO= 10.49931 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 6600/10000 | Reward=   5.5191 | AvgReward=   2.6099 | Actor= -0.00000 | Critic=  2.35099 | PPO=  1.17549 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 6700/10000 | Reward=  -4.6885 | AvgReward=   2.6610 | Actor=  0.00000 | Critic= 24.69022 | PPO= 12.34511 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 6800/10000 | Reward=  -4.6885 | AvgReward=   1.9975 | Actor= -0.00000 | Critic= 15.76886 | PPO=  7.88443 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 6900/10000 | Reward=   5.5191 | AvgReward=   2.3547 | Actor= -0.00000 | Critic=  2.22483 | PPO=  1.11242 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 7000/10000 | Reward=   5.5191 | AvgReward=   2.3547 | Actor=  0.00000 | Critic=  2.15249 | PPO=  1.07624 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 7100/10000 | Reward=   0.4153 | AvgReward=   1.4361 | Actor= -0.00000 | Critic=  1.92724 | PPO=  0.96362 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 7200/10000 | Reward=  -4.6885 | AvgReward=   1.7423 | Actor= -0.00000 | Critic=  1.80866 | PPO=  0.90433 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 7300/10000 | Reward=   0.4153 | AvgReward=   2.7120 | Actor= -0.00000 | Critic=  3.26745 | PPO=  1.63373 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 7400/10000 | Reward=   5.5191 | AvgReward=   1.4361 | Actor= -0.00000 | Critic=  2.50417 | PPO=  1.25209 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 7500/10000 | Reward=  -4.6885 | AvgReward=   2.3547 | Actor= -0.00000 | Critic=  9.29294 | PPO=  4.64647 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 7600/10000 | Reward=   5.5191 | AvgReward=   2.0996 | Actor= -0.00000 | Critic=  4.00930 | PPO=  2.00465 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 7700/10000 | Reward=   5.5191 | AvgReward=   2.2016 | Actor= -0.00000 | Critic=  9.42253 | PPO=  4.71127 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 7800/10000 | Reward=   5.5191 | AvgReward=   2.3037 | Actor= -0.00000 | Critic=  2.34606 | PPO=  1.17303 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 7900/10000 | Reward=   5.5191 | AvgReward=   2.5589 | Actor= -0.00000 | Critic=  2.23374 | PPO=  1.11687 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 8000/10000 | Reward=  -4.6885 | AvgReward=   2.0996 | Actor=  0.00000 | Critic= 20.92750 | PPO= 10.46375 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 8100/10000 | Reward=   5.5191 | AvgReward=   1.6402 | Actor= -0.00000 | Critic=  7.82556 | PPO=  3.91278 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 8200/10000 | Reward=  -4.6885 | AvgReward=   2.5589 | Actor= -0.00000 | Critic=  1.85830 | PPO=  0.92915 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 8300/10000 | Reward=  -4.6885 | AvgReward=   2.1506 | Actor=  0.00000 | Critic=  6.85003 | PPO=  3.42502 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 8400/10000 | Reward=   0.4153 | AvgReward=   2.2527 | Actor=  0.00000 | Critic=  3.50736 | PPO=  1.75368 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 8500/10000 | Reward=  -4.6885 | AvgReward=   2.2016 | Actor= -0.00000 | Critic= 22.13684 | PPO= 11.06842 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 8600/10000 | Reward=   5.5191 | AvgReward=   2.7120 | Actor=  0.00000 | Critic=  2.31468 | PPO=  1.15734 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 8700/10000 | Reward=   5.5191 | AvgReward=   1.5892 | Actor=  0.00000 | Critic= 17.49279 | PPO=  8.74640 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 8800/10000 | Reward=   5.5191 | AvgReward=   2.2527 | Actor=  0.00000 | Critic=  2.25140 | PPO=  1.12570 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 8900/10000 | Reward=   0.4153 | AvgReward=   1.6402 | Actor= -0.00000 | Critic=  1.15975 | PPO=  0.57987 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 9000/10000 | Reward=   5.5191 | AvgReward=   3.0693 | Actor=  0.00000 | Critic=  2.35541 | PPO=  1.17770 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 9100/10000 | Reward=   0.4153 | AvgReward=   2.7120 | Actor= -0.00000 | Critic=  0.67503 | PPO=  0.33751 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+LR=1e-02 | Episode= 9200/10000 | Reward=   5.5191 | AvgReward=   1.6912 | Actor= -0.00000 | Critic= 18.41132 | PPO=  9.20566 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 9300/10000 | Reward=   5.5191 | AvgReward=   2.9672 | Actor= -0.00000 | Critic=  2.86133 | PPO=  1.43066 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 9400/10000 | Reward=   5.5191 | AvgReward=   2.0485 | Actor= -0.00000 | Critic=  2.21423 | PPO=  1.10711 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 9500/10000 | Reward=   5.5191 | AvgReward=   2.7631 | Actor=  0.00000 | Critic=  2.76265 | PPO=  1.38133 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 9600/10000 | Reward=  -4.6885 | AvgReward=   2.7120 | Actor= -0.00000 | Critic= 14.73817 | PPO=  7.36908 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 9700/10000 | Reward=   5.5191 | AvgReward=   2.0485 | Actor= -0.00000 | Critic=  5.61127 | PPO=  2.80564 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode= 9800/10000 | Reward=  -4.6885 | AvgReward=   2.3037 | Actor=  0.00000 | Critic= 15.11041 | PPO=  7.55520 | Entropy= 0.00000 | Sched=  0.000% | ResEff=  3.115%
+LR=1e-02 | Episode= 9900/10000 | Reward=   5.5191 | AvgReward=   2.5589 | Actor=  0.00000 | Critic=  4.53965 | PPO=  2.26983 | Entropy= 0.00000 | Sched= 34.372% | ResEff=  3.115%
+LR=1e-02 | Episode=10000/10000 | Reward=   0.4153 | AvgReward=   2.2527 | Actor= -0.00000 | Critic= 10.88291 | PPO=  5.44146 | Entropy= 0.00000 | Sched= 17.186% | ResEff=  3.115%
+
+
+COMPLETED LEARNING RATE = 1e-02
+
+
+================================================================================
+ALL LEARNING-RATE EXPERIMENTS COMPLETED
+================================================================================
+1e-05: 10000 episodes
+1e-04: 10000 episodes
+1e-03: 10000 episodes
+1e-02: 10000 episodes
+
+Saving training histories...
+Saved: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\training_history_LR_1em05.csv
+Saved: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\training_history_LR_1em04.csv
+Saved: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\training_history_LR_1em03.csv
+Saved: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\training_history_LR_1em02.csv
+
+
+============================================================================================================================================
+LEARNING-RATE STATISTICAL SUMMARY
+============================================================================================================================================
+ learning_rate  average_reward  final_reward  best_reward  reward_std  final_avg_reward  final_reward_std  average_actor_loss  average_critic_loss  average_total_loss  final_actor_loss  final_critic_loss  final_total_loss  average_entropy  final_entropy  average_scheduling_efficiency  final_scheduling_efficiency  average_resource_efficiency  final_resource_efficiency  convergence_episode
+      0.000010        7.904622      2.935142    15.801194    5.035939          7.886402          4.251464           -0.000140             9.090187            4.533487         -0.000895           8.774255          4.375247         1.146642       1.098556                      32.088511                    31.079079                    42.312529                  44.539196                  734
+      0.000100        7.586580      5.922748    15.801194    4.650858          6.328468          4.895271           -0.004312             6.492546            3.234675          0.003725           3.950888          1.969412         0.728600       0.975705                      31.338300                    28.233079                    40.722532                  36.485193                  123
+      0.001000        7.395943      5.328449    15.801194    4.986343          7.202674          5.212632           -0.000344             5.863708            2.930198         -0.000000           2.185413          1.092706         0.131158       0.000043                      31.199025                    31.725031                    39.204714                  35.910016                  118
+      0.010000        2.263264      0.415293    15.801194    3.691820          2.252669          3.717041            0.000106             5.814922            2.907551         -0.000000          10.882912          5.441456         0.001641       0.000000                      23.306961                    23.372665                     3.485382                   3.114698                  100
+
+Summary saved to:
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\learning_rate_summary.csv
+
+
+========================================================================================================================
+COMPACT LEARNING-RATE COMPARISON
+========================================================================================================================
+
+Learning Rate: 1e-05
+  Average Reward             : 7.904622
+  Final Reward               : 2.935142
+  Best Reward                : 15.801194
+  Reward Std.                : 5.035939
+  Final Avg. Reward          : 7.886402
+  Actor Loss                 : -0.000895
+  Critic Loss                : 8.774255
+  Total PPO Loss             : 4.375247
+  Entropy                    : 1.098556
+  Scheduling Efficiency      : 31.0791%
+  Resource Efficiency        : 44.5392%
+  Convergence Episode        : 734.0
+
+Learning Rate: 1e-04
+  Average Reward             : 7.586580
+  Final Reward               : 5.922748
+  Best Reward                : 15.801194
+  Reward Std.                : 4.650858
+  Final Avg. Reward          : 6.328468
+  Actor Loss                 : 0.003725
+  Critic Loss                : 3.950888
+  Total PPO Loss             : 1.969412
+  Entropy                    : 0.975705
+  Scheduling Efficiency      : 28.2331%
+  Resource Efficiency        : 36.4852%
+  Convergence Episode        : 123.0
+
+Learning Rate: 1e-03
+  Average Reward             : 7.395943
+  Final Reward               : 5.328449
+  Best Reward                : 15.801194
+  Reward Std.                : 4.986343
+  Final Avg. Reward          : 7.202674
+  Actor Loss                 : -0.000000
+  Critic Loss                : 2.185413
+  Total PPO Loss             : 1.092706
+  Entropy                    : 0.000043
+  Scheduling Efficiency      : 31.7250%
+  Resource Efficiency        : 35.9100%
+  Convergence Episode        : 118.0
+
+Learning Rate: 1e-02
+  Average Reward             : 2.263264
+  Final Reward               : 0.415293
+  Best Reward                : 15.801194
+  Reward Std.                : 3.691820
+  Final Avg. Reward          : 2.252669
+  Actor Loss                 : -0.000000
+  Critic Loss                : 10.882912
+  Total PPO Loss             : 5.441456
+  Entropy                    : 0.000000
+  Scheduling Efficiency      : 23.3727%
+  Resource Efficiency        : 3.1147%
+  Convergence Episode        : 100.0
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+
+
+================================================================================================================================================================
+FINAL LEARNING-RATE METRICS
+================================================================================================================================================================
+learning_rate  average_reward  final_reward  best_reward  reward_std  average_actor_loss  average_critic_loss  average_total_loss  average_entropy  average_scheduling_efficiency  average_resource_efficiency  final_scheduling_efficiency  final_resource_efficiency  convergence_episode
+        1e-05        7.904622      2.935142    15.801194    5.035939           -0.000140             9.090187            4.533487         1.146642                      32.088511                    42.312529                    31.079079                  44.539196                  734
+        1e-04        7.586580      5.922748    15.801194    4.650858           -0.004312             6.492546            3.234675         0.728600                      31.338300                    40.722532                    28.233079                  36.485193                  123
+        1e-03        7.395943      5.328449    15.801194    4.986343           -0.000344             5.863708            2.930198         0.131158                      31.199025                    39.204714                    31.725031                  35.910016                  118
+        1e-02        2.263264      0.415293    15.801194    3.691820            0.000106             5.814922            2.907551         0.001641                      23.306961                     3.485382                    23.372665                   3.114698                  100
+
+Saved:
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\FINAL_LR_METRICS.csv
+
+Excel results saved to:
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\SLAM_LSTM_PPO_Learning_Rate_Analysis.xlsx
+
+
+====================================================================================================
+SLAM-LSTM-PPO LEARNING-RATE ANALYSIS COMPLETED
+====================================================================================================
+Learning rates tested: ['1e-05', '1e-04', '1e-03', '1e-02']
+Episodes per learning rate: 10000
+Steps per episode: 10
+
+Results directory:
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison
+
+Generated metrics:
+  - Episode reward
+  - Actor loss
+  - Critic loss
+  - Total PPO loss
+  - Policy entropy
+  - QoS score
+  - Scheduling efficiency
+  - Resource efficiency
+  - Reward standard deviation
+  - Final average reward
+  - Best reward
+  - Convergence episode
+
+Generated plots:
+  - Reward
+  - Actor loss
+  - Critic loss
+  - Total PPO loss
+  - Entropy
+  - Scheduling efficiency
+  - Resource efficiency
+  - Final average reward
+  - Reward stability
+  - Final scheduling efficiency
+  - Final resource efficiency
+
+====================================================================================================
+
+Process finished with exit code 0
