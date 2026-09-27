@@ -1,0 +1,301 @@
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Scripts\python.exe E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\main.py 
+================================================================================
+SLAM-LSTM-PPO LEARNING-RATE COMPARISON
+================================================================================
+Device      : cpu
+Database    : E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\Lower_Layer_Data.db
+Results     : E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison
+================================================================================
+
+Physical-layer features:
+ 1. dlBytes
+ 2. dlMcs
+ 3. dlBler
+ 4. ulBytes
+ 5. ulMcs
+ 6. ulBler
+ 7. ri
+ 8. phr
+ 9. pcmax
+10. rsrq
+11. sinr
+12. rsrp
+13. rssi
+14. cqi
+15. pucchSnr
+16. puschSnr
+
+Actions:
+0: Maintain
+1: +10%
+2: +25%
+3: -10%
+
+================================================================================
+LOADING DATASET
+================================================================================
+Original dataset shape: (45244, 25)
+Clean dataset shape: (45244, 17)
+
+Attack classes:
+0: Benign
+1: BruteForce
+2: DDoS
+3: DoS
+4: Probe
+5: Web Attacks
+
+Feature matrix: (45244, 16)
+Target vector : (45244,)
+
+================================================================================
+DATA SPLITTING AND SCALING
+================================================================================
+Training   : (31670, 16)
+Validation : (6787, 16)
+Testing    : (6787, 16)
+
+Sequence shapes:
+Train: (31666, 5, 16)
+Validation: (6783, 5, 16)
+Test: (6783, 5, 16)
+
+
+================================================================================
+STARTING TRAINING | LEARNING RATE = 1e-05
+================================================================================
+LR=1e-05 | Episode=    1/1000 | Reward=  21.6882 | AvgReward=  21.6882 | Actor= -0.00024 | Critic=121.40067 | PPO= 60.68624 | Entropy= 1.38523 | Sched= 70.000% | ResEff= 81.882%
+LR=1e-05 | Episode=  100/1000 | Reward=  20.5256 | AvgReward=  20.8442 | Actor= -0.00005 | Critic=102.06518 | PPO= 51.01868 | Entropy= 1.38578 | Sched= 70.000% | ResEff= 75.256%
+LR=1e-05 | Episode=  200/1000 | Reward=  21.2945 | AvgReward=  20.9094 | Actor= -0.00054 | Critic= 81.96849 | PPO= 40.96988 | Entropy= 1.38205 | Sched= 70.000% | ResEff= 82.945%
+LR=1e-05 | Episode=  300/1000 | Reward=  21.3331 | AvgReward=  20.9281 | Actor=  0.00036 | Critic= 53.60272 | PPO= 26.78815 | Entropy= 1.35701 | Sched= 70.000% | ResEff= 83.331%
+LR=1e-05 | Episode=  400/1000 | Reward=  21.1713 | AvgReward=  21.0212 | Actor= -0.00114 | Critic= 43.37816 | PPO= 21.67438 | Entropy= 1.35576 | Sched= 70.000% | ResEff= 76.713%
+LR=1e-05 | Episode=  500/1000 | Reward=  20.8003 | AvgReward=  20.8151 | Actor= -0.00033 | Critic= 37.82603 | PPO= 18.89896 | Entropy= 1.37248 | Sched= 70.000% | ResEff= 73.003%
+LR=1e-05 | Episode=  600/1000 | Reward=  20.4715 | AvgReward=  20.7978 | Actor= -0.00257 | Critic= 34.20925 | PPO= 17.08827 | Entropy= 1.37820 | Sched= 70.000% | ResEff= 74.715%
+LR=1e-05 | Episode=  700/1000 | Reward=  20.9418 | AvgReward=  20.7090 | Actor= -0.00013 | Critic= 34.89868 | PPO= 17.43576 | Entropy= 1.34480 | Sched= 70.000% | ResEff= 74.418%
+LR=1e-05 | Episode=  800/1000 | Reward=  20.6842 | AvgReward=  20.6809 | Actor= -0.00071 | Critic= 32.85846 | PPO= 16.41509 | Entropy= 1.34339 | Sched= 70.000% | ResEff= 71.842%
+LR=1e-05 | Episode=  900/1000 | Reward=  20.7347 | AvgReward=  20.6899 | Actor=  0.00073 | Critic= 32.79537 | PPO= 16.38574 | Entropy= 1.26766 | Sched= 70.000% | ResEff= 72.347%
+LR=1e-05 | Episode= 1000/1000 | Reward=  20.7836 | AvgReward=  20.4829 | Actor= -0.00139 | Critic= 33.34181 | PPO= 16.65706 | Entropy= 1.24601 | Sched= 70.000% | ResEff= 77.836%
+
+
+COMPLETED LEARNING RATE = 1e-05
+
+
+================================================================================
+STARTING TRAINING | LEARNING RATE = 4e-04
+================================================================================
+LR=4e-04 | Episode=    1/1000 | Reward=  20.4341 | AvgReward=  20.4341 | Actor= -0.00630 | Critic=106.39709 | PPO= 53.17842 | Entropy= 1.38297 | Sched= 70.000% | ResEff= 74.341%
+LR=4e-04 | Episode=  100/1000 | Reward=  20.7905 | AvgReward=  20.4392 | Actor=  0.00000 | Critic= 33.37125 | PPO= 16.68512 | Entropy= 0.05031 | Sched= 70.000% | ResEff= 72.905%
+LR=4e-04 | Episode=  200/1000 | Reward=  20.7905 | AvgReward=  20.4644 | Actor=  0.00014 | Critic=  9.90310 | PPO=  4.95052 | Entropy= 0.11691 | Sched= 70.000% | ResEff= 72.905%
+LR=4e-04 | Episode=  300/1000 | Reward=  20.7905 | AvgReward=  20.5069 | Actor=  0.00048 | Critic=  4.97262 | PPO=  2.48244 | Entropy= 0.43440 | Sched= 70.000% | ResEff= 72.905%
+LR=4e-04 | Episode=  400/1000 | Reward=  21.8790 | AvgReward=  21.0849 | Actor= -0.01505 | Critic= 37.46125 | PPO= 18.71101 | Entropy= 0.45660 | Sched= 70.000% | ResEff= 83.790%
+LR=4e-04 | Episode=  500/1000 | Reward=  21.1880 | AvgReward=  20.8970 | Actor= -0.01362 | Critic= 44.19926 | PPO= 22.07761 | Entropy= 0.83983 | Sched= 70.000% | ResEff= 81.880%
+LR=4e-04 | Episode=  600/1000 | Reward=  22.4442 | AvgReward=  21.6228 | Actor= -0.00148 | Critic= 14.86768 | PPO=  7.42810 | Entropy= 0.42568 | Sched= 70.000% | ResEff= 89.442%
+LR=4e-04 | Episode=  700/1000 | Reward=  21.4790 | AvgReward=  21.3554 | Actor= -0.00220 | Critic= 40.91443 | PPO= 20.44789 | Entropy= 0.71285 | Sched= 70.000% | ResEff= 84.790%
+LR=4e-04 | Episode=  800/1000 | Reward=  21.1391 | AvgReward=  21.3262 | Actor= -0.00669 | Critic= 27.41533 | PPO= 13.69028 | Entropy= 1.06931 | Sched= 70.000% | ResEff= 81.391%
+LR=4e-04 | Episode=  900/1000 | Reward=  20.8401 | AvgReward=  21.2195 | Actor= -0.01151 | Critic= 19.78028 | PPO=  9.86895 | Entropy= 0.96827 | Sched= 70.000% | ResEff= 78.401%
+LR=4e-04 | Episode= 1000/1000 | Reward=  21.6018 | AvgReward=  21.3994 | Actor=  0.00262 | Critic= 49.61194 | PPO= 24.79949 | Entropy= 0.90997 | Sched= 70.000% | ResEff= 86.018%
+
+
+COMPLETED LEARNING RATE = 4e-04
+
+
+================================================================================
+STARTING TRAINING | LEARNING RATE = 1e-03
+================================================================================
+LR=1e-03 | Episode=    1/1000 | Reward=  20.9979 | AvgReward=  20.9979 | Actor= -0.01331 | Critic=112.11042 | PPO= 56.02806 | Entropy= 1.38498 | Sched= 70.000% | ResEff= 74.979%
+LR=1e-03 | Episode=  100/1000 | Reward=  20.6989 | AvgReward=  21.1800 | Actor= -0.00000 | Critic= 33.48449 | PPO= 16.74214 | Entropy= 0.01020 | Sched= 70.000% | ResEff= 81.989%
+LR=1e-03 | Episode=  200/1000 | Reward=  20.3434 | AvgReward=  21.2182 | Actor= -0.02302 | Critic= 32.13010 | PPO= 16.03901 | Entropy= 0.30197 | Sched= 70.000% | ResEff= 73.434%
+LR=1e-03 | Episode=  300/1000 | Reward=  21.6989 | AvgReward=  21.2199 | Actor= -0.00000 | Critic= 36.48454 | PPO= 18.24207 | Entropy= 0.02000 | Sched= 70.000% | ResEff= 81.989%
+LR=1e-03 | Episode=  400/1000 | Reward=  20.2905 | AvgReward=  21.3170 | Actor= -0.04983 | Critic= 32.33091 | PPO= 16.11096 | Entropy= 0.46556 | Sched= 70.000% | ResEff= 72.905%
+LR=1e-03 | Episode=  500/1000 | Reward=  21.6989 | AvgReward=  20.9178 | Actor= -0.00000 | Critic= 36.07728 | PPO= 18.03680 | Entropy= 0.18366 | Sched= 70.000% | ResEff= 81.989%
+LR=1e-03 | Episode=  600/1000 | Reward=  21.6875 | AvgReward=  21.4095 | Actor=  0.00273 | Critic= 36.57953 | PPO= 18.28554 | Entropy= 0.69557 | Sched= 70.000% | ResEff= 86.875%
+LR=1e-03 | Episode=  700/1000 | Reward=  21.1989 | AvgReward=  21.3417 | Actor= -0.00000 | Critic= 34.81292 | PPO= 17.40602 | Entropy= 0.04370 | Sched= 70.000% | ResEff= 81.989%
+LR=1e-03 | Episode=  800/1000 | Reward=  21.0548 | AvgReward=  21.2796 | Actor= -0.01170 | Critic= 34.65622 | PPO= 17.31460 | Entropy= 0.18180 | Sched= 70.000% | ResEff= 80.548%
+LR=1e-03 | Episode=  900/1000 | Reward=  21.6989 | AvgReward=  21.4093 | Actor= -0.00000 | Critic= 36.45021 | PPO= 18.22504 | Entropy= 0.00670 | Sched= 70.000% | ResEff= 81.989%
+LR=1e-03 | Episode= 1000/1000 | Reward=  21.6989 | AvgReward=  21.3939 | Actor= -0.00000 | Critic= 36.11007 | PPO= 18.05493 | Entropy= 0.01037 | Sched= 70.000% | ResEff= 81.989%
+
+
+COMPLETED LEARNING RATE = 1e-03
+
+
+================================================================================
+STARTING TRAINING | LEARNING RATE = 1e-02
+================================================================================
+LR=1e-02 | Episode=    1/1000 | Reward=  21.0025 | AvgReward=  21.0025 | Actor=  0.00570 | Critic= 69.68512 | PPO= 34.83798 | Entropy= 1.02780 | Sched= 70.000% | ResEff= 75.025%
+LR=1e-02 | Episode=  100/1000 | Reward=  20.0934 | AvgReward=  20.2020 | Actor=  0.00000 | Critic= 31.82607 | PPO= 15.91293 | Entropy= 0.01051 | Sched= 70.000% | ResEff= 70.934%
+LR=1e-02 | Episode=  200/1000 | Reward=  20.0934 | AvgReward=  20.2134 | Actor= -0.00000 | Critic= 31.82494 | PPO= 15.91247 | Entropy= 0.00016 | Sched= 70.000% | ResEff= 70.934%
+LR=1e-02 | Episode=  300/1000 | Reward=  19.5934 | AvgReward=  20.2834 | Actor=  0.00000 | Critic= 30.14907 | PPO= 15.07453 | Entropy= 0.00025 | Sched= 70.000% | ResEff= 70.934%
+LR=1e-02 | Episode=  400/1000 | Reward=  20.5934 | AvgReward=  20.2584 | Actor=  0.00000 | Critic= 32.88117 | PPO= 16.44058 | Entropy= 0.00060 | Sched= 70.000% | ResEff= 70.934%
+LR=1e-02 | Episode=  500/1000 | Reward=  20.5934 | AvgReward=  20.2637 | Actor= -0.00000 | Critic= 32.73269 | PPO= 16.36635 | Entropy= 0.00000 | Sched= 70.000% | ResEff= 70.934%
+LR=1e-02 | Episode=  600/1000 | Reward=  20.0934 | AvgReward=  20.2984 | Actor=  0.00000 | Critic= 30.91533 | PPO= 15.45767 | Entropy= 0.00000 | Sched= 70.000% | ResEff= 70.934%
+LR=1e-02 | Episode=  700/1000 | Reward=  20.5934 | AvgReward=  20.3334 | Actor= -0.00000 | Critic= 33.03359 | PPO= 16.51679 | Entropy= 0.00000 | Sched= 70.000% | ResEff= 70.934%
+LR=1e-02 | Episode=  800/1000 | Reward=  19.5934 | AvgReward=  20.2484 | Actor=  0.00000 | Critic= 30.31135 | PPO= 15.15567 | Entropy= 0.00000 | Sched= 70.000% | ResEff= 70.934%
+LR=1e-02 | Episode=  900/1000 | Reward=  20.0934 | AvgReward=  20.2834 | Actor=  0.00000 | Critic= 31.74472 | PPO= 15.87236 | Entropy= 0.00000 | Sched= 70.000% | ResEff= 70.934%
+LR=1e-02 | Episode= 1000/1000 | Reward=  20.0934 | AvgReward=  20.2784 | Actor=  0.00000 | Critic= 31.54296 | PPO= 15.77148 | Entropy= 0.00000 | Sched= 70.000% | ResEff= 70.934%
+
+
+COMPLETED LEARNING RATE = 1e-02
+
+
+================================================================================
+ALL LEARNING-RATE EXPERIMENTS COMPLETED
+================================================================================
+1e-05: 1000 episodes
+4e-04: 1000 episodes
+1e-03: 1000 episodes
+1e-02: 1000 episodes
+
+Saving training histories...
+Saved: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\training_history_LR_1em05.csv
+Saved: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\training_history_LR_4em04.csv
+Saved: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\training_history_LR_1em03.csv
+Saved: E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\training_history_LR_1em02.csv
+
+
+============================================================================================================================================
+LEARNING-RATE STATISTICAL SUMMARY
+============================================================================================================================================
+ learning_rate  average_reward  final_reward  best_reward  reward_std  final_avg_reward  final_reward_std  average_actor_loss  average_critic_loss  average_total_loss  final_actor_loss  final_critic_loss  final_total_loss  average_entropy  final_entropy  average_scheduling_efficiency  final_scheduling_efficiency  average_resource_efficiency  final_resource_efficiency  convergence_episode
+      0.000010       20.787849     20.783570    22.134062    0.510755         20.482891          0.451655           -0.000455            52.076056           26.024106         -0.001388          33.341811         16.657058         1.346674       1.246014                      70.000000                    70.000000                    76.088492                  73.478911                  100
+      0.000400       21.031568     21.601827    22.444215    0.651585         21.399447          0.524280           -0.003195            28.100061           14.040875          0.002619          49.611939         24.799489         0.595984       0.909969                      70.000000                    70.000000                    78.605685                  82.244466                  100
+      0.001000       21.268676     21.698901    22.367962    0.442820         21.393901          0.366708           -0.002798            35.239833           17.615342         -0.000000          36.110066         18.054930         0.177697       0.010370                      70.000000                    70.000000                    80.991760                  81.989011                  100
+      0.010000       20.266323     20.093441    21.036802    0.361356         20.278441          0.358155           -0.000166            31.839186           15.919305          0.000000          31.542960         15.771480         0.012202       0.000000                      70.000000                    70.000000                    70.958226                  70.934409                  100
+
+Summary saved to:
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\learning_rate_summary.csv
+
+
+========================================================================================================================
+COMPACT LEARNING-RATE COMPARISON
+========================================================================================================================
+
+Learning Rate: 1e-05
+  Average Reward             : 20.787849
+  Final Reward               : 20.783570
+  Best Reward                : 22.134062
+  Reward Std.                : 0.510755
+  Final Avg. Reward          : 20.482891
+  Actor Loss                 : -0.001388
+  Critic Loss                : 33.341811
+  Total PPO Loss             : 16.657058
+  Entropy                    : 1.246014
+  Scheduling Efficiency      : 70.0000%
+  Resource Efficiency        : 73.4789%
+  Convergence Episode        : 100.0
+
+Learning Rate: 4e-04
+  Average Reward             : 21.031568
+  Final Reward               : 21.601827
+  Best Reward                : 22.444215
+  Reward Std.                : 0.651585
+  Final Avg. Reward          : 21.399447
+  Actor Loss                 : 0.002619
+  Critic Loss                : 49.611939
+  Total PPO Loss             : 24.799489
+  Entropy                    : 0.909969
+  Scheduling Efficiency      : 70.0000%
+  Resource Efficiency        : 82.2445%
+  Convergence Episode        : 100.0
+
+Learning Rate: 1e-03
+  Average Reward             : 21.268676
+  Final Reward               : 21.698901
+  Best Reward                : 22.367962
+  Reward Std.                : 0.442820
+  Final Avg. Reward          : 21.393901
+  Actor Loss                 : -0.000000
+  Critic Loss                : 36.110066
+  Total PPO Loss             : 18.054930
+  Entropy                    : 0.010370
+  Scheduling Efficiency      : 70.0000%
+  Resource Efficiency        : 81.9890%
+  Convergence Episode        : 100.0
+
+Learning Rate: 1e-02
+  Average Reward             : 20.266323
+  Final Reward               : 20.093441
+  Best Reward                : 21.036802
+  Reward Std.                : 0.361356
+  Final Avg. Reward          : 20.278441
+  Actor Loss                 : 0.000000
+  Critic Loss                : 31.542960
+  Total PPO Loss             : 15.771480
+  Entropy                    : 0.000000
+  Scheduling Efficiency      : 70.0000%
+  Resource Efficiency        : 70.9344%
+  Convergence Episode        : 100.0
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+The PostScript backend does not support transparency; partially transparent artists will be rendered opaque.
+
+
+================================================================================================================================================================
+FINAL LEARNING-RATE METRICS
+================================================================================================================================================================
+learning_rate  average_reward  final_reward  best_reward  reward_std  average_actor_loss  average_critic_loss  average_total_loss  average_entropy  average_scheduling_efficiency  average_resource_efficiency  final_scheduling_efficiency  final_resource_efficiency  convergence_episode
+        1e-05       20.787849     20.783570    22.134062    0.510755           -0.000455            52.076056           26.024106         1.346674                           70.0                    76.088492                         70.0                  73.478911                  100
+        4e-04       21.031568     21.601827    22.444215    0.651585           -0.003195            28.100061           14.040875         0.595984                           70.0                    78.605685                         70.0                  82.244466                  100
+        1e-03       21.268676     21.698901    22.367962    0.442820           -0.002798            35.239833           17.615342         0.177697                           70.0                    80.991760                         70.0                  81.989011                  100
+        1e-02       20.266323     20.093441    21.036802    0.361356           -0.000166            31.839186           15.919305         0.012202                           70.0                    70.958226                         70.0                  70.934409                  100
+
+Saved:
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\FINAL_LR_METRICS.csv
+
+Excel results saved to:
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\SLAM_LSTM_PPO_Learning_Rate_Analysis.xlsx
+
+
+====================================================================================================
+SLAM-LSTM-PPO LEARNING-RATE ANALYSIS COMPLETED
+====================================================================================================
+Learning rates tested: ['1e-05', '4e-04', '1e-03', '1e-02']
+Episodes per learning rate: 1000
+Steps per episode: 10
+
+Results directory:
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison
+
+Generated metrics:
+  - Episode reward
+  - Actor loss
+  - Critic loss
+  - Total PPO loss
+  - Policy entropy
+  - QoS score
+  - Scheduling efficiency
+  - Resource efficiency
+  - Reward standard deviation
+  - Final average reward
+  - Best reward
+  - Convergence episode
+
+Generated plots:
+  - Reward
+  - Actor loss
+  - Critic loss
+  - Total PPO loss
+  - Entropy
+  - Scheduling efficiency
+  - Resource efficiency
+  - Final average reward
+  - Reward stability
+  - Final scheduling efficiency
+  - Final resource efficiency
+
+====================================================================================================
