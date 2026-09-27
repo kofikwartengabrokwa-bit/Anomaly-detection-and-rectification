@@ -1,0 +1,261 @@
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Scripts\python.exe E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\main.py 
+================================================================================
+SLAM-LSTM-PPO VS PPO VS GAN-PPO
+================================================================================
+Device      : cpu
+Database    : E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\Lower_Layer_Data.db
+Results     : E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison
+Users       : [100, 200, 400, 600, 800, 1000]
+Episodes    : 1000
+================================================================================
+
+================================================================================
+LOADING LOWER-LAYER DATASET
+================================================================================
+
+Available tables:
+               name
+0  lower_layer_data
+
+Dataset shape:
+(45244, 25)
+
+Dataset columns:
+dlBytes
+dlMcs
+dlBler
+ulBytes
+ulMcs
+ulBler
+ri
+phr
+pcmax
+rsrq
+sinr
+rsrp
+rssi
+cqi
+pucchSnr
+puschSnr
+ue_id
+timestamp
+cellid
+in_sync
+rnti
+pmi
+traffic_type
+attack_category
+attack_subcategory
+
+First five rows:
+    dlBytes  dlMcs  dlBler  ...  traffic_type  attack_category  attack_subcategory
+0  93883433     13     0.0  ...             1              DoS             DoS_SYN
+1  93888597     11     0.0  ...             1              DoS             DoS_SYN
+2  93889971     11     0.0  ...             1              DoS             DoS_SYN
+3  93894248      9     0.0  ...             1              DoS             DoS_SYN
+4  93898044     10     0.0  ...             1              DoS             DoS_SYN
+
+[5 rows x 25 columns]
+
+Missing values:
+1540
+
+================================================================================
+SELECTING O-DU FEATURES
+================================================================================
+
+Bandwidth column not found.
+A synthetic resource variable will be generated.
+RB column not found.
+A synthetic RB variable will be generated.
+
+O-DU features used by the model:
+1. O_DU_BW
+2. O_DU_RB
+3. dlBytes
+4. ulBytes
+5. phr
+
+Number of usable samples:
+45244
+
+================================================================================
+CONSTRUCTING ANOMALY LABELS
+================================================================================
+
+Empirical feature ranges:
+O_DU_BW              min=5.0000 max=5.0000
+O_DU_RB              min=25.0000 max=25.0000
+dlBytes              min=0.0000 max=4066047213.0000
+ulBytes              min=0.0000 max=5249338500.0000
+phr                  min=-2.0000 max=38.0000
+
+Anomaly distribution:
+anomaly_label
+0    45244
+Name: count, dtype: int64
+
+Normal samples : 45244
+Anomalous samples: 0
+
+================================================================================
+DATA PREPROCESSING
+================================================================================
+Training samples   : 28956
+Validation samples : 7239
+Testing samples    : 9049
+
+Sequence shapes:
+Train: (28951, 5, 5)
+Validation: (7234, 5, 5)
+Test: (9044, 5, 5)
+
+================================================================================
+TRAINING SLAM-LSTM
+================================================================================
+Epoch    0 | Loss = 0.653369
+Epoch    1 | Loss = 0.632038
+
+SLAM-LSTM Test Accuracy: 1.0000
+
+================================================================================
+TRAINING GAN FOR GAN-PPO
+================================================================================
+GAN Epoch    1 | D Loss 1.38531 | G Loss 0.74109
+GAN Epoch    2 | D Loss 1.38286 | G Loss 0.74517
+
+GAN training completed.
+
+Generated synthetic states: (28956, 5)
+
+GAN-PPO training states: (57912, 5)
+GAN-PPO anomalous states: 0
+
+================================================================================
+TRAINING PPO
+================================================================================
+PPO             | Episode    1 | Loss  77.5297 | Reward   50.000 | Sched  48.04% | Alloc  81.96%
+PPO             | Episode  100 | Loss  70.1766 | Reward   50.000 | Sched  61.48% | Alloc  68.52%
+PPO             | Episode  200 | Loss  62.6858 | Reward   50.000 | Sched  30.00% | Alloc 100.00%
+PPO             | Episode  300 | Loss  49.6683 | Reward   50.000 | Sched  50.00% | Alloc  80.00%
+PPO             | Episode  400 | Loss  40.2824 | Reward   50.000 | Sched  45.54% | Alloc  84.46%
+PPO             | Episode  500 | Loss  40.6613 | Reward   50.000 | Sched  36.87% | Alloc  93.13%
+PPO             | Episode  600 | Loss  45.7582 | Reward   50.000 | Sched  31.26% | Alloc  98.74%
+PPO             | Episode  700 | Loss  54.8858 | Reward   50.000 | Sched  57.30% | Alloc  72.70%
+PPO             | Episode  800 | Loss  44.9269 | Reward   50.000 | Sched  53.87% | Alloc  76.13%
+PPO             | Episode  900 | Loss  48.6478 | Reward   50.000 | Sched  30.00% | Alloc 100.00%
+PPO             | Episode 1000 | Loss  55.5393 | Reward   50.000 | Sched  66.52% | Alloc  63.48%
+
+PPO training completed.
+
+================================================================================
+TRAINING GAN-PPO
+================================================================================
+GAN-PPO         | Episode    1 | Loss  77.8939 | Reward   50.000 | Sched  43.61% | Alloc  86.39%
+GAN-PPO         | Episode  100 | Loss  72.2697 | Reward   50.000 | Sched  43.78% | Alloc  86.22%
+GAN-PPO         | Episode  200 | Loss  57.1377 | Reward   50.000 | Sched  79.01% | Alloc  50.99%
+GAN-PPO         | Episode  300 | Loss  40.5667 | Reward   50.000 | Sched  78.72% | Alloc  51.27%
+GAN-PPO         | Episode  400 | Loss  42.7747 | Reward   50.000 | Sched  43.13% | Alloc  86.87%
+GAN-PPO         | Episode  500 | Loss  40.9129 | Reward   50.000 | Sched  38.68% | Alloc  91.32%
+GAN-PPO         | Episode  600 | Loss  40.5706 | Reward   50.000 | Sched  41.47% | Alloc  88.53%
+GAN-PPO         | Episode  700 | Loss  27.6822 | Reward   50.000 | Sched  81.28% | Alloc  48.72%
+GAN-PPO         | Episode  800 | Loss  40.7875 | Reward   50.000 | Sched  39.69% | Alloc  90.31%
+GAN-PPO         | Episode  900 | Loss  40.8261 | Reward   50.000 | Sched  40.38% | Alloc  89.62%
+GAN-PPO         | Episode 1000 | Loss  40.9512 | Reward   50.000 | Sched  40.00% | Alloc  90.00%
+
+GAN-PPO training completed.
+
+================================================================================
+TRAINING SLAM-LSTM-PPO
+================================================================================
+SLAM-LSTM-PPO   | Episode    1 | Loss  77.5950 | Reward   50.000 | Sched  55.03% | Alloc  74.97%
+SLAM-LSTM-PPO   | Episode  100 | Loss  72.4851 | Reward   50.000 | Sched  47.12% | Alloc  82.88%
+SLAM-LSTM-PPO   | Episode  200 | Loss  58.2682 | Reward   50.000 | Sched  54.58% | Alloc  75.42%
+SLAM-LSTM-PPO   | Episode  300 | Loss  52.8464 | Reward   50.000 | Sched  31.26% | Alloc  98.74%
+SLAM-LSTM-PPO   | Episode  400 | Loss  44.1393 | Reward   50.000 | Sched  30.00% | Alloc 100.00%
+SLAM-LSTM-PPO   | Episode  500 | Loss  32.3615 | Reward   50.000 | Sched  58.69% | Alloc  71.31%
+SLAM-LSTM-PPO   | Episode  600 | Loss  43.4020 | Reward   50.000 | Sched  31.26% | Alloc  98.74%
+SLAM-LSTM-PPO   | Episode  700 | Loss  47.2334 | Reward   50.000 | Sched  64.62% | Alloc  65.38%
+SLAM-LSTM-PPO   | Episode  800 | Loss  46.8473 | Reward   50.000 | Sched  37.27% | Alloc  92.73%
+SLAM-LSTM-PPO   | Episode  900 | Loss  42.5573 | Reward   50.000 | Sched  59.28% | Alloc  70.72%
+SLAM-LSTM-PPO   | Episode 1000 | Loss  52.6259 | Reward   50.000 | Sched  50.00% | Alloc  80.00%
+
+SLAM-LSTM-PPO training completed.
+
+================================================================================
+FINAL MODEL COMPARISON
+================================================================================
+
+--------------------------------------------------------------------------------
+SLAM-LSTM-PPO
+--------------------------------------------------------------------------------
+Final Loss                 : 52.625912
+Average Loss               : 53.504754
+Final Reward               : 50.0000
+Average Reward             : 50.0000
+Scheduling Efficiency      : 42.40%
+Resource Allocation Eff.   : 87.60%
+
+--------------------------------------------------------------------------------
+PPO
+--------------------------------------------------------------------------------
+Final Loss                 : 55.539286
+Average Loss               : 52.313313
+Final Reward               : 50.0000
+Average Reward             : 50.0000
+Scheduling Efficiency      : 41.08%
+Resource Allocation Eff.   : 88.92%
+
+--------------------------------------------------------------------------------
+GAN-PPO
+--------------------------------------------------------------------------------
+Final Loss                 : 40.951248
+Average Loss               : 43.704737
+Final Reward               : 50.0000
+Average Reward             : 50.0000
+Scheduling Efficiency      : 61.55%
+Resource Allocation Eff.   : 68.45%
+
+Results saved to:
+E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\SLAM_LSTM_PPO_LR_Comparison\SLAM_LSTM_PPO_vs_PPO_vs_GAN_PPO.csv
+
+================================================================================
+SCALABILITY EVALUATION
+================================================================================
+Traceback (most recent call last):
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\main.py", line 3126, in <module>
+    SLAM_SCALABILITY = evaluate_scalability(
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\main.py", line 3034, in evaluate_scalability
+    logits, _ = model(
+                ^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Lib\site-packages\torch\nn\modules\module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Lib\site-packages\torch\nn\modules\module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\main.py", line 2004, in forward
+    features = self.shared(
+               ^^^^^^^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Lib\site-packages\torch\nn\modules\module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Lib\site-packages\torch\nn\modules\module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Lib\site-packages\torch\nn\modules\container.py", line 217, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Lib\site-packages\torch\nn\modules\module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Lib\site-packages\torch\nn\modules\module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject\venv\Lib\site-packages\torch\nn\modules\linear.py", line 116, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (1x5 and 6x128)
+
+Process finished with exit code 1
