@@ -1,0 +1,3139 @@
+# ================================================================
+# BLOCK 1: IMPORTS AND GLOBAL CONFIGURATION
+# ================================================================
+
+import os
+import random
+import sqlite3
+import warnings
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from collections import deque
+
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.distributions import Categorical
+
+warnings.filterwarnings("ignore")
+
+
+# ------------------------------------------------
+# PROJECT PATH
+# ------------------------------------------------
+
+PROJECT_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+
+DB_PATH = os.path.join(
+    PROJECT_DIR,
+    "Lower_Layer_Data.db"
+)
+
+RESULT_DIR = os.path.join(
+    PROJECT_DIR,
+    "SLAM_LSTM_PPO_LR_Comparison"
+)
+
+os.makedirs(RESULT_DIR, exist_ok=True)
+
+
+# ------------------------------------------------
+# RANDOM SEED
+# ------------------------------------------------
+
+SEED = 420
+
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
+
+
+# ------------------------------------------------
+# DEVICE
+# ------------------------------------------------
+
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
+
+print("=" * 80)
+print("SLAM-LSTM-PPO LEARNING-RATE COMPARISON")
+print("=" * 80)
+print(f"Device      : {DEVICE}")
+print(f"Database    : {DB_PATH}")
+print(f"Results     : {RESULT_DIR}")
+print("=" * 80)
+
+
+# ------------------------------------------------
+# LEARNING RATES
+# ------------------------------------------------
+
+LEARNING_RATES = [
+    1e-5,
+    4e-4,
+    1e-3,
+    1e-2
+]
+
+
+# ------------------------------------------------
+# TRAINING CONFIGURATION
+# ------------------------------------------------
+
+NUM_EPISODES = 1000
+
+STEPS_PER_EPISODE = 10
+
+SEQ_LEN = 5
+
+HIDDEN_SIZE = 128
+
+LSTM_LAYERS = 2
+
+ACTION_DIM = 4
+
+
+# ------------------------------------------------
+# PPO PARAMETERS
+# ------------------------------------------------
+
+GAMMA = 0.99
+
+GAE_LAMBDA = 0.95
+
+CLIP_EPSILON = 0.20
+
+PPO_EPOCHS = 4
+
+ENTROPY_COEF = 0.01
+
+VALUE_COEF = 0.50
+
+MAX_GRAD_NORM = 0.50
+
+
+# ------------------------------------------------
+# PRINTING
+# ------------------------------------------------
+
+PRINT_INTERVAL = 100
+
+SMOOTH_WINDOW = 100
+
+
+# ------------------------------------------------
+# PLOT CONFIGURATION
+# ------------------------------------------------
+
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 18
+plt.rcParams["axes.labelsize"] = 20
+plt.rcParams["xtick.labelsize"] = 18
+plt.rcParams["ytick.labelsize"] = 18
+plt.rcParams["legend.fontsize"] = 14
+plt.rcParams["figure.dpi"] = 150
+
+
+# ================================================================
+# BLOCK 2: DATASET AND O-RAN PARAMETERS
+# ================================================================
+
+FEATURE_COLUMNS = [
+    "dlBytes",
+    "dlMcs",
+    "dlBler",
+    "ulBytes",
+    "ulMcs",
+    "ulBler",
+    "ri",
+    "phr",
+    "pcmax",
+    "rsrq",
+    "sinr",
+    "rsrp",
+    "rssi",
+    "cqi",
+    "pucchSnr",
+    "puschSnr"
+]
+
+TARGET_COLUMN = "attack_category"
+
+
+# ------------------------------------------------
+# RESOURCE CONFIGURATION
+# ------------------------------------------------
+
+MAX_BW = 100.0
+MIN_BW = 20.0
+
+MAX_RB = 273.0
+MIN_RB = 52.0
+
+
+# ------------------------------------------------
+# QoS THRESHOLDS
+# ------------------------------------------------
+
+BLER_THRESHOLD = 0.10
+SINR_THRESHOLD = 0.0
+CQI_THRESHOLD = 7.0
+
+
+# ------------------------------------------------
+# ACTIONS
+# ------------------------------------------------
+
+ACTION_NAMES = {
+    0: "Maintain",
+    1: "+10%",
+    2: "+25%",
+    3: "-10%"
+}
+
+
+print("\nPhysical-layer features:")
+for i, feature in enumerate(FEATURE_COLUMNS, 1):
+    print(f"{i:2d}. {feature}")
+
+print("\nActions:")
+for action, name in ACTION_NAMES.items():
+    print(f"{action}: {name}")
+
+
+# ================================================================
+# BLOCK 3: LOAD AND PREPROCESS DATASET
+# ================================================================
+
+print("\n" + "=" * 80)
+print("LOADING DATASET")
+print("=" * 80)
+
+
+if not os.path.exists(DB_PATH):
+    raise FileNotFoundError(
+        f"Database not found:\n{DB_PATH}"
+    )
+
+
+connection = sqlite3.connect(DB_PATH)
+
+query = """
+SELECT *
+FROM lower_layer_data
+"""
+
+df = pd.read_sql_query(
+    query,
+    connection
+)
+
+connection.close()
+
+
+print(f"Original dataset shape: {df.shape}")
+
+
+# ------------------------------------------------
+# KEEP REQUIRED COLUMNS
+# ------------------------------------------------
+
+required_columns = FEATURE_COLUMNS + [TARGET_COLUMN]
+
+missing_columns = [
+    col for col in required_columns
+    if col not in df.columns
+]
+
+if missing_columns:
+    raise ValueError(
+        f"Missing required columns: {missing_columns}"
+    )
+
+
+df = df[required_columns].copy()
+
+
+# ------------------------------------------------
+# NUMERIC CONVERSION
+# ------------------------------------------------
+
+for column in FEATURE_COLUMNS:
+    df[column] = pd.to_numeric(
+        df[column],
+        errors="coerce"
+    )
+
+
+df = df.dropna(
+    subset=FEATURE_COLUMNS + [TARGET_COLUMN]
+).reset_index(drop=True)
+
+
+print(f"Clean dataset shape: {df.shape}")
+
+
+# ------------------------------------------------
+# ENCODE TARGET
+# ------------------------------------------------
+
+label_encoder = LabelEncoder()
+
+df["target_encoded"] = label_encoder.fit_transform(
+    df[TARGET_COLUMN].astype(str)
+)
+
+print("\nAttack classes:")
+
+for index, label in enumerate(label_encoder.classes_):
+    print(
+        f"{index}: {label}"
+    )
+
+
+# ------------------------------------------------
+# FEATURES AND LABELS
+# ------------------------------------------------
+
+X = df[FEATURE_COLUMNS].values.astype(np.float32)
+
+y = df["target_encoded"].values.astype(np.int64)
+
+
+print("\nFeature matrix:", X.shape)
+print("Target vector :", y.shape)
+
+
+# ================================================================
+# BLOCK 4: TRAIN / VALIDATION / TEST SPLIT
+# ================================================================
+
+print("\n" + "=" * 80)
+print("DATA SPLITTING AND SCALING")
+print("=" * 80)
+
+
+# ------------------------------------------------
+# 70% TRAIN / 30% TEMP
+# ------------------------------------------------
+
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X,
+    y,
+    test_size=0.30,
+    random_state=SEED,
+    stratify=y
+)
+
+
+# ------------------------------------------------
+# 15% VALIDATION / 15% TEST
+# ------------------------------------------------
+
+X_val, X_test, y_val, y_test = train_test_split(
+    X_temp,
+    y_temp,
+    test_size=0.50,
+    random_state=SEED,
+    stratify=y_temp
+)
+
+
+# ------------------------------------------------
+# STANDARDIZATION
+# ------------------------------------------------
+
+scaler = StandardScaler()
+
+X_train_scaled = scaler.fit_transform(
+    X_train
+).astype(np.float32)
+
+X_val_scaled = scaler.transform(
+    X_val
+).astype(np.float32)
+
+X_test_scaled = scaler.transform(
+    X_test
+).astype(np.float32)
+
+
+print(f"Training   : {X_train_scaled.shape}")
+print(f"Validation : {X_val_scaled.shape}")
+print(f"Testing    : {X_test_scaled.shape}")
+
+
+# ================================================================
+# BLOCK 5: TEMPORAL SEQUENCE GENERATION
+# ================================================================
+
+def create_sequences(X_data, y_data, seq_len=5):
+    """
+    Create temporal sequences for SLAM-LSTM.
+
+    Returns
+    -------
+    X_sequences : [samples, seq_len, features]
+    y_sequences : [samples]
+    """
+
+    sequences = []
+    labels = []
+
+    for i in range(
+        len(X_data) - seq_len + 1
+    ):
+
+        sequences.append(
+            X_data[
+                i:i + seq_len
+            ]
+        )
+
+        labels.append(
+            y_data[
+                i + seq_len - 1
+            ]
+        )
+
+    return (
+        np.asarray(sequences, dtype=np.float32),
+        np.asarray(labels, dtype=np.int64)
+    )
+
+
+X_train_seq, y_train_seq = create_sequences(
+    X_train_scaled,
+    y_train,
+    SEQ_LEN
+)
+
+X_val_seq, y_val_seq = create_sequences(
+    X_val_scaled,
+    y_val,
+    SEQ_LEN
+)
+
+X_test_seq, y_test_seq = create_sequences(
+    X_test_scaled,
+    y_test,
+    SEQ_LEN
+)
+
+
+print("\nSequence shapes:")
+print(
+    "Train:",
+    X_train_seq.shape
+)
+
+print(
+    "Validation:",
+    X_val_seq.shape
+)
+
+print(
+    "Test:",
+    X_test_seq.shape
+)
+
+
+# ================================================================
+# BLOCK 6: O-RAN RESOURCE-SCHEDULING ENVIRONMENT
+# ================================================================
+
+class ORANEnvironment:
+
+    def __init__(
+        self,
+        sequences,
+        random_seed=420
+    ):
+
+        self.sequences = sequences
+
+        self.rng = np.random.default_rng(
+            random_seed
+        )
+
+        self.seq_len = sequences.shape[1]
+
+        self.feature_dim = sequences.shape[2]
+
+        self.state_dim = (
+            self.feature_dim + 2
+        )
+
+        self.current_sequence = None
+
+        self.current_step = 0
+
+        self.bandwidth = 60.0
+
+        self.resource_blocks = 164.0
+
+
+    # ------------------------------------------------------------
+    # RESET
+    # ------------------------------------------------------------
+
+    def reset(self):
+
+        index = self.rng.integers(
+            0,
+            len(self.sequences)
+        )
+
+        self.current_sequence = (
+            self.sequences[index].copy()
+        )
+
+        self.current_step = 0
+
+        self.bandwidth = 60.0
+
+        self.resource_blocks = 164.0
+
+        return self._get_state()
+
+
+    # ------------------------------------------------------------
+    # CURRENT STATE
+    # ------------------------------------------------------------
+
+    def _get_state(self):
+
+        sequence = self.current_sequence.copy()
+
+        bw_normalized = (
+            self.bandwidth / MAX_BW
+        )
+
+        rb_normalized = (
+            self.resource_blocks / MAX_RB
+        )
+
+        resources = np.column_stack(
+            [
+                np.full(
+                    self.seq_len,
+                    bw_normalized,
+                    dtype=np.float32
+                ),
+                np.full(
+                    self.seq_len,
+                    rb_normalized,
+                    dtype=np.float32
+                )
+            ]
+        )
+
+        state_sequence = np.concatenate(
+            [
+                sequence,
+                resources
+            ],
+            axis=1
+        )
+
+        return state_sequence.astype(
+            np.float32
+        )
+
+
+    # ------------------------------------------------------------
+    # RESOURCE ACTION
+    # ------------------------------------------------------------
+
+    def _apply_action(self, action):
+
+        if action == 0:
+
+            # Maintain
+            bw_factor = 1.00
+
+        elif action == 1:
+
+            # Increase by 10%
+            bw_factor = 1.10
+
+        elif action == 2:
+
+            # Increase by 25%
+            bw_factor = 1.25
+
+        elif action == 3:
+
+            # Decrease by 10%
+            bw_factor = 0.90
+
+        else:
+
+            raise ValueError(
+                f"Invalid action: {action}"
+            )
+
+
+        self.bandwidth *= bw_factor
+
+        self.resource_blocks *= bw_factor
+
+
+        # --------------------------------------------------------
+        # RESOURCE LIMITS
+        # --------------------------------------------------------
+
+        self.bandwidth = np.clip(
+            self.bandwidth,
+            MIN_BW,
+            MAX_BW
+        )
+
+        self.resource_blocks = np.clip(
+            self.resource_blocks,
+            MIN_RB,
+            MAX_RB
+        )
+
+
+    # ------------------------------------------------------------
+    # QOS EVALUATION
+    # ------------------------------------------------------------
+
+    def _qos_score(self):
+
+        current_features = (
+            self.current_sequence[-1]
+        )
+
+        # Scaled features are used here only to provide
+        # relative QoS indicators for the learning environment.
+
+        bler = current_features[2]
+
+        sinr = current_features[10]
+
+        cqi = current_features[13]
+
+
+        bler_ok = (
+            bler <= BLER_THRESHOLD
+        )
+
+        sinr_ok = (
+            sinr >= SINR_THRESHOLD
+        )
+
+        cqi_ok = (
+            cqi >= CQI_THRESHOLD
+        )
+
+
+        qos_score = (
+            float(bler_ok)
+            +
+            float(sinr_ok)
+            +
+            float(cqi_ok)
+        ) / 3.0
+
+
+        return qos_score
+
+
+    # ------------------------------------------------------------
+    # RESOURCE EFFICIENCY
+    # ------------------------------------------------------------
+
+    def _resource_efficiency(self):
+
+        bw_efficiency = (
+            self.bandwidth / MAX_BW
+        )
+
+        rb_efficiency = (
+            self.resource_blocks / MAX_RB
+        )
+
+        # Lower resource usage while maintaining QoS
+        # corresponds to higher efficiency.
+
+        efficiency = (
+            1.0
+            -
+            0.2 * (
+                bw_efficiency
+                +
+                rb_efficiency
+            )
+        )
+
+        return float(
+            np.clip(
+                efficiency,
+                0.20,
+                1.0
+            )
+        )
+
+
+    # ------------------------------------------------------------
+    # SCHEDULING EFFICIENCY
+    # ------------------------------------------------------------
+
+    def _scheduling_efficiency(
+        self,
+        qos_score
+    ):
+
+        resource_usage = (
+            0.5 * (
+                self.bandwidth / MAX_BW
+                +
+                self.resource_blocks / MAX_RB
+            )
+        )
+
+        efficiency = (
+            qos_score
+            *
+            (1.0 - 0.2 * resource_usage)
+        )
+
+        return float(
+            np.clip(
+                efficiency,
+                0.14,
+                1.0
+            )
+        )
+
+
+    # ------------------------------------------------------------
+    # STEP
+    # ------------------------------------------------------------
+
+    def step(self, action):
+
+        self._apply_action(action)
+
+        qos_score = self._qos_score()
+
+        resource_efficiency = (
+            self._resource_efficiency()
+        )
+
+        scheduling_efficiency = (
+            self._scheduling_efficiency(
+                qos_score
+            )
+        )
+
+
+        # --------------------------------------------------------
+        # REWARD
+        # --------------------------------------------------------
+
+        reward = (
+            2.0 * scheduling_efficiency
+            +
+            resource_efficiency
+            -
+            0.13 * (1.0 - qos_score)
+        )
+
+
+        self.current_step += 1
+
+        done = (
+            self.current_step
+            >= STEPS_PER_EPISODE
+        )
+
+
+        info = {
+
+            "qos_score":
+                qos_score,
+
+            "resource_efficiency":
+                resource_efficiency,
+
+            "scheduling_efficiency":
+                scheduling_efficiency,
+
+            "bandwidth":
+                self.bandwidth,
+
+            "resource_blocks":
+                self.resource_blocks,
+
+            "action":
+                action
+        }
+
+
+        return (
+            self._get_state(),
+            float(reward),
+            done,
+            info
+        )
+
+
+# ================================================================
+# BLOCK 7: SLAM-LSTM-PPO NETWORK
+# ================================================================
+
+class SLAMLSTMPPO(nn.Module):
+
+    def __init__(
+        self,
+        input_dim,
+        hidden_size,
+        lstm_layers,
+        action_dim
+    ):
+
+        super().__init__()
+
+
+        # --------------------------------------------------------
+        # LSTM
+        # --------------------------------------------------------
+
+        self.lstm = nn.LSTM(
+            input_size=input_dim,
+            hidden_size=hidden_size,
+            num_layers=lstm_layers,
+            batch_first=True
+        )
+
+
+        # --------------------------------------------------------
+        # FEATURE REPRESENTATION
+        # --------------------------------------------------------
+
+        self.feature_layer = nn.Sequential(
+
+            nn.Linear(
+                hidden_size,
+                hidden_size
+            ),
+
+            nn.Tanh()
+        )
+
+
+        # --------------------------------------------------------
+        # ACTOR
+        # --------------------------------------------------------
+
+        self.actor = nn.Sequential(
+
+            nn.Linear(
+                hidden_size,
+                hidden_size
+            ),
+
+            nn.Tanh(),
+
+            nn.Linear(
+                hidden_size,
+                action_dim
+            )
+        )
+
+
+        # --------------------------------------------------------
+        # CRITIC
+        # --------------------------------------------------------
+
+        self.critic = nn.Sequential(
+
+            nn.Linear(
+                hidden_size,
+                hidden_size
+            ),
+
+            nn.Tanh(),
+
+            nn.Linear(
+                hidden_size,
+                1
+            )
+        )
+
+
+    def forward(self, x):
+
+        lstm_output, _ = self.lstm(x)
+
+        # Last temporal representation
+        last_output = lstm_output[:, -1, :]
+
+        features = self.feature_layer(
+            last_output
+        )
+
+        logits = self.actor(
+            features
+        )
+
+        value = self.critic(
+            features
+        ).squeeze(-1)
+
+        return logits, value
+
+
+    def get_action(
+        self,
+        state,
+        deterministic=False
+    ):
+
+        state_tensor = torch.tensor(
+            state,
+            dtype=torch.float32,
+            device=DEVICE
+        ).unsqueeze(0)
+
+        logits, value = self.forward(
+            state_tensor
+        )
+
+        distribution = Categorical(
+            logits=logits
+        )
+
+        if deterministic:
+
+            action = torch.argmax(
+                logits,
+                dim=-1
+            )
+
+        else:
+
+            action = distribution.sample()
+
+
+        log_probability = (
+            distribution.log_prob(action)
+        )
+
+        entropy = (
+            distribution.entropy()
+        )
+
+
+        return (
+            action.item(),
+            log_probability.item(),
+            value.item(),
+            entropy.item()
+        )
+
+
+# ================================================================
+# BLOCK 8: GENERALIZED ADVANTAGE ESTIMATION
+# ================================================================
+
+def calculate_gae(
+    rewards,
+    values,
+    dones,
+    gamma=GAMMA,
+    gae_lambda=GAE_LAMBDA
+):
+
+    advantages = np.zeros_like(
+        rewards,
+        dtype=np.float32
+    )
+
+    gae = 0.0
+
+    for t in reversed(
+        range(len(rewards))
+    ):
+
+        if t == len(rewards) - 1:
+
+            next_value = 0.0
+
+        else:
+
+            next_value = values[t + 1]
+
+
+        next_non_terminal = (
+            1.0 - dones[t]
+        )
+
+
+        delta = (
+            rewards[t]
+            +
+            gamma
+            *
+            next_value
+            *
+            next_non_terminal
+            -
+            values[t]
+        )
+
+
+        gae = (
+            delta
+            +
+            gamma
+            *
+            gae_lambda
+            *
+            next_non_terminal
+            *
+            gae
+        )
+
+
+        advantages[t] = gae
+
+
+    returns = (
+        advantages
+        +
+        np.asarray(
+            values,
+            dtype=np.float32
+        )
+    )
+
+
+    return (
+        advantages,
+        returns
+    )
+
+
+
+# ================================================================
+# BLOCK 9: PPO UPDATE
+# ================================================================
+
+def ppo_update(
+    model,
+    optimizer,
+    states,
+    actions,
+    old_log_probs,
+    returns,
+    advantages
+):
+
+    states = torch.tensor(
+        np.asarray(states),
+        dtype=torch.float32,
+        device=DEVICE
+    )
+
+    actions = torch.tensor(
+        actions,
+        dtype=torch.long,
+        device=DEVICE
+    )
+
+    old_log_probs = torch.tensor(
+        old_log_probs,
+        dtype=torch.float32,
+        device=DEVICE
+    )
+
+    returns = torch.tensor(
+        returns,
+        dtype=torch.float32,
+        device=DEVICE
+    )
+
+    advantages = torch.tensor(
+        advantages,
+        dtype=torch.float32,
+        device=DEVICE
+    )
+
+
+    # ------------------------------------------------------------
+    # ADVANTAGE NORMALIZATION
+    # ------------------------------------------------------------
+
+    advantages = (
+        advantages
+        -
+        advantages.mean()
+    ) / (
+        advantages.std()
+        + 1e-8
+    )
+
+
+    actor_losses = []
+    critic_losses = []
+    entropy_values = []
+    total_losses = []
+
+
+    for _ in range(PPO_EPOCHS):
+
+        logits, values = model(
+            states
+        )
+
+
+        distribution = Categorical(
+            logits=logits
+        )
+
+
+        new_log_probs = (
+            distribution.log_prob(
+                actions
+            )
+        )
+
+
+        entropy = (
+            distribution.entropy().mean()
+        )
+
+
+        # --------------------------------------------------------
+        # PPO RATIO
+        # --------------------------------------------------------
+
+        ratio = torch.exp(
+            new_log_probs
+            -
+            old_log_probs
+        )
+
+
+        # --------------------------------------------------------
+        # CLIPPED SURROGATE
+        # --------------------------------------------------------
+
+        surrogate_1 = (
+            ratio
+            *
+            advantages
+        )
+
+
+        surrogate_2 = (
+            torch.clamp(
+                ratio,
+                1.0 - CLIP_EPSILON,
+                1.0 + CLIP_EPSILON
+            )
+            *
+            advantages
+        )
+
+
+        actor_loss = -torch.min(
+            surrogate_1,
+            surrogate_2
+        ).mean()
+
+
+        # --------------------------------------------------------
+        # CRITIC LOSS
+        # --------------------------------------------------------
+
+        critic_loss = nn.functional.mse_loss(
+            values,
+            returns
+        )
+
+
+        # --------------------------------------------------------
+        # TOTAL PPO LOSS
+        # --------------------------------------------------------
+
+        total_loss = (
+            actor_loss
+            +
+            VALUE_COEF * critic_loss
+            -
+            ENTROPY_COEF * entropy
+        )
+
+
+        optimizer.zero_grad()
+
+        total_loss.backward()
+
+        nn.utils.clip_grad_norm_(
+            model.parameters(),
+            MAX_GRAD_NORM
+        )
+
+        optimizer.step()
+
+
+        actor_losses.append(
+            actor_loss.item()
+        )
+
+        critic_losses.append(
+            critic_loss.item()
+        )
+
+        entropy_values.append(
+            entropy.item()
+        )
+
+        total_losses.append(
+            total_loss.item()
+        )
+
+
+    return {
+
+        "actor_loss":
+            float(np.mean(actor_losses)),
+
+        "critic_loss":
+            float(np.mean(critic_losses)),
+
+        "entropy":
+            float(np.mean(entropy_values)),
+
+        "total_loss":
+            float(np.mean(total_losses))
+    }
+
+
+# ================================================================
+# BLOCK 10: SMOOTHING FUNCTION
+# ================================================================
+
+def smooth(
+    values,
+    window=100
+):
+
+    values = np.asarray(
+        values,
+        dtype=np.float64
+    )
+
+    if len(values) < window:
+
+        return values
+
+
+    kernel = np.ones(
+        window
+    ) / window
+
+
+    return np.convolve(
+        values,
+        kernel,
+        mode="valid"
+    )
+
+
+# ================================================================
+# BLOCK 11: TRAIN ONE SLAM-LSTM-PPO MODEL
+# ================================================================
+
+def train_slam_lstm_ppo(
+    learning_rate,
+    train_sequences,
+    run_seed=420
+):
+
+    print("\n")
+    print("=" * 80)
+    print(
+        f"STARTING TRAINING | LEARNING RATE = {learning_rate:.0e}"
+    )
+    print("=" * 80)
+
+
+    # ------------------------------------------------------------
+    # RESET RANDOM SEEDS
+    # ------------------------------------------------------------
+
+    random.seed(run_seed)
+
+    np.random.seed(run_seed)
+
+    torch.manual_seed(run_seed)
+
+    if torch.cuda.is_available():
+
+        torch.cuda.manual_seed_all(
+            run_seed
+        )
+
+
+    # ------------------------------------------------------------
+    # ENVIRONMENT
+    # ------------------------------------------------------------
+
+    env = ORANEnvironment(
+        train_sequences,
+        random_seed=run_seed
+    )
+
+
+    # ------------------------------------------------------------
+    # MODEL
+    # ------------------------------------------------------------
+
+    input_dim = (
+        train_sequences.shape[-1]
+        +
+        2
+    )
+
+
+    model = SLAMLSTMPPO(
+        input_dim=input_dim,
+        hidden_size=HIDDEN_SIZE,
+        lstm_layers=LSTM_LAYERS,
+        action_dim=ACTION_DIM
+    ).to(DEVICE)
+
+
+    # ------------------------------------------------------------
+    # EXPLICIT LEARNING RATE
+    # ------------------------------------------------------------
+
+    optimizer = optim.Adam(
+        model.parameters(),
+        lr=learning_rate
+    )
+
+
+    # ------------------------------------------------------------
+    # METRIC STORAGE
+    # ------------------------------------------------------------
+
+    history = {
+
+        "episode": [],
+
+        "reward": [],
+
+        "actor_loss": [],
+
+        "critic_loss": [],
+
+        "total_loss": [],
+
+        "entropy": [],
+
+        "scheduling_efficiency": [],
+
+        "resource_efficiency": [],
+
+        "qos_score": [],
+
+        "bandwidth": [],
+
+        "resource_blocks": []
+    }
+
+
+    recent_rewards = deque(
+        maxlen=SMOOTH_WINDOW
+    )
+
+
+    # ------------------------------------------------------------
+    # TRAINING
+    # ------------------------------------------------------------
+
+    for episode in range(
+        1,
+        NUM_EPISODES + 1
+    ):
+
+        state = env.reset()
+
+
+        states = []
+        actions = []
+        rewards = []
+        values = []
+        log_probs = []
+        dones = []
+
+
+        episode_scheduling = []
+        episode_resource = []
+        episode_qos = []
+
+
+        # --------------------------------------------------------
+        # EPISODE
+        # --------------------------------------------------------
+
+        for step in range(
+            STEPS_PER_EPISODE
+        ):
+
+            (
+                action,
+                log_prob,
+                value,
+                entropy
+            ) = model.get_action(
+                state
+            )
+
+
+            next_state, reward, done, info = (
+                env.step(action)
+            )
+
+
+            states.append(
+                state
+            )
+
+            actions.append(
+                action
+            )
+
+            rewards.append(
+                reward
+            )
+
+            values.append(
+                value
+            )
+
+            log_probs.append(
+                log_prob
+            )
+
+            dones.append(
+                float(done)
+            )
+
+
+            episode_scheduling.append(
+                info[
+                    "scheduling_efficiency"
+                ]
+            )
+
+            episode_resource.append(
+                info[
+                    "resource_efficiency"
+                ]
+            )
+
+            episode_qos.append(
+                info[
+                    "qos_score"
+                ]
+            )
+
+
+            state = next_state
+
+
+            if done:
+
+                break
+
+
+        # --------------------------------------------------------
+        # GAE
+        # --------------------------------------------------------
+
+        advantages, returns = calculate_gae(
+            rewards,
+            values,
+            dones
+        )
+
+
+        # --------------------------------------------------------
+        # PPO UPDATE
+        # --------------------------------------------------------
+
+        loss_stats = ppo_update(
+
+            model=model,
+
+            optimizer=optimizer,
+
+            states=states,
+
+            actions=actions,
+
+            old_log_probs=log_probs,
+
+            returns=returns,
+
+            advantages=advantages
+        )
+
+
+        # --------------------------------------------------------
+        # EPISODE METRICS
+        # --------------------------------------------------------
+
+        episode_reward = float(
+            np.sum(rewards)
+        )
+
+
+        scheduling_efficiency = float(
+            np.mean(
+                episode_scheduling
+            )
+        )
+
+
+        resource_efficiency = float(
+            np.mean(
+                episode_resource
+            )
+        )
+
+
+        qos_score = float(
+            np.mean(
+                episode_qos
+            )
+        )
+
+
+        recent_rewards.append(
+            episode_reward
+        )
+
+
+        moving_reward = float(
+            np.mean(
+                recent_rewards
+            )
+        )
+
+
+        history["episode"].append(
+            episode
+        )
+
+        history["reward"].append(
+            episode_reward
+        )
+
+        history["actor_loss"].append(
+            loss_stats["actor_loss"]
+        )
+
+        history["critic_loss"].append(
+            loss_stats["critic_loss"]
+        )
+
+        history["total_loss"].append(
+            loss_stats["total_loss"]
+        )
+
+        history["entropy"].append(
+            loss_stats["entropy"]
+        )
+
+        history[
+            "scheduling_efficiency"
+        ].append(
+            scheduling_efficiency
+        )
+
+        history[
+            "resource_efficiency"
+        ].append(
+            resource_efficiency
+        )
+
+        history["qos_score"].append(
+            qos_score
+        )
+
+        history["bandwidth"].append(
+            env.bandwidth
+        )
+
+        history["resource_blocks"].append(
+            env.resource_blocks
+        )
+
+
+        # --------------------------------------------------------
+        # PRINT TRAINING STATISTICS
+        # --------------------------------------------------------
+
+        if (
+            episode == 1
+            or
+            episode % PRINT_INTERVAL == 0
+        ):
+
+            print(
+                f"LR={learning_rate:.0e} | "
+                f"Episode={episode:5d}/{NUM_EPISODES} | "
+                f"Reward={episode_reward:9.4f} | "
+                f"AvgReward={moving_reward:9.4f} | "
+                f"Actor={loss_stats['actor_loss']:9.5f} | "
+                f"Critic={loss_stats['critic_loss']:9.5f} | "
+                f"PPO={loss_stats['total_loss']:9.5f} | "
+                f"Entropy={loss_stats['entropy']:8.5f} | "
+                f"Sched={100*scheduling_efficiency:7.3f}% | "
+                f"ResEff={100*resource_efficiency:7.3f}%"
+            )
+
+
+    print("\n")
+    print(
+        f"COMPLETED LEARNING RATE = {learning_rate:.0e}"
+    )
+
+    return model, history
+
+
+
+# ================================================================
+# BLOCK 12: RUN ALL FOUR LEARNING RATES
+# ================================================================
+
+all_results = {}
+
+trained_models = {}
+
+
+for index, learning_rate in enumerate(
+    LEARNING_RATES
+):
+
+    model, history = train_slam_lstm_ppo(
+
+        learning_rate=learning_rate,
+
+        train_sequences=X_train_seq,
+
+        run_seed=SEED + index
+    )
+
+
+    key = f"{learning_rate:.0e}"
+
+
+    all_results[key] = history
+
+    trained_models[key] = model
+
+
+print("\n")
+print("=" * 80)
+print("ALL LEARNING-RATE EXPERIMENTS COMPLETED")
+print("=" * 80)
+
+for lr in all_results:
+
+    print(
+        f"{lr}: "
+        f"{len(all_results[lr]['episode'])} episodes"
+    )
+
+
+
+
+# ================================================================
+# BLOCK 13: SAVE RAW TRAINING METRICS
+# ================================================================
+
+print("\nSaving training histories...")
+
+
+for lr, history in all_results.items():
+
+    history_df = pd.DataFrame(
+        history
+    )
+
+
+    filename = os.path.join(
+        RESULT_DIR,
+        f"training_history_LR_{lr.replace('-', 'm').replace('+', 'p')}.csv"
+    )
+
+
+    history_df.to_csv(
+        filename,
+        index=False
+    )
+
+
+    print(
+        f"Saved: {filename}"
+    )
+
+
+
+# ================================================================
+# BLOCK 14: COMPLETE STATISTICAL SUMMARY
+# ================================================================
+
+summary_rows = []
+
+
+for lr, history in all_results.items():
+
+    rewards = np.asarray(
+        history["reward"]
+    )
+
+    scheduling = np.asarray(
+        history[
+            "scheduling_efficiency"
+        ]
+    )
+
+    resource = np.asarray(
+        history[
+            "resource_efficiency"
+        ]
+    )
+
+    actor_loss = np.asarray(
+        history[
+            "actor_loss"
+        ]
+    )
+
+    critic_loss = np.asarray(
+        history[
+            "critic_loss"
+        ]
+    )
+
+    total_loss = np.asarray(
+        history[
+            "total_loss"
+        ]
+    )
+
+    entropy = np.asarray(
+        history[
+            "entropy"
+        ]
+    )
+
+
+    # ------------------------------------------------------------
+    # CONVERGENCE
+    # ------------------------------------------------------------
+
+    moving_reward = smooth(
+        rewards,
+        SMOOTH_WINDOW
+    )
+
+
+    if len(moving_reward) > 0:
+
+        final_moving_reward = (
+            moving_reward[-1]
+        )
+
+        convergence_threshold = (
+            0.95
+            *
+            final_moving_reward
+        )
+
+
+        convergence_indices = np.where(
+            moving_reward
+            >=
+            convergence_threshold
+        )[0]
+
+
+        if len(convergence_indices) > 0:
+
+            convergence_episode = (
+                convergence_indices[0]
+                +
+                SMOOTH_WINDOW
+            )
+
+        else:
+
+            convergence_episode = np.nan
+
+    else:
+
+        final_moving_reward = np.nan
+
+        convergence_episode = np.nan
+
+
+    # ------------------------------------------------------------
+    # FINAL WINDOW
+    # ------------------------------------------------------------
+
+    final_window = min(
+        SMOOTH_WINDOW,
+        len(rewards)
+    )
+
+
+    final_rewards = (
+        rewards[-final_window:]
+    )
+
+    final_scheduling = (
+        scheduling[-final_window:]
+    )
+
+    final_resource = (
+        resource[-final_window:]
+    )
+
+
+    # ------------------------------------------------------------
+    # SUMMARY
+    # ------------------------------------------------------------
+
+    row = {
+
+        "learning_rate":
+            float(lr),
+
+        "average_reward":
+            np.mean(rewards),
+
+        "final_reward":
+            rewards[-1],
+
+        "best_reward":
+            np.max(rewards),
+
+        "reward_std":
+            np.std(rewards),
+
+        "final_avg_reward":
+            np.mean(final_rewards),
+
+        "final_reward_std":
+            np.std(final_rewards),
+
+        "average_actor_loss":
+            np.mean(actor_loss),
+
+        "average_critic_loss":
+            np.mean(critic_loss),
+
+        "average_total_loss":
+            np.mean(total_loss),
+
+        "final_actor_loss":
+            actor_loss[-1],
+
+        "final_critic_loss":
+            critic_loss[-1],
+
+        "final_total_loss":
+            total_loss[-1],
+
+        "average_entropy":
+            np.mean(entropy),
+
+        "final_entropy":
+            entropy[-1],
+
+        "average_scheduling_efficiency":
+            100.0 * np.mean(scheduling),
+
+        "final_scheduling_efficiency":
+            100.0 * np.mean(final_scheduling),
+
+        "average_resource_efficiency":
+            100.0 * np.mean(resource),
+
+        "final_resource_efficiency":
+            100.0 * np.mean(final_resource),
+
+        "convergence_episode":
+            convergence_episode
+    }
+
+
+    summary_rows.append(
+        row
+    )
+
+
+summary_df = pd.DataFrame(
+    summary_rows
+)
+
+
+summary_df = summary_df.sort_values(
+    "learning_rate"
+).reset_index(drop=True)
+
+
+print("\n")
+print("=" * 140)
+print("LEARNING-RATE STATISTICAL SUMMARY")
+print("=" * 140)
+
+print(
+    summary_df.to_string(
+        index=False,
+        float_format=lambda x: f"{x:.6f}"
+    )
+)
+
+
+summary_path = os.path.join(
+    RESULT_DIR,
+    "learning_rate_summary.csv"
+)
+
+
+summary_df.to_csv(
+    summary_path,
+    index=False
+)
+
+
+print(
+    f"\nSummary saved to:\n{summary_path}"
+)
+
+
+
+# ================================================================
+# BLOCK 15: PRINT COMPACT TRAINING STATISTICS
+# ================================================================
+
+print("\n")
+print("=" * 120)
+print("COMPACT LEARNING-RATE COMPARISON")
+print("=" * 120)
+
+
+for _, row in summary_df.iterrows():
+
+    print(
+        f"\nLearning Rate: {row['learning_rate']:.0e}"
+    )
+
+    print(
+        f"  Average Reward             : "
+        f"{row['average_reward']:.6f}"
+    )
+
+    print(
+        f"  Final Reward               : "
+        f"{row['final_reward']:.6f}"
+    )
+
+    print(
+        f"  Best Reward                : "
+        f"{row['best_reward']:.6f}"
+    )
+
+    print(
+        f"  Reward Std.                : "
+        f"{row['reward_std']:.6f}"
+    )
+
+    print(
+        f"  Final Avg. Reward          : "
+        f"{row['final_avg_reward']:.6f}"
+    )
+
+    print(
+        f"  Actor Loss                 : "
+        f"{row['final_actor_loss']:.6f}"
+    )
+
+    print(
+        f"  Critic Loss                : "
+        f"{row['final_critic_loss']:.6f}"
+    )
+
+    print(
+        f"  Total PPO Loss             : "
+        f"{row['final_total_loss']:.6f}"
+    )
+
+    print(
+        f"  Entropy                    : "
+        f"{row['final_entropy']:.6f}"
+    )
+
+    print(
+        f"  Scheduling Efficiency      : "
+        f"{row['final_scheduling_efficiency']:.4f}%"
+    )
+
+    print(
+        f"  Resource Efficiency        : "
+        f"{row['final_resource_efficiency']:.4f}%"
+    )
+
+    print(
+        f"  Convergence Episode        : "
+        f"{row['convergence_episode']}"
+
+
+
+
+    )
+
+
+
+# ================================================================
+# BLOCK 16: REWARD COMPARISON
+# ================================================================
+
+plt.figure(
+    figsize=(14, 8)
+)
+
+
+for lr, history in all_results.items():
+
+    rewards = np.asarray(
+        history["reward"]
+    )
+
+    smoothed = smooth(
+        rewards,
+        SMOOTH_WINDOW
+    )
+
+    episodes = np.arange(
+        SMOOTH_WINDOW,
+        SMOOTH_WINDOW + len(smoothed)
+    )
+
+
+    plt.plot(
+        episodes,
+        smoothed,
+        linewidth=2.5,
+        label=f"lr = {lr}"
+    )
+
+
+plt.xlabel(
+    "Episode"
+)
+
+plt.ylabel(
+    "Average Reward"
+)
+
+plt.xlim(
+    left=0
+)
+
+plt.grid(
+    True,
+    alpha=0.3
+)
+
+plt.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.15),
+    ncol=4,
+    frameon=False
+)
+
+plt.tight_layout()
+
+
+reward_path = os.path.join(
+    RESULT_DIR,
+    "LR_Comparison_Reward.png"
+)
+
+plt.savefig(
+    reward_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    reward_path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+
+
+# ================================================================
+# BLOCK 17: ACTOR LOSS COMPARISON
+# ================================================================
+
+plt.figure(
+    figsize=(14, 8)
+)
+
+
+for lr, history in all_results.items():
+
+    values = np.asarray(
+        history["actor_loss"]
+    )
+
+    smoothed = smooth(
+        values,
+        SMOOTH_WINDOW
+    )
+
+    episodes = np.arange(
+        SMOOTH_WINDOW,
+        SMOOTH_WINDOW + len(smoothed)
+    )
+
+
+    plt.plot(
+        episodes,
+        smoothed,
+        linewidth=2.5,
+        label=f"lr = {lr}"
+    )
+
+
+plt.xlabel(
+    "Episode"
+)
+
+plt.ylabel(
+    "Actor Loss"
+)
+
+plt.xlim(
+    left=0
+)
+
+plt.grid(
+    True,
+    alpha=0.3
+)
+
+plt.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.15),
+    ncol=4,
+    frameon=False
+)
+
+plt.tight_layout()
+
+
+actor_path = os.path.join(
+    RESULT_DIR,
+    "LR_Comparison_Actor_Loss.png"
+)
+
+plt.savefig(
+    actor_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    actor_path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+
+# ================================================================
+# BLOCK 18: CRITIC LOSS COMPARISON
+# ================================================================
+
+plt.figure(
+    figsize=(14, 8)
+)
+
+
+for lr, history in all_results.items():
+
+    values = np.asarray(
+        history["critic_loss"]
+    )
+
+    smoothed = smooth(
+        values,
+        SMOOTH_WINDOW
+    )
+
+    episodes = np.arange(
+        SMOOTH_WINDOW,
+        SMOOTH_WINDOW + len(smoothed)
+    )
+
+
+    plt.plot(
+        episodes,
+        smoothed,
+        linewidth=2.5,
+        label=f"lr = {lr}"
+    )
+
+
+plt.xlabel(
+    "Episode"
+)
+
+plt.ylabel(
+    "Critic Loss"
+)
+
+plt.xlim(
+    left=0
+)
+
+plt.grid(
+    True,
+    alpha=0.3
+)
+
+plt.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.15),
+    ncol=4,
+    frameon=False
+)
+
+plt.tight_layout()
+
+
+critic_path = os.path.join(
+    RESULT_DIR,
+    "LR_Comparison_Critic_Loss.png"
+)
+
+plt.savefig(
+    critic_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    critic_path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+
+# ================================================================
+# BLOCK 19: TOTAL PPO LOSS COMPARISON
+# ================================================================
+
+plt.figure(
+    figsize=(14, 8)
+)
+
+
+for lr, history in all_results.items():
+
+    values = np.asarray(
+        history["total_loss"]
+    )
+
+    smoothed = smooth(
+        values,
+        SMOOTH_WINDOW
+    )
+
+    episodes = np.arange(
+        SMOOTH_WINDOW,
+        SMOOTH_WINDOW + len(smoothed)
+    )
+
+
+    plt.plot(
+        episodes,
+        smoothed,
+        linewidth=2.5,
+        label=f"lr = {lr}"
+    )
+
+
+plt.xlabel(
+    "Episode"
+)
+
+plt.ylabel(
+    "Total PPO Loss"
+)
+
+plt.xlim(
+    left=0
+)
+
+plt.grid(
+    True,
+    alpha=0.3
+)
+
+plt.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.15),
+    ncol=4,
+    frameon=False
+)
+
+plt.tight_layout()
+
+
+total_loss_path = os.path.join(
+    RESULT_DIR,
+    "LR_Comparison_Total_PPO_Loss.png"
+)
+
+plt.savefig(
+    total_loss_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    total_loss_path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+
+# ================================================================
+# BLOCK 20: ENTROPY COMPARISON
+# ================================================================
+
+plt.figure(
+    figsize=(14, 8)
+)
+
+
+for lr, history in all_results.items():
+
+    values = np.asarray(
+        history["entropy"]
+    )
+
+    smoothed = smooth(
+        values,
+        SMOOTH_WINDOW
+    )
+
+    episodes = np.arange(
+        SMOOTH_WINDOW,
+        SMOOTH_WINDOW + len(smoothed)
+    )
+
+
+    plt.plot(
+        episodes,
+        smoothed,
+        linewidth=2.5,
+        label=f"lr = {lr}"
+    )
+
+
+plt.xlabel(
+    "Episode"
+)
+
+plt.ylabel(
+    "Policy Entropy"
+)
+
+plt.xlim(
+    left=0
+)
+
+plt.grid(
+    True,
+    alpha=0.3
+)
+
+plt.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.15),
+    ncol=4,
+    frameon=False
+)
+
+plt.tight_layout()
+
+
+entropy_path = os.path.join(
+    RESULT_DIR,
+    "LR_Comparison_Entropy.png"
+)
+
+plt.savefig(
+    entropy_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    entropy_path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+
+# ================================================================
+# BLOCK 21: SCHEDULING EFFICIENCY COMPARISON
+# ================================================================
+
+plt.figure(
+    figsize=(14, 8)
+)
+
+
+for lr, history in all_results.items():
+
+    values = (
+        100.0
+        *
+        np.asarray(
+            history[
+                "scheduling_efficiency"
+            ]
+        )
+    )
+
+
+    smoothed = smooth(
+        values,
+        SMOOTH_WINDOW
+    )
+
+
+    episodes = np.arange(
+        SMOOTH_WINDOW,
+        SMOOTH_WINDOW + len(smoothed)
+    )
+
+
+    plt.plot(
+        episodes,
+        smoothed,
+        linewidth=2.5,
+        label=f"lr = {lr}"
+    )
+
+
+plt.xlabel(
+    "Episode"
+)
+
+plt.ylabel(
+    "Scheduling Efficiency (%)"
+)
+
+plt.xlim(
+    left=0
+)
+
+plt.ylim(
+    bottom=0
+)
+
+plt.grid(
+    True,
+    alpha=0.3
+)
+
+plt.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.15),
+    ncol=4,
+    frameon=False
+)
+
+plt.tight_layout()
+
+
+scheduling_path = os.path.join(
+    RESULT_DIR,
+    "LR_Comparison_Scheduling_Efficiency.png"
+)
+
+plt.savefig(
+    scheduling_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    scheduling_path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+
+
+# ================================================================
+# BLOCK 22: RESOURCE EFFICIENCY COMPARISON
+# ================================================================
+
+plt.figure(
+    figsize=(14, 8)
+)
+
+
+for lr, history in all_results.items():
+
+    values = (
+        100.0
+        *
+        np.asarray(
+            history[
+                "resource_efficiency"
+            ]
+        )
+    )
+
+
+    smoothed = smooth(
+        values,
+        SMOOTH_WINDOW
+    )
+
+
+    episodes = np.arange(
+        SMOOTH_WINDOW,
+        SMOOTH_WINDOW + len(smoothed)
+    )
+
+
+    plt.plot(
+        episodes,
+        smoothed,
+        linewidth=2.5,
+        label=f"lr = {lr}"
+    )
+
+
+plt.xlabel(
+    "Episode"
+)
+
+plt.ylabel(
+    "Resource Efficiency (%)"
+)
+
+plt.xlim(
+    left=0
+)
+
+plt.ylim(
+    bottom=0
+)
+
+plt.grid(
+    True,
+    alpha=0.3
+)
+
+plt.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.15),
+    ncol=4,
+    frameon=False
+)
+
+plt.tight_layout()
+
+
+resource_path = os.path.join(
+    RESULT_DIR,
+    "LR_Comparison_Resource_Efficiency.png"
+)
+
+plt.savefig(
+    resource_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    resource_path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+# ================================================================
+# BLOCK 23: FINAL REWARD BY LEARNING RATE
+# ================================================================
+
+plt.figure(
+    figsize=(12, 8)
+)
+
+
+x_labels = [
+    f"{lr:.0e}"
+    for lr in summary_df[
+        "learning_rate"
+    ]
+]
+
+
+values = summary_df[
+    "final_avg_reward"
+].values
+
+
+x = np.arange(
+    len(x_labels)
+)
+
+
+plt.bar(
+    x,
+    values
+)
+
+
+plt.xticks(
+    x,
+    x_labels
+)
+
+plt.xlabel(
+    "Learning Rate"
+)
+
+plt.ylabel(
+    "Final Average Reward"
+)
+
+plt.grid(
+    axis="y",
+    alpha=0.3
+)
+
+plt.tight_layout()
+
+
+path = os.path.join(
+    RESULT_DIR,
+    "LR_Final_Average_Reward.png"
+)
+
+plt.savefig(
+    path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+
+# ================================================================
+# BLOCK 24: REWARD STANDARD DEVIATION
+# ================================================================
+
+plt.figure(
+    figsize=(12, 8)
+)
+
+
+x_labels = [
+    f"{lr:.0e}"
+    for lr in summary_df[
+        "learning_rate"
+    ]
+]
+
+
+values = summary_df[
+    "reward_std"
+].values
+
+
+x = np.arange(
+    len(x_labels)
+)
+
+
+plt.bar(
+    x,
+    values
+)
+
+
+plt.xticks(
+    x,
+    x_labels
+)
+
+plt.xlabel(
+    "Learning Rate"
+)
+
+plt.ylabel(
+    "Reward Standard Deviation"
+)
+
+plt.grid(
+    axis="y",
+    alpha=0.3
+)
+
+plt.tight_layout()
+
+
+path = os.path.join(
+    RESULT_DIR,
+    "LR_Reward_Stability.png"
+)
+
+plt.savefig(
+    path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+# ================================================================
+# BLOCK 25: FINAL SCHEDULING EFFICIENCY
+# ================================================================
+
+plt.figure(
+    figsize=(12, 8)
+)
+
+
+x_labels = [
+    f"{lr:.0e}"
+    for lr in summary_df[
+        "learning_rate"
+    ]
+]
+
+
+values = summary_df[
+    "final_scheduling_efficiency"
+].values
+
+
+x = np.arange(
+    len(x_labels)
+)
+
+
+plt.bar(
+    x,
+    values
+)
+
+
+plt.xticks(
+    x,
+    x_labels
+)
+
+plt.xlabel(
+    "Learning Rate"
+)
+
+plt.ylabel(
+    "Final Scheduling Efficiency (%)"
+)
+
+plt.ylim(
+    bottom=0
+)
+
+plt.grid(
+    axis="y",
+    alpha=0.3
+)
+
+plt.tight_layout()
+
+
+path = os.path.join(
+    RESULT_DIR,
+    "LR_Final_Scheduling_Efficiency.png"
+)
+
+plt.savefig(
+    path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+
+# ================================================================
+# BLOCK 26: FINAL RESOURCE EFFICIENCY
+# ================================================================
+
+plt.figure(
+    figsize=(12, 8)
+)
+
+
+x_labels = [
+    f"{lr:.0e}"
+    for lr in summary_df[
+        "learning_rate"
+    ]
+]
+
+
+values = summary_df[
+    "final_resource_efficiency"
+].values
+
+
+x = np.arange(
+    len(x_labels)
+)
+
+
+plt.bar(
+    x,
+    values
+)
+
+
+plt.xticks(
+    x,
+    x_labels
+)
+
+plt.xlabel(
+    "Learning Rate"
+)
+
+plt.ylabel(
+    "Final Resource Efficiency (%)"
+)
+
+plt.ylim(
+    bottom=0
+)
+
+plt.grid(
+    axis="y",
+    alpha=0.3
+)
+
+plt.tight_layout()
+
+
+path = os.path.join(
+    RESULT_DIR,
+    "LR_Final_Resource_Efficiency.png"
+)
+
+plt.savefig(
+    path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    path.replace(
+        ".png",
+        ".eps"
+    ),
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+# ================================================================
+# BLOCK 27: FINAL METRICS TABLE
+# ================================================================
+
+final_metrics = summary_df[
+    [
+        "learning_rate",
+        "average_reward",
+        "final_reward",
+        "best_reward",
+        "reward_std",
+        "average_actor_loss",
+        "average_critic_loss",
+        "average_total_loss",
+        "average_entropy",
+        "average_scheduling_efficiency",
+        "average_resource_efficiency",
+        "final_scheduling_efficiency",
+        "final_resource_efficiency",
+        "convergence_episode"
+    ]
+].copy()
+
+
+final_metrics[
+    "learning_rate"
+] = final_metrics[
+    "learning_rate"
+].map(
+    lambda x: f"{x:.0e}"
+)
+
+
+print("\n")
+print("=" * 160)
+print("FINAL LEARNING-RATE METRICS")
+print("=" * 160)
+
+print(
+    final_metrics.to_string(
+        index=False
+    )
+)
+
+
+final_metrics_path = os.path.join(
+    RESULT_DIR,
+    "FINAL_LR_METRICS.csv"
+)
+
+
+final_metrics.to_csv(
+    final_metrics_path,
+    index=False
+)
+
+
+print(
+    f"\nSaved:\n{final_metrics_path}"
+)
+
+
+# ================================================================
+# BLOCK 28: SAVE RESULTS TO EXCEL
+# ================================================================
+
+excel_path = os.path.join(
+    RESULT_DIR,
+    "SLAM_LSTM_PPO_Learning_Rate_Analysis.xlsx"
+)
+
+
+with pd.ExcelWriter(
+    excel_path,
+    engine="openpyxl"
+) as writer:
+
+    summary_df.to_excel(
+        writer,
+        sheet_name="lr Summary",
+        index=False
+    )
+
+
+    final_metrics.to_excel(
+        writer,
+        sheet_name="Final Metrics",
+        index=False
+    )
+
+
+    for lr, history in all_results.items():
+
+        history_df = pd.DataFrame(
+            history
+        )
+
+        sheet_name = (
+            f"lr_{lr}"
+        )
+
+        history_df.to_excel(
+            writer,
+            sheet_name=sheet_name,
+            index=False
+        )
+
+
+print(
+    f"\nExcel results saved to:\n{excel_path}"
+)
+
+
+# ================================================================
+# BLOCK 29: FINAL REPORT
+# ================================================================
+
+print("\n")
+print("=" * 100)
+print("SLAM-LSTM-PPO LEARNING-RATE ANALYSIS COMPLETED")
+print("=" * 100)
+
+print(
+    f"Learning rates tested: "
+    f"{[f'{lr:.0e}' for lr in LEARNING_RATES]}"
+)
+
+print(
+    f"Episodes per learning rate: "
+    f"{NUM_EPISODES}"
+)
+
+print(
+    f"Steps per episode: "
+    f"{STEPS_PER_EPISODE}"
+)
+
+print(
+    f"\nResults directory:\n"
+    f"{RESULT_DIR}"
+)
+
+print("\nGenerated metrics:")
+print("  - Episode reward")
+print("  - Actor loss")
+print("  - Critic loss")
+print("  - Total PPO loss")
+print("  - Policy entropy")
+print("  - QoS score")
+print("  - Scheduling efficiency")
+print("  - Resource efficiency")
+print("  - Reward standard deviation")
+print("  - Final average reward")
+print("  - Best reward")
+print("  - Convergence episode")
+
+print("\nGenerated plots:")
+print("  - Reward")
+print("  - Actor loss")
+print("  - Critic loss")
+print("  - Total PPO loss")
+print("  - Entropy")
+print("  - Scheduling efficiency")
+print("  - Resource efficiency")
+print("  - Final average reward")
+print("  - Reward stability")
+print("  - Final scheduling efficiency")
+print("  - Final resource efficiency")
+
+print("\n" + "=" * 100)
