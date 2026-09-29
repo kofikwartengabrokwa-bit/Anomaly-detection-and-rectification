@@ -1,0 +1,8069 @@
+import os
+import glob
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+# ============================================================
+# Configuration
+# ============================================================
+
+DATA_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+
+# ------------------------------------------------------------
+# Dataset containing TP and FN
+# Used for Recall
+# ------------------------------------------------------------
+
+RECALL_FILE = os.path.join(
+    DATA_DIR,
+    "model_training_metrics_with_TP_FP21ab1xa64 (3).xlsx"
+)
+
+# ------------------------------------------------------------
+# Dataset containing TP and FP
+# Used for Precision  model_training_metrics_with_TP_FP11,model_training_metrics_with_TP_FP20
+# ------------------------------------------------------------
+
+PRECISION_FILE = os.path.join(
+    DATA_DIR,
+    "model_training_metrics_with_TP_FP20.xlsx"
+)
+
+
+#PRECISION_FILE = os.path.join(
+#    DATA_DIR,
+#    "model_training_metrics_with_TP_FP21ab1xa5 (1).xlsx"
+#)
+
+#PRECISION_FILE = os.path.join(
+#    DATA_DIR,
+#    "model_training_metrics_with_TP_FP7.xlsx"
+#)
+# ============================================================
+# Models
+# ============================================================
+
+MODELS = [
+    "Pro_PPO",
+    "GAN_PPO",
+    "KG",
+    "KMeans",
+    "PPO"
+]
+
+
+# ============================================================
+# Names displayed in legends
+# ============================================================
+
+LEGEND_NAMES = {
+    "Pro_PPO": "Ours",
+    "GAN_PPO": "GAN_PPO",
+    "KG": "KG",
+    "KMeans": "KDT",
+    "PPO": "PPO"
+}
+
+
+# ============================================================
+# Distinct visual styles
+# ============================================================
+
+MODEL_STYLE = {
+
+    "Pro_PPO": {
+        "color": "#1f77b4",
+        "marker": "D",
+        "inner_color": "#1f77b4",
+        "linestyle": "-"
+    },
+
+    "GAN_PPO": {
+        "color": "#d62728",
+        "marker": "s",
+        "inner_color": "#d62728",
+        "linestyle": "--"
+    },
+
+    "KG": {
+        "color": "#2ca02c",
+        "marker": "^",
+        "inner_color": "#2ca02c",
+        "linestyle": "-."
+    },
+
+    "KMeans": {
+        "color": "#9467bd",
+        "marker": "p",
+        "inner_color": "#9467bd",
+        "linestyle": ":"
+    },
+
+    "PPO": {
+        "color": "#ff7f0e",
+        "marker": "o",
+        "inner_color": "#ff7f0e",
+        "linestyle": (0, (5, 2, 1, 2))
+    }
+}
+
+
+# ============================================================
+# Output directory
+# ============================================================
+
+OUTPUT_DIR = os.path.join(
+    DATA_DIR,
+    "plots"
+)
+
+os.makedirs(
+    OUTPUT_DIR,
+    exist_ok=True
+)
+
+
+# ============================================================
+# Check input files
+# ============================================================
+
+if not os.path.exists(RECALL_FILE):
+
+    raise FileNotFoundError(
+        "\nRecall dataset was not found:\n"
+        f"{RECALL_FILE}"
+    )
+
+
+if not os.path.exists(PRECISION_FILE):
+
+    raise FileNotFoundError(
+        "\nPrecision dataset was not found:\n"
+        f"{PRECISION_FILE}"
+    )
+
+
+# ============================================================
+# Read Recall dataset
+# ============================================================
+
+print("=" * 80)
+print("READING RECALL DATASET")
+print("=" * 80)
+
+recall_data = pd.read_excel(
+    RECALL_FILE
+)
+
+print(
+    f"File: {os.path.basename(RECALL_FILE)}"
+)
+
+print(
+    f"Rows: {len(recall_data)}"
+)
+
+print(
+    f"Columns: {recall_data.columns.tolist()}"
+)
+
+
+# ============================================================
+# Verify Recall columns
+# ============================================================
+
+required_recall_columns = [
+    "TP",
+    "FN",
+    "epoch",
+    "model"
+]
+
+missing_recall = [
+    column
+    for column in required_recall_columns
+    if column not in recall_data.columns
+]
+
+if missing_recall:
+
+    raise ValueError(
+        "The recall dataset is missing:\n"
+        f"{missing_recall}"
+    )
+
+
+# ============================================================
+# Read Precision dataset
+# ============================================================
+
+print("\n" + "=" * 80)
+print("READING PRECISION DATASET")
+print("=" * 80)
+
+precision_data = pd.read_excel(
+    PRECISION_FILE
+)
+
+print(
+    f"File: {os.path.basename(PRECISION_FILE)}"
+)
+
+print(
+    f"Rows: {len(precision_data)}"
+)
+
+print(
+    f"Columns: {precision_data.columns.tolist()}"
+)
+
+
+# ============================================================
+# Verify Precision columns
+# ============================================================
+
+required_precision_columns = [
+    "TP",
+    "FP",
+    "epoch",
+    "model"
+]
+
+missing_precision = [
+    column
+    for column in required_precision_columns
+    if column not in precision_data.columns
+]
+
+if missing_precision:
+
+    raise ValueError(
+        "The precision dataset is missing:\n"
+        f"{missing_precision}"
+    )
+
+
+# ============================================================
+# Clean model names
+# ============================================================
+
+for df in [
+    recall_data,
+    precision_data
+]:
+
+    df["model"] = (
+        df["model"]
+        .astype(str)
+        .str.strip()
+        .str.replace("\\", "", regex=False)
+    )
+
+
+# ============================================================
+# Keep only the five requested models
+# ============================================================
+
+recall_data = recall_data[
+    recall_data["model"].isin(MODELS)
+].copy()
+
+
+precision_data = precision_data[
+    precision_data["model"].isin(MODELS)
+].copy()
+
+
+# ============================================================
+# Convert numerical columns
+# ============================================================
+
+for column in [
+    "TP",
+    "FN",
+    "epoch"
+]:
+
+    recall_data[column] = pd.to_numeric(
+        recall_data[column],
+        errors="coerce"
+    )
+
+
+for column in [
+    "TP",
+    "FP",
+    "epoch"
+]:
+
+    precision_data[column] = pd.to_numeric(
+        precision_data[column],
+        errors="coerce"
+    )
+
+
+# ============================================================
+# Remove invalid rows
+# ============================================================
+
+recall_data = recall_data.dropna(
+    subset=[
+        "TP",
+        "FN",
+        "epoch",
+        "model"
+    ]
+)
+
+
+precision_data = precision_data.dropna(
+    subset=[
+        "TP",
+        "FP",
+        "epoch",
+        "model"
+    ]
+)
+
+
+# ============================================================
+# Prepare Recall data
+# ============================================================
+
+recall_data = recall_data[
+    [
+        "model",
+        "epoch",
+        "TP",
+        "FN"
+    ]
+].copy()
+
+
+# ============================================================
+# Compute Recall
+# ============================================================
+
+recall_denominator = (
+    recall_data["TP"] +
+    recall_data["FN"]
+)
+
+recall_data["Recall"] = np.where(
+    recall_denominator > 0,
+    recall_data["TP"] / recall_denominator,
+    np.nan
+)
+
+
+# ============================================================
+# Prepare Precision data
+# ============================================================
+
+precision_data = precision_data[
+    [
+        "model",
+        "epoch",
+        "TP",
+        "FP"
+    ]
+].copy()
+
+
+# ============================================================
+# Compute Precision
+# ============================================================
+
+precision_denominator = (
+    precision_data["TP"] +
+    precision_data["FP"]
+)
+
+precision_data["Precision"] = np.where(
+    precision_denominator > 0,
+    precision_data["TP"] / precision_denominator,
+    np.nan
+)
+
+
+# ============================================================
+# Merge Recall and Precision
+# ============================================================
+
+data = pd.merge(
+    recall_data[
+        [
+            "model",
+            "epoch",
+            "Recall"
+        ]
+    ],
+    precision_data[
+        [
+            "model",
+            "epoch",
+            "Precision"
+        ]
+    ],
+    on=[
+        "model",
+        "epoch"
+    ],
+    how="inner"
+)
+
+
+# ============================================================
+# Sort
+# ============================================================
+
+data = data.sort_values(
+    [
+        "model",
+        "epoch"
+    ]
+)
+
+
+# ============================================================
+# Remove invalid metric values
+# ============================================================
+
+data = data.replace(
+    [
+        np.inf,
+        -np.inf
+    ],
+    np.nan
+)
+
+data = data.dropna(
+    subset=[
+        "Recall",
+        "Precision"
+    ]
+)
+
+
+# ============================================================
+# Print data summary
+# ============================================================
+
+print("\n" + "=" * 80)
+print("RECALL AND PRECISION SUMMARY")
+print("=" * 80)
+
+print(
+    f"Matched model/epoch records: {len(data)}"
+)
+
+print(
+    f"Models: {data['model'].unique().tolist()}"
+)
+
+
+for model in MODELS:
+
+    model_data = data[
+        data["model"] == model
+    ]
+
+    if model_data.empty:
+
+        print(
+            f"\n{LEGEND_NAMES[model]}: NO MATCHED DATA"
+        )
+
+    else:
+
+        print(
+            f"\n{LEGEND_NAMES[model]}"
+        )
+
+        print(
+            f"  Records : {len(model_data)}"
+        )
+
+        print(
+            f"  Epochs  : "
+            f"{int(model_data['epoch'].min())}"
+            f" - "
+            f"{int(model_data['epoch'].max())}"
+        )
+
+        print(
+            f"  Recall  : "
+            f"{model_data['Recall'].mean():.6f}"
+        )
+
+        print(
+            f"  Precision: "
+            f"{model_data['Precision'].mean():.6f}"
+        )
+
+
+# ============================================================
+# Plotting function
+# ============================================================
+
+def plot_model_with_marker(
+    ax,
+    x,
+    y,
+    model,
+    linewidth=2.5,
+    markersize=9,
+    markevery=20,
+    label=None
+):
+
+    style = MODEL_STYLE[model]
+
+    # --------------------------------------------------------
+    # Main curve
+    # --------------------------------------------------------
+
+    ax.plot(
+        x,
+        y,
+        linewidth=linewidth,
+        linestyle=style["linestyle"],
+        color=style["color"],
+        marker=style["marker"],
+        markersize=markersize,
+        markerfacecolor="white",
+        markeredgecolor=style["color"],
+        markeredgewidth=2.0,
+        markevery=markevery,
+        label=label,
+        zorder=3
+    )
+
+    # --------------------------------------------------------
+    # Inner circular marker
+    # --------------------------------------------------------
+
+    ax.plot(
+        x,
+        y,
+        linestyle="None",
+        marker="o",
+        markersize=markersize * 0.38,
+        markerfacecolor=style["inner_color"],
+        markeredgecolor="white",
+        markeredgewidth=0.7,
+        markevery=markevery,
+        label="_nolegend_",
+        zorder=4
+    )
+
+
+# ============================================================
+# Plot Recall and Precision separately
+# ============================================================
+
+METRICS = [
+    "Recall",
+    "Precision"
+]
+
+
+for metric in METRICS:
+
+    fig, ax = plt.subplots(
+        figsize=(10, 7)
+    )
+
+    # --------------------------------------------------------
+    # Plot all five models
+    # --------------------------------------------------------
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values(
+            "epoch"
+        )
+
+        if model_data.empty:
+            continue
+
+        markevery = max(
+            1,
+            len(model_data) // 20
+        )
+
+        plot_model_with_marker(
+            ax=ax,
+            x=model_data["epoch"],
+            y=model_data[metric],
+            model=model,
+            linewidth=2.5,
+            markersize=9,
+            markevery=markevery,
+            label=LEGEND_NAMES[model]
+        )
+
+    # --------------------------------------------------------
+    # Axis labels
+    # --------------------------------------------------------
+
+    ax.set_xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    # --------------------------------------------------------
+    # Precision and Recall range
+    # --------------------------------------------------------
+
+    ax.set_ylim(
+        0,
+        1.05
+    )
+
+    # --------------------------------------------------------
+    # Tick formatting
+    # --------------------------------------------------------
+
+    ax.tick_params(
+        axis="both",
+        labelsize=20
+    )
+
+    for label in ax.get_xticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    for label in ax.get_yticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    # --------------------------------------------------------
+    # Grid
+    # --------------------------------------------------------
+
+    ax.grid(
+        True,
+        linestyle="--",
+        linewidth=0.7,
+        alpha=0.5
+    )
+
+    # --------------------------------------------------------
+    # Legend
+    # --------------------------------------------------------
+
+    ax.legend(
+        fontsize=21,
+        loc="upper center",
+        bbox_to_anchor=(
+            0.5,
+            1.15091015
+        ),
+        ncol=5,
+        frameon=True,
+        prop={
+            "family": "Times New Roman",
+            "size": 20
+        }
+    )
+
+    # --------------------------------------------------------
+    # Layout
+    # --------------------------------------------------------
+
+    plt.tight_layout()
+
+    # --------------------------------------------------------
+    # Save PNG
+    # --------------------------------------------------------
+
+    png_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.png"
+    )
+
+    plt.savefig(
+        png_path,
+        dpi=600,
+        bbox_inches="tight",
+        format="png"
+    )
+
+    # --------------------------------------------------------
+    # Save EPS
+    # --------------------------------------------------------
+
+    eps_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.eps"
+    )
+
+    plt.savefig(
+        eps_path,
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    # --------------------------------------------------------
+    # Display
+    # --------------------------------------------------------
+
+    plt.show()
+
+    plt.close(fig)
+
+    print(
+        f"\nSaved:"
+        f"\n  {png_path}"
+        f"\n  {eps_path}"
+    )
+
+
+# ============================================================
+# Combined Recall + Precision figure
+# ============================================================
+
+fig, axes = plt.subplots(
+    2,
+    1,
+    figsize=(12, 14)
+)
+
+
+# ============================================================
+# Plot both metrics
+# ============================================================
+
+for i, metric in enumerate(METRICS):
+
+    ax = axes[i]
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values(
+            "epoch"
+        )
+
+        if model_data.empty:
+            continue
+
+        markevery = max(
+            1,
+            len(model_data) // 20
+        )
+
+        plot_model_with_marker(
+            ax=ax,
+            x=model_data["epoch"],
+            y=model_data[metric],
+            model=model,
+            linewidth=2.2,
+            markersize=8,
+            markevery=markevery,
+            label=LEGEND_NAMES[model]
+        )
+
+    # --------------------------------------------------------
+    # Labels
+    # --------------------------------------------------------
+
+    ax.set_xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    # --------------------------------------------------------
+    # Fixed metric range
+    # --------------------------------------------------------
+
+    ax.set_ylim(
+        0,
+        1.05
+    )
+
+    # --------------------------------------------------------
+    # Ticks
+    # --------------------------------------------------------
+
+    ax.tick_params(
+        axis="both",
+        labelsize=20
+    )
+
+    for label in ax.get_xticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    for label in ax.get_yticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    # --------------------------------------------------------
+    # Grid
+    # --------------------------------------------------------
+
+    ax.grid(
+        True,
+        linestyle="--",
+        linewidth=0.6,
+        alpha=0.5
+    )
+
+
+# ============================================================
+# Common legend
+# ============================================================
+
+handles, labels = (
+    axes[0].get_legend_handles_labels()
+)
+
+
+fig.legend(
+    handles,
+    labels,
+    loc="upper center",
+    ncol=5,
+    fontsize=16,
+    frameon=True,
+    prop={
+        "family": "Times New Roman",
+        "size": 16
+    },
+    bbox_to_anchor=(
+        0.5,
+        0.965
+    )
+)
+
+
+# ============================================================
+# Layout
+# ============================================================
+
+plt.tight_layout(
+    rect=[
+        0,
+        0,
+        1,
+        0.93
+    ]
+)
+
+
+# ============================================================
+# Save combined PNG
+# ============================================================
+
+combined_png = os.path.join(
+    OUTPUT_DIR,
+    "recall_precision_comparison.png"
+)
+
+plt.savefig(
+    combined_png,
+    dpi=600,
+    bbox_inches="tight",
+    format="png"
+)
+
+
+# ============================================================
+# Save combined EPS
+# ============================================================
+
+combined_eps = os.path.join(
+    OUTPUT_DIR,
+    "recall_precision_comparison.eps"
+)
+
+plt.savefig(
+    combined_eps,
+    dpi=600,
+    bbox_inches="tight",
+    format="eps"
+)
+
+
+# ============================================================
+# Display
+# ============================================================
+
+plt.show()
+
+plt.close(fig)
+
+
+# ============================================================
+# Final summary
+# ============================================================
+
+print("\n" + "=" * 80)
+print("COMPLETE")
+print("=" * 80)
+
+print(
+    f"Output directory:\n{OUTPUT_DIR}"
+)
+
+print("\nGenerated files:")
+
+print(
+    "  Recall_comparison.png"
+)
+
+print(
+    "  Recall_comparison.eps"
+)
+
+print(
+    "  Precision_comparison.png"
+)
+
+print(
+    "  Precision_comparison.eps"
+)
+
+print(
+    "  recall_precision_comparison.png"
+)
+
+print(
+    "  recall_precision_comparison.eps"
+)
+
+print("=" * 80)
+
+
+
+import os
+import glob
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+# ============================================================
+# Configuration
+# ============================================================
+
+DATA_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+
+MODELS = [
+    "Pro_PPO",
+    "GAN_PPO",
+    "KG",
+    "KMeans",
+    "PPO"
+]
+
+# Names displayed in plot legends
+LEGEND_NAMES = {
+    "Pro_PPO": "Ours",
+    "GAN_PPO": "GAN_PPO",
+    "KG": "KG",
+    "KMeans": "KDT",
+    "PPO": "PPO"
+}
+
+METRICS = [
+    "Loss",
+    "Accuracy",
+    "F1",
+    "TP",
+    "FN"
+]
+
+
+# ============================================================
+# Distinct visual style for each model
+# ============================================================
+#
+# Ours     : Diamond + blue inner circle + solid line
+# GAN_PPO  : Square + red inner circle + dashed line
+# KG       : Triangle + green inner circle + dash-dot line
+# KDT      : Pentagon + purple inner circle + dotted line
+# PPO      : Circle + orange inner circle + custom dashed line
+# ============================================================
+
+MODEL_STYLE = {
+
+    "Pro_PPO": {
+        "color": "#1f77b4",
+        "marker": "D",
+        "inner_color": "#1f77b4",
+        "linestyle": "-"
+    },
+
+    "GAN_PPO": {
+        "color": "#d62728",
+        "marker": "s",
+        "inner_color": "#d62728",
+        "linestyle": "--"
+    },
+
+    "KG": {
+        "color": "#2ca02c",
+        "marker": "^",
+        "inner_color": "#2ca02c",
+        "linestyle": "-."
+    },
+
+    "KMeans": {
+        "color": "#9467bd",
+        "marker": "p",
+        "inner_color": "#9467bd",
+        "linestyle": ":"
+    },
+
+    "PPO": {
+        "color": "#ff7f0e",
+        "marker": "o",
+        "inner_color": "#ff7f0e",
+        "linestyle": (0, (5, 2, 1, 2))
+    }
+}
+
+
+# ============================================================
+# Output directory
+# ============================================================
+
+OUTPUT_DIR = os.path.join(
+    DATA_DIR,
+    "plots"
+)
+
+os.makedirs(
+    OUTPUT_DIR,
+    exist_ok=True
+)
+
+
+# ============================================================
+# Marker + linestyle plotting function
+# ============================================================
+
+def plot_model_with_marker(
+    ax,
+    x,
+    y,
+    model,
+    linewidth=2.5,
+    markersize=9,
+    markevery=20,
+    label=None
+):
+    """
+    Plot one model using:
+        - unique line color
+        - unique linestyle
+        - unique outer marker
+        - small inner circular marker
+    """
+
+    style = MODEL_STYLE[model]
+
+    # --------------------------------------------------------
+    # Main line + outer marker
+    # --------------------------------------------------------
+
+    ax.plot(
+        x,
+        y,
+        linewidth=linewidth,
+        linestyle=style["linestyle"],
+        color=style["color"],
+        marker=style["marker"],
+        markersize=markersize,
+        markerfacecolor="white",
+        markeredgecolor=style["color"],
+        markeredgewidth=2.0,
+        markevery=markevery,
+        label=label,
+        zorder=3
+    )
+
+    # --------------------------------------------------------
+    # Inner circular marker
+    # --------------------------------------------------------
+
+    ax.plot(
+        x,
+        y,
+        linestyle="None",
+        marker="o",
+        markersize=markersize * 0.38,
+        markerfacecolor=style["inner_color"],
+        markeredgecolor="white",
+        markeredgewidth=0.7,
+        markevery=markevery,
+        label="_nolegend_",
+        zorder=4
+    )
+
+
+# ============================================================
+# Find Excel files
+# ============================================================
+
+excel_files = glob.glob(
+    os.path.join(
+        DATA_DIR,
+        "model_training_metrics_with_TP_FP21ab1xa64 (3).xlsx"
+    )
+)
+
+if not excel_files:
+    raise FileNotFoundError(
+        f"No Excel files were found in:\n{DATA_DIR}"
+    )
+
+
+print("=" * 80)
+print("Excel files found:")
+print("=" * 80)
+
+for file in excel_files:
+    print(os.path.basename(file))
+
+print("=" * 80)
+
+
+# ============================================================
+# Read and combine Excel files
+# ============================================================
+
+dataframes = []
+
+for file in excel_files:
+
+    try:
+
+        df = pd.read_excel(file)
+
+        required_columns = [
+            "Loss",
+            "Accuracy",
+            "F1",
+            "TP",
+            "FN",
+            "epoch",
+            "model"
+        ]
+
+        missing = [
+            col
+            for col in required_columns
+            if col not in df.columns
+        ]
+
+        if missing:
+
+            print(
+                f"Skipping {os.path.basename(file)} "
+                f"(missing columns: {missing})"
+            )
+
+            continue
+
+        dataframes.append(df)
+
+        print(
+            f"Loaded: {os.path.basename(file)} "
+            f"-> {len(df)} rows"
+        )
+
+    except Exception as e:
+
+        print(
+            f"Could not read {os.path.basename(file)}: {e}"
+        )
+
+
+if not dataframes:
+
+    raise ValueError(
+        "No valid Excel files containing the required "
+        "columns were found."
+    )
+
+
+data = pd.concat(
+    dataframes,
+    ignore_index=True
+)
+
+
+# ============================================================
+# Clean model names
+# ============================================================
+
+data["model"] = (
+    data["model"]
+    .astype(str)
+    .str.strip()
+    .str.replace("\\", "", regex=False)
+)
+
+
+# ============================================================
+# Keep only requested models
+# ============================================================
+
+data = data[
+    data["model"].isin(MODELS)
+].copy()
+
+
+# ============================================================
+# Convert numerical columns
+# ============================================================
+
+for column in METRICS + ["epoch"]:
+
+    data[column] = pd.to_numeric(
+        data[column],
+        errors="coerce"
+    )
+
+
+# ============================================================
+# Remove invalid rows
+# ============================================================
+
+data = data.dropna(
+    subset=METRICS + [
+        "epoch",
+        "model"
+    ]
+)
+
+
+# ============================================================
+# Sort
+# ============================================================
+
+data = data.sort_values(
+    [
+        "model",
+        "epoch"
+    ]
+)
+
+
+# ============================================================
+# Print summary
+# ============================================================
+
+print("\n" + "=" * 80)
+print("DATA SUMMARY")
+print("=" * 80)
+
+print(
+    f"Total rows: {len(data)}"
+)
+
+print(
+    f"Models found: "
+    f"{data['model'].unique().tolist()}"
+)
+
+
+for model in MODELS:
+
+    model_data = data[
+        data["model"] == model
+    ]
+
+    if len(model_data) == 0:
+
+        print(
+            f"\n{model}: NO DATA"
+        )
+
+    else:
+
+        print(
+            f"\n{model}: "
+            f"{len(model_data)} rows | "
+            f"Epochs "
+            f"{int(model_data['epoch'].min())}"
+            f"-"
+            f"{int(model_data['epoch'].max())}"
+        )
+
+
+# ============================================================
+# Plot each metric
+# ============================================================
+
+for metric in METRICS:
+
+    fig, ax = plt.subplots(
+        figsize=(10, 7)
+    )
+
+    # --------------------------------------------------------
+    # Plot all models
+    # --------------------------------------------------------
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values("epoch")
+
+        if model_data.empty:
+            continue
+
+        plot_model_with_marker(
+            ax=ax,
+            x=model_data["epoch"],
+            y=model_data[metric],
+            model=model,
+            linewidth=2.5,
+            markersize=9,
+            markevery=max(
+                1,
+                len(model_data) // 20
+            ),
+            label=LEGEND_NAMES[model]
+        )
+
+    # --------------------------------------------------------
+    # Axis labels
+    # --------------------------------------------------------
+
+    ax.set_xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    # --------------------------------------------------------
+    # Ticks
+    # --------------------------------------------------------
+
+    ax.tick_params(
+        axis="both",
+        labelsize=20
+    )
+
+    for label in ax.get_xticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    for label in ax.get_yticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    # --------------------------------------------------------
+    # Legend
+    # --------------------------------------------------------
+
+    ax.legend(
+        fontsize=21,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.15091015),
+        ncol=5,
+        frameon=True,
+        prop={
+            "family": "Times New Roman",
+            "size": 20
+        }
+    )
+
+    # --------------------------------------------------------
+    # Grid
+    # --------------------------------------------------------
+
+    ax.grid(
+        True,
+        linestyle="--",
+        linewidth=0.7,
+        alpha=0.5
+    )
+
+    # --------------------------------------------------------
+    # Layout
+    # --------------------------------------------------------
+
+    plt.tight_layout()
+
+    # --------------------------------------------------------
+    # Save PNG
+    # --------------------------------------------------------
+
+    png_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.png"
+    )
+
+    plt.savefig(
+        png_path,
+        dpi=600,
+        bbox_inches="tight",
+        format="png"
+    )
+
+    # --------------------------------------------------------
+    # Save EPS
+    # --------------------------------------------------------
+
+    eps_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.eps"
+    )
+
+    plt.savefig(
+        eps_path,
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    # --------------------------------------------------------
+    # Display
+    # --------------------------------------------------------
+
+    plt.show()
+
+    plt.close(fig)
+
+    print(
+        f"Saved: {metric}_comparison.png / "
+        f"{metric}_comparison.eps"
+    )
+
+
+# ============================================================
+# Combined figure containing all metrics
+# ============================================================
+
+fig, axes = plt.subplots(
+    3,
+    2,
+    figsize=(16, 18)
+)
+
+axes = axes.flatten()
+
+
+# ============================================================
+# Plot each metric in combined figure
+# ============================================================
+
+for i, metric in enumerate(METRICS):
+
+    ax = axes[i]
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values("epoch")
+
+        if model_data.empty:
+            continue
+
+        plot_model_with_marker(
+            ax=ax,
+            x=model_data["epoch"],
+            y=model_data[metric],
+            model=model,
+            linewidth=2.2,
+            markersize=8,
+            markevery=max(
+                1,
+                len(model_data) // 20
+            ),
+            label=LEGEND_NAMES[model]
+        )
+
+    # --------------------------------------------------------
+    # Axis labels
+    # --------------------------------------------------------
+
+    ax.set_xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    # --------------------------------------------------------
+    # Ticks
+    # --------------------------------------------------------
+
+    ax.tick_params(
+        axis="both",
+        labelsize=20
+    )
+
+    for label in ax.get_xticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    for label in ax.get_yticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    # --------------------------------------------------------
+    # Grid
+    # --------------------------------------------------------
+
+    ax.grid(
+        True,
+        linestyle="--",
+        linewidth=0.6,
+        alpha=0.5
+    )
+
+
+# ============================================================
+# Remove unused sixth subplot
+# ============================================================
+
+if len(METRICS) < len(axes):
+
+    for j in range(
+        len(METRICS),
+        len(axes)
+    ):
+
+        fig.delaxes(
+            axes[j]
+        )
+
+
+# ============================================================
+# Common legend at top
+# ============================================================
+
+handles, labels = (
+    axes[0].get_legend_handles_labels()
+)
+
+
+fig.legend(
+    handles,
+    labels,
+    loc="upper center",
+    ncol=5,
+    fontsize=16,
+    frameon=True,
+    prop={
+        "family": "Times New Roman",
+        "size": 16
+    },
+    bbox_to_anchor=(0.5, 1.11995)
+)
+
+
+# ============================================================
+# Layout
+# ============================================================
+
+plt.tight_layout(
+    rect=[
+        0,
+        0,
+        1,
+        0.96
+    ]
+)
+
+
+# ============================================================
+# Save combined PNG
+# ============================================================
+
+combined_png = os.path.join(
+    OUTPUT_DIR,
+    "all_metrics_comparison.png"
+)
+
+plt.savefig(
+    combined_png,
+    dpi=600,
+    bbox_inches="tight",
+    format="png"
+)
+
+
+# ============================================================
+# Save combined EPS
+# ============================================================
+
+combined_eps = os.path.join(
+    OUTPUT_DIR,
+    "all_metrics_comparison.eps"
+)
+
+plt.savefig(
+    combined_eps,
+    dpi=600,
+    bbox_inches="tight",
+    format="eps"
+)
+
+
+# ============================================================
+# Display combined figure
+# ============================================================
+
+plt.show()
+
+plt.close(fig)
+
+
+# ============================================================
+# Final summary
+# ============================================================
+
+print("\n" + "=" * 80)
+print("COMPLETE")
+print("=" * 80)
+
+print(
+    f"Plots saved to:\n{OUTPUT_DIR}"
+)
+
+print("\nGenerated individual graphs:")
+
+for metric in METRICS:
+
+    print(
+        f"  {metric}_comparison.png"
+    )
+
+    print(
+        f"  {metric}_comparison.eps"
+    )
+
+print("\nGenerated combined graphs:")
+
+print(
+    "  all_metrics_comparison.png"
+)
+
+print(
+    "  all_metrics_comparison.eps"
+)
+
+print("=" * 80)
+
+
+
+import os
+import glob
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+# ============================================================
+# Configuration
+# ============================================================
+
+DATA_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+
+MODELS = [
+    "Pro_PPO",
+    "GAN_PPO",
+    "KG",
+    "KMeans",
+    "PPO"
+]
+
+# Names displayed in plot legends
+LEGEND_NAMES = {
+    "Pro_PPO": "Ours",
+    "GAN_PPO": "GAN_PPO",
+    "KG": "KG",
+    "KMeans": "KDT",
+    "PPO": "PPO"
+}
+
+METRICS = [
+    "Loss",
+    "Accuracy",
+    "F1",
+    "TP",
+    "FN"
+]
+
+# ============================================================
+# Distinct visual style for each model
+# ============================================================
+#
+# Each model has:
+#   1. A unique outer marker shape
+#   2. A distinct edge color
+#   3. A small inner circular marker
+#
+# Ours:
+#   Diamond + blue inner circle
+#
+# GAN_PPO:
+#   Square + red inner circle
+#
+# KG:
+#   Triangle + green inner circle
+#
+# KDT:
+#   Pentagon + purple inner circle
+#
+# PPO:
+#   Circle + orange inner circle
+# ============================================================
+
+MODEL_STYLE = {
+
+    "Pro_PPO": {
+        "color": "#1f77b4",
+        "marker": "D",
+        "inner_color": "#1f77b4",
+    },
+
+    "GAN_PPO": {
+        "color": "#d62728",
+        "marker": "s",
+        "inner_color": "#d62728",
+    },
+
+    "KG": {
+        "color": "#2ca02c",
+        "marker": "^",
+        "inner_color": "#2ca02c",
+    },
+
+    "KMeans": {
+        "color": "#9467bd",
+        "marker": "p",
+        "inner_color": "#9467bd",
+    },
+
+    "PPO": {
+        "color": "#ff7f0e",
+        "marker": "o",
+        "inner_color": "#ff7f0e",
+    }
+}
+
+
+# ============================================================
+# Output directory
+# ============================================================
+
+OUTPUT_DIR = os.path.join(
+    DATA_DIR,
+    "plots"
+)
+
+os.makedirs(
+    OUTPUT_DIR,
+    exist_ok=True
+)
+
+
+# ============================================================
+# Marker plotting function
+# ============================================================
+
+def plot_model_with_marker(
+    ax,
+    x,
+    y,
+    model,
+    linewidth=2.5,
+    markersize=9,
+    markevery=20,
+    label=None
+):
+    """
+    Plot one model using a distinct outer marker
+    and a small circular marker inside it.
+    """
+
+    style = MODEL_STYLE[model]
+
+    # --------------------------------------------------------
+    # Main line + outer marker
+    # --------------------------------------------------------
+
+    ax.plot(
+        x,
+        y,
+        linewidth=linewidth,
+        color=style["color"],
+        marker=style["marker"],
+        markersize=markersize,
+        markerfacecolor="white",
+        markeredgecolor=style["color"],
+        markeredgewidth=2.0,
+        markevery=markevery,
+        label=label,
+        zorder=3
+    )
+
+    # --------------------------------------------------------
+    # Inner circular marker
+    # --------------------------------------------------------
+
+    ax.plot(
+        x,
+        y,
+        linestyle="None",
+        marker="o",
+        markersize=markersize * 0.38,
+        markerfacecolor=style["inner_color"],
+        markeredgecolor="white",
+        markeredgewidth=0.7,
+        markevery=markevery,
+        label="_nolegend_",
+        zorder=4
+    )
+
+
+# ============================================================
+# Find Excel files
+# ============================================================
+
+excel_files = glob.glob(
+    os.path.join(
+        DATA_DIR,
+        "model_training_metrics_with_TP_FP21ab1xa64 (3).xlsx"
+    )
+)
+
+if not excel_files:
+    raise FileNotFoundError(
+        f"No Excel files were found in:\n{DATA_DIR}"
+    )
+
+
+print("=" * 80)
+print("Excel files found:")
+print("=" * 80)
+
+for file in excel_files:
+    print(os.path.basename(file))
+
+print("=" * 80)
+
+
+# ============================================================
+# Read and combine Excel files
+# ============================================================
+
+dataframes = []
+
+for file in excel_files:
+
+    try:
+
+        df = pd.read_excel(file)
+
+        required_columns = [
+            "Loss",
+            "Accuracy",
+            "F1",
+            "TP",
+            "FN",
+            "epoch",
+            "model"
+        ]
+
+        missing = [
+            col
+            for col in required_columns
+            if col not in df.columns
+        ]
+
+        if missing:
+
+            print(
+                f"Skipping {os.path.basename(file)} "
+                f"(missing columns: {missing})"
+            )
+
+            continue
+
+        dataframes.append(df)
+
+        print(
+            f"Loaded: {os.path.basename(file)} "
+            f"-> {len(df)} rows"
+        )
+
+    except Exception as e:
+
+        print(
+            f"Could not read {os.path.basename(file)}: {e}"
+        )
+
+
+if not dataframes:
+
+    raise ValueError(
+        "No valid Excel files containing the required "
+        "columns were found."
+    )
+
+
+data = pd.concat(
+    dataframes,
+    ignore_index=True
+)
+
+
+# ============================================================
+# Clean model names
+# ============================================================
+
+data["model"] = (
+    data["model"]
+    .astype(str)
+    .str.strip()
+    .str.replace("\\", "", regex=False)
+)
+
+
+# ============================================================
+# Keep only requested models
+# ============================================================
+
+data = data[
+    data["model"].isin(MODELS)
+].copy()
+
+
+# ============================================================
+# Convert numerical columns
+# ============================================================
+
+for column in METRICS + ["epoch"]:
+
+    data[column] = pd.to_numeric(
+        data[column],
+        errors="coerce"
+    )
+
+
+# ============================================================
+# Remove invalid rows
+# ============================================================
+
+data = data.dropna(
+    subset=METRICS + [
+        "epoch",
+        "model"
+    ]
+)
+
+
+# ============================================================
+# Sort
+# ============================================================
+
+data = data.sort_values(
+    [
+        "model",
+        "epoch"
+    ]
+)
+
+
+# ============================================================
+# Print summary
+# ============================================================
+
+print("\n" + "=" * 80)
+print("DATA SUMMARY")
+print("=" * 80)
+
+print(
+    f"Total rows: {len(data)}"
+)
+
+print(
+    f"Models found: "
+    f"{data['model'].unique().tolist()}"
+)
+
+
+for model in MODELS:
+
+    model_data = data[
+        data["model"] == model
+    ]
+
+    if len(model_data) == 0:
+
+        print(
+            f"\n{model}: NO DATA"
+        )
+
+    else:
+
+        print(
+            f"\n{model}: "
+            f"{len(model_data)} rows | "
+            f"Epochs "
+            f"{int(model_data['epoch'].min())}"
+            f"-"
+            f"{int(model_data['epoch'].max())}"
+        )
+
+
+# ============================================================
+# Plot each metric
+# ============================================================
+
+for metric in METRICS:
+
+    fig, ax = plt.subplots(
+        figsize=(10, 7)
+    )
+
+    # --------------------------------------------------------
+    # Plot all models
+    # --------------------------------------------------------
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values("epoch")
+
+        if model_data.empty:
+            continue
+
+        plot_model_with_marker(
+            ax=ax,
+            x=model_data["epoch"],
+            y=model_data[metric],
+            model=model,
+            linewidth=2.5,
+            markersize=9,
+            markevery=max(
+                1,
+                len(model_data) // 20
+            ),
+            label=LEGEND_NAMES[model]
+        )
+
+    # --------------------------------------------------------
+    # Axis labels
+    # --------------------------------------------------------
+
+    ax.set_xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    # --------------------------------------------------------
+    # Ticks
+    # --------------------------------------------------------
+
+    ax.tick_params(
+        axis="both",
+        labelsize=20
+    )
+
+    for label in ax.get_xticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    for label in ax.get_yticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    # --------------------------------------------------------
+    # Legend
+    # --------------------------------------------------------
+
+    ax.legend(
+        fontsize=21,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.15091015),
+        ncol=5,
+        frameon=True,
+        prop={
+            "family": "Times New Roman",
+            "size": 20
+        }
+    )
+
+    # --------------------------------------------------------
+    # Grid
+    # --------------------------------------------------------
+
+    ax.grid(
+        True,
+        linestyle="--",
+        linewidth=0.7,
+        alpha=0.5
+    )
+
+    # --------------------------------------------------------
+    # Layout
+    # --------------------------------------------------------
+
+    plt.tight_layout()
+
+    # --------------------------------------------------------
+    # Save PNG
+    # --------------------------------------------------------
+
+    png_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.png"
+    )
+
+    plt.savefig(
+        png_path,
+        dpi=600,
+        bbox_inches="tight",
+        format="png"
+    )
+
+    # --------------------------------------------------------
+    # Save EPS
+    # --------------------------------------------------------
+
+    eps_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.eps"
+    )
+
+    plt.savefig(
+        eps_path,
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    # --------------------------------------------------------
+    # Display
+    # --------------------------------------------------------
+
+    plt.show()
+
+    plt.close(fig)
+
+    print(
+        f"Saved: {metric}_comparison.png / "
+        f"{metric}_comparison.eps"
+    )
+
+
+# ============================================================
+# Combined figure containing all metrics
+# ============================================================
+
+fig, axes = plt.subplots(
+    3,
+    2,
+    figsize=(16, 18)
+)
+
+axes = axes.flatten()
+
+
+# ============================================================
+# Plot each metric in combined figure
+# ============================================================
+
+for i, metric in enumerate(METRICS):
+
+    ax = axes[i]
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values("epoch")
+
+        if model_data.empty:
+            continue
+
+        plot_model_with_marker(
+            ax=ax,
+            x=model_data["epoch"],
+            y=model_data[metric],
+            model=model,
+            linewidth=2.2,
+            markersize=8,
+            markevery=max(
+                1,
+                len(model_data) // 20
+            ),
+            label=LEGEND_NAMES[model]
+        )
+
+    # --------------------------------------------------------
+    # Axis labels
+    # --------------------------------------------------------
+
+    ax.set_xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    # --------------------------------------------------------
+    # Ticks
+    # --------------------------------------------------------
+
+    ax.tick_params(
+        axis="both",
+        labelsize=20
+    )
+
+    for label in ax.get_xticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    for label in ax.get_yticklabels():
+
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    # --------------------------------------------------------
+    # Grid
+    # --------------------------------------------------------
+
+    ax.grid(
+        True,
+        linestyle="--",
+        linewidth=0.6,
+        alpha=0.5
+    )
+
+
+# ============================================================
+# Remove unused sixth subplot
+# ============================================================
+
+if len(METRICS) < len(axes):
+
+    for j in range(
+        len(METRICS),
+        len(axes)
+    ):
+
+        fig.delaxes(
+            axes[j]
+        )
+
+
+# ============================================================
+# Common legend at top
+# ============================================================
+
+handles, labels = (
+    axes[0].get_legend_handles_labels()
+)
+
+
+fig.legend(
+    handles,
+    labels,
+    loc="upper center",
+    ncol=5,
+    fontsize=16,
+    frameon=True,
+    prop={
+        "family": "Times New Roman",
+        "size": 16
+    },
+    bbox_to_anchor=(0.5, 1.11995)
+)
+
+
+# ============================================================
+# Layout
+# ============================================================
+
+plt.tight_layout(
+    rect=[
+        0,
+        0,
+        1,
+        0.96
+    ]
+)
+
+
+# ============================================================
+# Save combined PNG
+# ============================================================
+
+combined_png = os.path.join(
+    OUTPUT_DIR,
+    "all_metrics_comparison.png"
+)
+
+plt.savefig(
+    combined_png,
+    dpi=600,
+    bbox_inches="tight",
+    format="png"
+)
+
+
+# ============================================================
+# Save combined EPS
+# ============================================================
+
+combined_eps = os.path.join(
+    OUTPUT_DIR,
+    "all_metrics_comparison.eps"
+)
+
+plt.savefig(
+    combined_eps,
+    dpi=600,
+    bbox_inches="tight",
+    format="eps"
+)
+
+
+# ============================================================
+# Display combined figure
+# ============================================================
+
+plt.show()
+
+plt.close(fig)
+
+
+# ============================================================
+# Final summary
+# ============================================================
+
+print("\n" + "=" * 80)
+print("COMPLETE")
+print("=" * 80)
+
+print(
+    f"Plots saved to:\n{OUTPUT_DIR}"
+)
+
+print("\nGenerated individual graphs:")
+
+for metric in METRICS:
+
+    print(
+        f"  {metric}_comparison.png"
+    )
+
+    print(
+        f"  {metric}_comparison.eps"
+    )
+
+print("\nGenerated combined graphs:")
+
+print(
+    "  all_metrics_comparison.png"
+)
+
+print(
+    "  all_metrics_comparison.eps"
+)
+
+print("=" * 80)
+
+
+
+
+
+
+
+
+import re
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import os
+import glob
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# ============================================================
+# Configuration
+# ============================================================
+
+DATA_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+
+MODELS = [
+    "Pro_PPO",
+    "GAN_PPO",
+    "KG",
+    "KMeans",
+    "PPO"
+]
+
+# Names displayed in plot legends
+LEGEND_NAMES = {
+    "Pro_PPO": "Ours",
+    "GAN_PPO": "GAN_PPO",
+    "KG": "KG",
+    "KMeans": "KDT",
+    "PPO": "PPO"
+}
+METRICS = [
+    "Loss",
+    "Accuracy",
+    "F1",
+    "TP",
+    "FN"
+]
+
+# Output directory
+OUTPUT_DIR = os.path.join(DATA_DIR, "plots")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# ============================================================
+# Find Excel files
+# ============================================================
+
+excel_files = glob.glob(os.path.join(DATA_DIR, "model_training_metrics_with_TP_FP21ab1xa64 (3).xlsx"))#model_training_metrics_with_TP_FP21ab1xa63 (2)
+
+if not excel_files:
+    raise FileNotFoundError(
+        f"No Excel files were found in:\n{DATA_DIR}"
+    )
+
+print("=" * 80)
+print("Excel files found:")
+for file in excel_files:
+    print(os.path.basename(file))
+print("=" * 80)
+
+# ============================================================
+# Read and combine Excel files
+# ============================================================
+
+dataframes = []
+
+for file in excel_files:
+    try:
+        df = pd.read_excel(file)
+
+        required_columns = [
+            "Loss",
+            "Accuracy",
+            "F1",
+            "TP",
+            "FN",
+            "epoch",
+            "model"
+        ]
+
+        missing = [
+            col for col in required_columns
+            if col not in df.columns
+        ]
+
+        if missing:
+            print(
+                f"Skipping {os.path.basename(file)} "
+                f"(missing columns: {missing})"
+            )
+            continue
+
+        dataframes.append(df)
+
+        print(
+            f"Loaded: {os.path.basename(file)} "
+            f"-> {len(df)} rows"
+        )
+
+    except Exception as e:
+        print(
+            f"Could not read {os.path.basename(file)}: {e}"
+        )
+
+if not dataframes:
+    raise ValueError(
+        "No valid Excel files containing the required columns were found."
+    )
+
+data = pd.concat(dataframes, ignore_index=True)
+
+# ============================================================
+# Clean model names
+# ============================================================
+
+data["model"] = (
+    data["model"]
+    .astype(str)
+    .str.strip()
+    .str.replace("\\", "", regex=False)
+)
+
+# Keep only requested models
+data = data[data["model"].isin(MODELS)].copy()
+
+# Convert numerical columns
+for column in METRICS + ["epoch"]:
+    data[column] = pd.to_numeric(
+        data[column],
+        errors="coerce"
+    )
+
+# Remove invalid rows
+data = data.dropna(
+    subset=METRICS + ["epoch", "model"]
+)
+
+# Sort
+data = data.sort_values(
+    ["model", "epoch"]
+)
+
+# ============================================================
+# Print summary
+# ============================================================
+
+print("\n" + "=" * 80)
+print("DATA SUMMARY")
+print("=" * 80)
+
+print(f"Total rows: {len(data)}")
+print(f"Models found: {data['model'].unique().tolist()}")
+
+for model in MODELS:
+    model_data = data[data["model"] == model]
+
+    if len(model_data) == 0:
+        print(f"\n{model}: NO DATA")
+    else:
+        print(
+            f"\n{model}: "
+            f"{len(model_data)} rows | "
+            f"Epochs {int(model_data['epoch'].min())}"
+            f"-{int(model_data['epoch'].max())}"
+        )
+
+# ============================================================
+# Plot each metric
+# ============================================================
+
+for metric in METRICS:
+
+    plt.figure(figsize=(10, 7))
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values("epoch")
+
+        if model_data.empty:
+            continue
+
+        plt.plot(
+            model_data["epoch"],
+            model_data[metric],
+            linewidth=2.5,
+            marker="o",
+            markersize=5,
+            markevery=max(1, len(model_data) // 20),
+            label=LEGEND_NAMES[model]
+        )
+
+    plt.xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    plt.ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    plt.xticks(
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    plt.yticks(
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    plt.legend(
+        fontsize=21,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.15091015),
+        ncol=5,
+        frameon=True,
+        prop={
+            "family": "Times New Roman",
+            "size": 20
+        }
+    )
+
+    plt.grid(
+        True,
+        linestyle="--",
+        linewidth=0.7,
+        alpha=0.5
+    )
+
+    plt.tight_layout()
+
+    # --------------------------------------------------------
+    # Save PNG and EPS
+    # --------------------------------------------------------
+
+    png_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.png"
+    )
+
+    eps_path = os.path.join(
+        OUTPUT_DIR,
+        f"{metric}_comparison.eps"
+    )
+
+    plt.savefig(
+        png_path,
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.savefig(
+        eps_path,
+        format="eps",
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.show()
+    plt.close()
+
+    print(
+        f"Saved: {metric}_comparison.png / "
+        f"{metric}_comparison.eps"
+    )
+
+# ============================================================
+# Combined figure containing all metrics
+# ============================================================
+
+fig, axes = plt.subplots(
+    3,
+    2,
+    figsize=(16, 18)
+)
+
+axes = axes.flatten()
+
+for i, metric in enumerate(METRICS):
+
+    ax = axes[i]
+
+    for model in MODELS:
+
+        model_data = data[
+            data["model"] == model
+        ].sort_values("epoch")
+
+        if model_data.empty:
+            continue
+
+        ax.plot(
+            model_data["epoch"],
+            model_data[metric],
+            linewidth=2.2,
+            marker="o",
+            markersize=4,
+            markevery=max(1, len(model_data) // 20),
+            label=LEGEND_NAMES[model]
+        )
+
+    ax.set_xlabel(
+        "Epoch",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        metric,
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.tick_params(
+        axis="both",
+        labelsize=20
+    )
+
+    ax.grid(
+        True,
+        linestyle="--",
+        linewidth=0.6,
+        alpha=0.5
+    )
+
+    for label in ax.get_xticklabels():
+        label.set_fontname("Times New Roman")
+
+    for label in ax.get_yticklabels():
+        label.set_fontname("Times New Roman")
+
+# Remove unused sixth subplot
+if len(METRICS) < len(axes):
+    for j in range(len(METRICS), len(axes)):
+        fig.delaxes(axes[j])
+
+# Common legend at top
+handles, labels = axes[0].get_legend_handles_labels()
+
+fig.legend(
+    handles,
+    labels,
+    loc="upper center",
+    ncol=5,
+    fontsize=16,
+    frameon=True,
+    prop={"family": "Times New Roman"},
+    bbox_to_anchor=(0.5, 1.11995)
+)
+
+plt.tight_layout(
+    rect=[0, 0, 1, 0.96]
+)
+
+combined_png = os.path.join(
+    OUTPUT_DIR,
+    "all_metrics_comparison.png"
+)
+
+combined_eps = os.path.join(
+    OUTPUT_DIR,
+    "all_metrics_comparison.eps"
+)
+
+plt.savefig(
+    combined_png,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    combined_eps,
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+plt.close()
+
+print("\n" + "=" * 80)
+print("COMPLETE")
+print("=" * 80)
+print(f"Plots saved to:\n{OUTPUT_DIR}")
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+TXT_FILE = Path(
+    r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+) / "Dataset for convergence test with baselines5.txt"
+
+OUTPUT_DIR = Path(__file__).resolve().parent / "plots"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+MODELS = ["SACFL", "SACDAFL"]
+
+METRICS = ["Q1", "Q2", "Actor"]
+
+
+# ============================================================
+# CHECK FILE
+# ============================================================
+
+if not TXT_FILE.exists():
+    raise FileNotFoundError(
+        f"\nDataset not found:\n{TXT_FILE}"
+    )
+
+print("\n" + "=" * 70)
+print("INPUT FILE")
+print("=" * 70)
+print(TXT_FILE)
+
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+text = TXT_FILE.read_text(
+    encoding="utf-8",
+    errors="ignore"
+)
+
+
+# ============================================================
+# STORAGE
+# ============================================================
+
+data = {
+    "SACFL": {
+        "Round": [],
+        "Q1": [],
+        "Q2": [],
+        "Actor": []
+    },
+
+    "SACDAFL": {
+        "Round": [],
+        "Q1": [],
+        "Q2": [],
+        "Actor": []
+    }
+}
+
+
+# ============================================================
+# REGULAR EXPRESSIONS
+# ============================================================
+
+model_pattern = re.compile(
+    r"Running\s+with\s+(SACFL|SACDAFL)\s+Aggregator",
+    re.IGNORECASE
+)
+
+round_pattern = re.compile(
+    r"Round\s+(\d+)\s*/\s*(\d+)",
+    re.IGNORECASE
+)
+
+q1_pattern = re.compile(
+    r"Q1\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)",
+    re.IGNORECASE
+)
+
+q2_pattern = re.compile(
+    r"Q2\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)",
+    re.IGNORECASE
+)
+
+actor_pattern = re.compile(
+    r"Actor\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)",
+    re.IGNORECASE
+)
+
+
+# ============================================================
+# PARSE FILE
+# ============================================================
+
+current_model = None
+current_round = None
+
+for line in text.splitlines():
+
+    stripped = line.strip()
+
+    # --------------------------------------------------------
+    # Detect model section
+    # --------------------------------------------------------
+
+    model_match = model_pattern.search(stripped)
+
+    if model_match:
+
+        current_model = model_match.group(1).upper()
+        current_round = None
+
+        print(
+            f"\nDetected model: {current_model}"
+        )
+
+        continue
+
+    # --------------------------------------------------------
+    # Ignore text before a model section
+    # --------------------------------------------------------
+
+    if current_model not in MODELS:
+        continue
+
+    # --------------------------------------------------------
+    # Detect round
+    # --------------------------------------------------------
+
+    round_match = round_pattern.search(stripped)
+
+    if round_match:
+
+        current_round = int(
+            round_match.group(1)
+        )
+
+        continue
+
+    # --------------------------------------------------------
+    # Detect Q1, Q2 and Actor
+    # --------------------------------------------------------
+
+    q1_match = q1_pattern.search(stripped)
+    q2_match = q2_pattern.search(stripped)
+    actor_match = actor_pattern.search(stripped)
+
+    if (
+        current_round is not None
+        and q1_match
+        and q2_match
+        and actor_match
+    ):
+
+        q1 = float(
+            q1_match.group(1)
+        )
+
+        q2 = float(
+            q2_match.group(1)
+        )
+
+        actor = float(
+            actor_match.group(1)
+        )
+
+        data[current_model]["Round"].append(
+            current_round
+        )
+
+        data[current_model]["Q1"].append(
+            q1
+        )
+
+        data[current_model]["Q2"].append(
+            q2
+        )
+
+        data[current_model]["Actor"].append(
+            actor
+        )
+
+        current_round = None
+
+
+# ============================================================
+# CREATE DATAFRAMES
+# ============================================================
+
+dfs = {}
+
+for model in MODELS:
+
+    dfs[model] = pd.DataFrame(
+        data[model]
+    )
+
+    if not dfs[model].empty:
+
+        dfs[model] = (
+            dfs[model]
+            .drop_duplicates(
+                subset="Round"
+            )
+            .sort_values(
+                "Round"
+            )
+            .reset_index(
+                drop=True
+            )
+        )
+
+
+# ============================================================
+# PARSING SUMMARY
+# ============================================================
+
+for model in MODELS:
+
+    print("\n" + "=" * 70)
+    print(
+        f"{model}: {len(dfs[model])} rounds detected"
+    )
+    print("=" * 70)
+
+    if dfs[model].empty:
+
+        print(
+            f"WARNING: No data found for {model}"
+        )
+
+    else:
+
+        print(
+            f"Rounds: "
+            f"{dfs[model]['Round'].iloc[0]} "
+            f"to "
+            f"{dfs[model]['Round'].iloc[-1]}"
+        )
+
+        print(
+            f"Q1: "
+            f"{dfs[model]['Q1'].iloc[0]:.4f} "
+            f"to "
+            f"{dfs[model]['Q1'].iloc[-1]:.4f}"
+        )
+
+        print(
+            f"Q2: "
+            f"{dfs[model]['Q2'].iloc[0]:.4f} "
+            f"to "
+            f"{dfs[model]['Q2'].iloc[-1]:.4f}"
+        )
+
+        print(
+            f"Actor: "
+            f"{dfs[model]['Actor'].iloc[0]:.4f} "
+            f"to "
+            f"{dfs[model]['Actor'].iloc[-1]:.4f}"
+        )
+
+
+# ============================================================
+# VALIDATE
+# ============================================================
+
+if dfs["SACFL"].empty:
+    raise ValueError(
+        "No SACFL training data was detected."
+    )
+
+if dfs["SACDAFL"].empty:
+    raise ValueError(
+        "No SACDAFL training data was detected."
+    )
+
+
+# ============================================================
+# FIND COMMON ROUNDS
+# ============================================================
+
+common_rounds = sorted(
+    set(dfs["SACFL"]["Round"])
+    &
+    set(dfs["SACDAFL"]["Round"])
+)
+
+if len(common_rounds) == 0:
+    raise ValueError(
+        "SACFL and SACDAFL have no common training rounds."
+    )
+
+
+print("\n" + "=" * 70)
+print("COMMON TRAINING ROUNDS")
+print("=" * 70)
+
+print(
+    f"Number of common rounds: {len(common_rounds)}"
+)
+
+print(
+    f"First common round: {common_rounds[0]}"
+)
+
+print(
+    f"Last common round : {common_rounds[-1]}"
+)
+
+
+# ============================================================
+# ALIGN DATA
+# ============================================================
+
+sacfl_common = (
+    dfs["SACFL"]
+    .set_index("Round")
+    .loc[common_rounds]
+)
+
+sacdafl_common = (
+    dfs["SACDAFL"]
+    .set_index("Round")
+    .loc[common_rounds]
+)
+
+
+# ============================================================
+# CALCULATE STANDARD DEVIATION
+# ============================================================
+
+statistics = []
+
+for metric in METRICS:
+
+    sacfl_values = (
+        sacfl_common[metric]
+        .to_numpy(dtype=float)
+    )
+
+    sacdafl_values = (
+        sacdafl_common[metric]
+        .to_numpy(dtype=float)
+    )
+
+    model_values = np.vstack(
+        (
+            sacfl_values,
+            sacdafl_values
+        )
+    )
+
+    mean_values = np.mean(
+        model_values,
+        axis=0
+    )
+
+    # Sample SD between SACFL and SACDAFL
+    std_values = np.std(
+        model_values,
+        axis=0,
+        ddof=1
+    )
+
+    mean_sd = np.mean(
+        std_values
+    )
+
+    maximum_sd = np.max(
+        std_values
+    )
+
+    final_sd = std_values[-1]
+
+    statistics.append(
+        {
+            "Metric": metric,
+            "Mean_SD": mean_sd,
+            "Maximum_SD": maximum_sd,
+            "Final_SD": final_sd
+        }
+    )
+
+
+# ============================================================
+# PRINT SD RESULTS
+# ============================================================
+
+stats_df = pd.DataFrame(
+    statistics
+)
+
+print("\n" + "=" * 70)
+print("STANDARD DEVIATION BETWEEN SACFL AND SACDAFL")
+print("=" * 70)
+
+for _, row in stats_df.iterrows():
+
+    print(
+        f"{row['Metric']:>8s} | "
+        f"Mean SD = {row['Mean_SD']:.6f} | "
+        f"Max SD = {row['Maximum_SD']:.6f} | "
+        f"Final SD = {row['Final_SD']:.6f}"
+    )
+
+
+# ============================================================
+# SAVE SD STATISTICS
+# ============================================================
+
+stats_file = (
+    OUTPUT_DIR /
+    "SACFL_vs_SACDAFL_statistics.csv"
+)
+
+stats_df.to_csv(
+    stats_file,
+    index=False
+)
+
+
+# ============================================================
+# SAVE COMPARISON DATA
+# ============================================================
+
+comparison_df = pd.DataFrame(
+    {
+        "Round": common_rounds,
+
+        "SACFL_Q1":
+            sacfl_common["Q1"].to_numpy(),
+
+        "SACDAFL_Q1":
+            sacdafl_common["Q1"].to_numpy(),
+
+        "SACFL_Q2":
+            sacfl_common["Q2"].to_numpy(),
+
+        "SACDAFL_Q2":
+            sacdafl_common["Q2"].to_numpy(),
+
+        "SACFL_Actor":
+            sacfl_common["Actor"].to_numpy(),
+
+        "SACDAFL_Actor":
+            sacdafl_common["Actor"].to_numpy()
+    }
+)
+
+comparison_file = (
+    OUTPUT_DIR /
+    "SACFL_vs_SACDAFL_comparison.csv"
+)
+
+comparison_df.to_csv(
+    comparison_file,
+    index=False
+)
+
+
+# ============================================================
+# PLOT FUNCTION
+# ============================================================
+
+def plot_metric(metric):
+
+    rounds = np.array(
+        common_rounds
+    )
+
+    sacfl_values = (
+        sacfl_common[metric]
+        .to_numpy(dtype=float)
+    )
+
+    sacdafl_values = (
+        sacdafl_common[metric]
+        .to_numpy(dtype=float)
+    )
+
+    # ========================================================
+    # MEAN AND STANDARD DEVIATION
+    # ========================================================
+
+    model_values = np.vstack(
+        (
+            sacfl_values,
+            sacdafl_values
+        )
+    )
+
+    mean_values = np.mean(
+        model_values,
+        axis=0
+    )
+
+    std_values = np.std(
+        model_values,
+        axis=0,
+        ddof=1
+    )
+
+    mean_sd = np.mean(
+        std_values
+    )
+
+    # ========================================================
+    # CREATE FIGURE
+    # ========================================================
+
+    fig, ax = plt.subplots(
+        figsize=(11, 7)
+    )
+
+    # ========================================================
+    # SACFL
+    # ========================================================
+
+    ax.plot(
+        rounds,
+        sacfl_values,
+        marker="o",
+        markersize=6,
+        linewidth=2.5,
+        label="Vanilla"
+    )
+
+    # ========================================================
+    # SACDAFL
+    # ========================================================
+
+    ax.plot(
+        rounds,
+        sacdafl_values,
+        marker="s",
+        markersize=6,
+        linewidth=2.5,
+        label="SAC-Fedprox"
+    )
+
+    # ========================================================
+    # PINK STANDARD-DEVIATION REGION
+    # ========================================================
+
+    ax.fill_between(
+        rounds,
+        mean_values - std_values,
+        mean_values + std_values,
+        color="pink",
+        alpha=0.35,
+        label=r"Mean $\pm$ SD"
+    )
+
+    # ========================================================
+    # MEAN SD ANNOTATION
+    # ========================================================
+
+    ax.text(
+        0.03,
+        0.95,
+        f"Mean SD = {mean_sd:.4f}",
+        transform=ax.transAxes,
+        fontsize=17,
+        fontname="Times New Roman",
+        verticalalignment="top",
+        horizontalalignment="left",
+        bbox=dict(
+            boxstyle="round,pad=0.25",
+            facecolor="white",
+            edgecolor="black",
+            linewidth=0.8
+        )
+    )
+
+    # ========================================================
+    # AXIS LABELS
+    # ========================================================
+
+    ax.set_xlabel(
+        "Round",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    ax.set_ylabel(
+        "Loss",
+        fontsize=20,
+        fontname="Times New Roman"
+    )
+
+    # ========================================================
+    # TICKS
+    # ========================================================
+
+    ax.tick_params(
+        axis="both",
+        labelsize=17,
+        width=1.5
+    )
+
+    for label in ax.get_xticklabels():
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    for label in ax.get_yticklabels():
+        label.set_fontname(
+            "Times New Roman"
+        )
+
+    # ========================================================
+    # LEGEND
+    # ========================================================
+
+    ax.legend(
+        fontsize=21,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.12),
+        ncol=3,
+        frameon=False
+    )
+
+    # ========================================================
+    # IEEE-STYLE AXES
+    # ========================================================
+
+    ax.spines["top"].set_visible(True)
+    ax.spines["right"].set_visible(True)
+
+    ax.spines["left"].set_linewidth(
+        1.5
+    )
+
+    ax.spines["bottom"].set_linewidth(
+        1.5
+    )
+
+    ax.grid(False)
+
+    ax.set_xlim(
+        left=0
+    )
+
+    plt.tight_layout()
+
+    # ========================================================
+    # OUTPUT FILENAMES
+    # ========================================================
+
+    # ========================================================
+    # OUTPUT FILENAMES
+    # ========================================================
+
+    png_file = (
+            OUTPUT_DIR /
+            f"SACFL_vs_SACDAFL_{metric.lower()}.png"
+    )
+
+    eps_file = (
+            OUTPUT_DIR /
+            f"SACFL_vs_SACDAFL_{metric.lower()}.eps"
+    )
+
+    # ========================================================
+    # SAVE PNG
+    # ========================================================
+
+    print(
+        f"\nSaving PNG: {png_file}"
+    )
+
+    # Use a temporary filename to avoid Windows file-lock/
+    # overwrite problems with the existing PNG.
+    png_temp = (
+            OUTPUT_DIR /
+            f"_temp_SACFL_vs_SACDAFL_{metric.lower()}.png"
+    )
+
+    # Remove temporary file if it already exists
+    if png_temp.exists():
+        try:
+            png_temp.unlink()
+        except PermissionError:
+            raise PermissionError(
+                f"\nCannot remove temporary file:\n{png_temp}\n"
+                "Please close the file if it is open."
+            )
+
+    # Save to temporary PNG
+    fig.savefig(
+        str(png_temp),
+        dpi=600,
+        bbox_inches="tight",
+        format="png"
+    )
+
+    # Replace the final PNG
+    try:
+        if png_file.exists():
+            png_file.unlink()
+
+        png_temp.rename(png_file)
+
+    except PermissionError:
+        print(
+            f"\nWARNING: Cannot replace:\n{png_file}"
+        )
+        print(
+            "The file may be open in an image viewer."
+        )
+        print(
+            f"The newly generated file remains at:\n{png_temp}"
+        )
+        raise
+
+    # ========================================================
+    # REMOVE TRANSPARENCY FOR EPS
+    # ========================================================
+
+    # EPS does not support transparency.
+    # Make the SD region solid pink before EPS export.
+
+    if ax.collections:
+        ax.collections[0].set_alpha(1.0)
+
+    # ========================================================
+    # SAVE EPS
+    # ========================================================
+
+    print(
+        f"Saving EPS: {eps_file}"
+    )
+
+    # Remove old EPS first
+    if eps_file.exists():
+        try:
+            eps_file.unlink()
+        except PermissionError:
+            raise PermissionError(
+                f"\nCannot overwrite EPS file:\n{eps_file}\n"
+                "Please close the file if it is open."
+            )
+
+    fig.savefig(
+        str(eps_file),
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    # ========================================================
+    # CLOSE FIGURE
+    # ========================================================
+
+    plt.close(fig)
+
+    print(
+        f"Completed: {metric}"
+    )
+
+    print(
+        f"Mean SD = {mean_sd:.6f}"
+    )
+
+    # ========================================================
+    # SAVE PNG
+    # ========================================================
+
+    print(
+        f"\nSaving PNG: {png_file}"
+    )
+
+    fig.savefig(
+        str(png_file),
+        dpi=600,
+        bbox_inches="tight",
+        format="png"
+    )
+
+    # ========================================================
+    # REMOVE TRANSPARENCY FOR EPS
+    # ========================================================
+
+    # EPS does not support transparency.
+    # Make the SD region solid pink before EPS export.
+
+    if ax.collections:
+        ax.collections[0].set_alpha(1.0)
+
+    # ========================================================
+    # SAVE EPS
+    # ========================================================
+
+    print(
+        f"Saving EPS: {eps_file}"
+    )
+
+    fig.savefig(
+        str(eps_file),
+        dpi=600,
+        bbox_inches="tight",
+        format="eps"
+    )
+
+    # ========================================================
+    # CLOSE FIGURE
+    # ========================================================
+
+    plt.close(fig)
+
+    print(
+        f"Completed: {metric}"
+    )
+
+    print(
+        f"Mean SD = {mean_sd:.6f}"
+    )
+# ============================================================
+# GENERATE GRAPHS
+# ============================================================
+
+for metric in METRICS:
+
+    plot_metric(
+        metric
+    )
+
+
+# ============================================================
+# FINAL SUMMARY
+# ============================================================
+
+print("\n" + "=" * 70)
+print("SACFL vs SACDAFL COMPARISON COMPLETED")
+print("=" * 70)
+
+print(
+    f"\nOutput directory:\n{OUTPUT_DIR}"
+)
+
+print("\nGenerated graphs:")
+
+for metric in METRICS:
+
+    print(
+        f"  SACFL_vs_SACDAFL_{metric.lower()}.png"
+    )
+
+    print(
+        f"  SACFL_vs_SACDAFL_{metric.lower()}.eps"
+    )
+
+print("\nGenerated CSV files:")
+
+print(
+    f"  {stats_file.name}"
+)
+
+print(
+    f"  {comparison_file.name}"
+)
+
+print("\n" + "=" * 70)
+import os
+import re
+import matplotlib.pyplot as plt
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+DATA_FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+#FILE_NAME = "LSTMPPOD1.txt"
+FILE_NAME ="combinedPPOSLAMv1.txt"
+
+FILE_PATH = os.path.join(DATA_FOLDER, FILE_NAME)
+
+OUTPUT_PNG = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison_6000.png"
+)
+
+OUTPUT_EPS = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison_6000.eps"
+)
+
+MAX_EPISODE = 100000
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+if not os.path.isfile(FILE_PATH):
+    raise FileNotFoundError(
+        f"File not found:\n{FILE_PATH}"
+    )
+
+print("\nReading data from:")
+print(FILE_PATH)
+
+with open(FILE_PATH, "r", encoding="utf-8", errors="ignore") as file:
+    text = file.read()
+
+print(f"\nFile size: {len(text)} characters")
+
+# ============================================================
+# REWARD PARSER
+# ============================================================
+
+pattern = re.compile(
+    r"^\s*"
+    r"(PPO|SLAM-LSTM-PPO|GAN-PPO)"
+    r"\s+Episode\s+(\d+)"
+    r"\s*\|\s*Reward\s*=\s*"
+    r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"
+    r"\s*$",
+    re.IGNORECASE | re.MULTILINE
+)
+
+# ============================================================
+# EXTRACT DATA
+# ============================================================
+
+data = {
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for match in pattern.finditer(text):
+
+    algorithm = match.group(1).upper()
+    episode = int(match.group(2))
+    reward = float(match.group(3))
+
+    # --------------------------------------------------------
+    # Keep only the first 6000 episodes
+    # --------------------------------------------------------
+
+    if episode > MAX_EPISODE:
+        continue
+
+    if algorithm == "PPO":
+        algorithm = "PPO"
+
+    elif algorithm == "SLAM-LSTM-PPO":
+        algorithm = "SLAM-LSTM-PPO"
+
+    elif algorithm == "GAN-PPO":
+        algorithm = "GAN-PPO"
+
+    data[algorithm]["episodes"].append(episode)
+    data[algorithm]["rewards"].append(reward)
+
+# ============================================================
+# SORT DATA
+# ============================================================
+
+for algorithm in data:
+
+    combined = sorted(
+        zip(
+            data[algorithm]["episodes"],
+            data[algorithm]["rewards"]
+        ),
+        key=lambda x: x[0]
+    )
+
+    data[algorithm]["episodes"] = [
+        item[0] for item in combined
+    ]
+
+    data[algorithm]["rewards"] = [
+        item[1] for item in combined
+    ]
+
+# ============================================================
+# DISPLAY DETECTED DATA
+# ============================================================
+
+print("\n" + "=" * 75)
+print("DETECTED REWARD DATA: FIRST 6000 EPISODES")
+print("=" * 75)
+
+for algorithm in [
+    "SLAM-LSTM-PPO",
+    "PPO",
+    "GAN-PPO"
+]:
+
+    episodes = data[algorithm]["episodes"]
+
+    if episodes:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: {len(episodes):<6}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: 0"
+        )
+
+# ============================================================
+# GAN-PPO CHECK
+# ============================================================
+
+print("\n" + "=" * 75)
+print("GAN-PPO CHECK")
+print("=" * 75)
+
+if data["GAN-PPO"]["episodes"]:
+
+    print("GAN-PPO detected successfully.")
+
+    print(
+        f"Reward points: "
+        f"{len(data['GAN-PPO']['episodes'])}"
+    )
+
+else:
+
+    print("GAN-PPO is not present in LSTMPPOD1.txt.")
+
+    print("\nIMPORTANT:")
+    print("GAN-PPO reward lines must be written as:")
+    print("GAN-PPO Episode 050 | Reward = 0.6502")
+
+# ============================================================
+# PLOT SETTINGS
+# ============================================================
+
+plt.rcParams["font.family"] = "Times New Roman"
+
+fig, ax = plt.subplots(
+    figsize=(13, 8)
+)
+
+# ============================================================
+# PLOT OURS FIRST
+# ============================================================
+
+if data["SLAM-LSTM-PPO"]["episodes"]:
+
+    ax.plot(
+        data["SLAM-LSTM-PPO"]["episodes"],
+        data["SLAM-LSTM-PPO"]["rewards"],
+        marker="s",
+        markersize=5.5,
+        linewidth=2.2,
+        label="Ours"
+    )
+
+# ============================================================
+# PLOT PPO
+# ============================================================
+
+if data["PPO"]["episodes"]:
+
+    ax.plot(
+        data["PPO"]["episodes"],
+        data["PPO"]["rewards"],
+        marker="o",
+        markersize=5.5,
+        linewidth=2.2,
+        label="PPO"
+    )
+
+# ============================================================
+# PLOT GAN-PPO
+# ============================================================
+
+if data["GAN-PPO"]["episodes"]:
+
+    ax.plot(
+        data["GAN-PPO"]["episodes"],
+        data["GAN-PPO"]["rewards"],
+        marker="^",
+        markersize=6,
+        linewidth=2.2,
+        label="GAN_PPO"
+    )
+
+# ============================================================
+# AXIS LABELS
+# ============================================================
+
+ax.set_xlabel(
+    "Episode",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+ax.set_ylabel(
+    "Anomaly Resolution Reward",
+    fontsize=25,
+    fontname="Times New Roman"
+)
+
+# ============================================================
+# TICKS
+# ============================================================
+
+ax.tick_params(
+    axis="both",
+    labelsize=18
+)
+
+for label in ax.get_xticklabels():
+    label.set_fontname("Times New Roman")
+
+for label in ax.get_yticklabels():
+    label.set_fontname("Times New Roman")
+
+# ============================================================
+# AXIS LIMITS
+# ============================================================
+
+ax.set_xlim(
+    0,
+    MAX_EPISODE
+)
+
+# ============================================================
+# GRID
+# ============================================================
+
+ax.grid(
+    True,
+    linestyle="--",
+    linewidth=0.8
+)
+
+# ============================================================
+# LEGEND
+# ============================================================
+# Ours is plotted first, so it appears first in the legend.
+# Legend is positioned above the figure.
+
+legend = ax.legend(
+    fontsize=23,
+    ncol=3,
+    loc="lower center",
+    bbox_to_anchor=(0.5, 1.009102),
+    frameon=True
+)
+
+for text_item in legend.get_texts():
+    text_item.set_fontname("Times New Roman")
+
+# ============================================================
+# LAYOUT
+# ============================================================
+
+fig.tight_layout()
+
+# ============================================================
+# SAVE PNG
+# ============================================================
+
+fig.savefig(
+    OUTPUT_PNG,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# SAVE EPS
+# ============================================================
+
+fig.savefig(
+    OUTPUT_EPS,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# DISPLAY
+# ============================================================
+
+plt.show()
+
+# ============================================================
+# STATISTICS: FIRST 6000 EPISODES
+# ============================================================
+
+print("\n" + "=" * 75)
+print("REWARD STATISTICS: FIRST 6000 EPISODES")
+print("=" * 75)
+
+for algorithm in [
+    "SLAM-LSTM-PPO",
+    "PPO",
+    "GAN-PPO"
+]:
+
+    rewards = data[algorithm]["rewards"]
+
+    if not rewards:
+        continue
+
+    print(
+        f"{algorithm:<25}"
+        f"Min = {min(rewards):>10.4f}   "
+        f"Max = {max(rewards):>10.4f}   "
+        f"Mean = {sum(rewards) / len(rewards):>10.4f}"
+    )
+
+# ============================================================
+# FINAL REWARD
+# ============================================================
+
+print("\n" + "=" * 75)
+print("FINAL REWARD WITHIN FIRST 6000 EPISODES")
+print("=" * 75)
+
+for algorithm in [
+    "SLAM-LSTM-PPO",
+    "PPO",
+    "GAN-PPO"
+]:
+
+    rewards = data[algorithm]["rewards"]
+
+    if rewards:
+
+        print(
+            f"{algorithm:<25}"
+            f"Episode {data[algorithm]['episodes'][-1]:<6}"
+            f"Reward = {rewards[-1]:.4f}"
+        )
+
+# ============================================================
+# OUTPUT FILES
+# ============================================================
+
+print("\n" + "=" * 75)
+print("FIGURES SAVED")
+print("=" * 75)
+
+print(f"PNG: {OUTPUT_PNG}")
+print(f"EPS: {OUTPUT_EPS}")
+
+
+
+
+
+
+
+
+
+import os
+import re
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+DATA_FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+FILE_NAME = "combinedPPOSLAMv.txt"
+
+FILE_PATH = os.path.join(DATA_FOLDER, FILE_NAME)
+
+OUTPUT_PNG = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.png"
+)
+
+OUTPUT_EPS = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.eps"
+)
+
+# Plot up to this episode
+MAX_EPISODE = 100000
+
+# Smoothing window
+SMOOTH_WINDOW = 15
+
+
+# ============================================================
+# SMOOTHING FUNCTION
+# ============================================================
+
+def smooth(values, window=SMOOTH_WINDOW):
+    """
+    Smooth a sequence using a centered moving average.
+
+    Parameters
+    ----------
+    values : array-like
+        Reward values.
+    window : int
+        Moving-average window size.
+
+    Returns
+    -------
+    numpy.ndarray
+        Smoothed reward values.
+    """
+
+    values = np.asarray(values, dtype=float)
+
+    if len(values) < 3:
+        return values.copy()
+
+    # Ensure an odd window for centered smoothing
+    window = int(window)
+
+    if window < 3:
+        return values.copy()
+
+    if window % 2 == 0:
+        window += 1
+
+    # Prevent the window from exceeding the data length
+    if window > len(values):
+        window = len(values)
+
+        if window % 2 == 0:
+            window -= 1
+
+    if window < 3:
+        return values.copy()
+
+    kernel = np.ones(window) / window
+
+    # Edge padding prevents the curve from shrinking at the boundaries
+    pad = window // 2
+
+    padded = np.pad(
+        values,
+        (pad, pad),
+        mode="edge"
+    )
+
+    smoothed = np.convolve(
+        padded,
+        kernel,
+        mode="valid"
+    )
+
+    return smoothed
+
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+if not os.path.isfile(FILE_PATH):
+    raise FileNotFoundError(
+        f"File not found:\n{FILE_PATH}"
+    )
+
+print("\nReading data from:")
+print(FILE_PATH)
+
+with open(
+    FILE_PATH,
+    "r",
+    encoding="utf-8",
+    errors="ignore"
+) as file:
+    text = file.read()
+
+print(f"\nFile size: {len(text)} characters")
+
+
+# ============================================================
+# REWARD PARSER
+# ============================================================
+
+pattern = re.compile(
+    r"^\s*"
+    r"(PPO|SLAM-LSTM-PPO|GAN-PPO)"
+    r"\s+Episode\s+(\d+)"
+    r"\s*\|\s*Reward\s*=\s*"
+    r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"
+    r"\s*$",
+    re.IGNORECASE | re.MULTILINE
+)
+
+
+# ============================================================
+# EXTRACT DATA
+# ============================================================
+
+data = {
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+
+
+
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for match in pattern.finditer(text):
+
+    algorithm = match.group(1).upper()
+    episode = int(match.group(2))
+    reward = float(match.group(3))
+
+    if algorithm == "SLAM-LSTM-PPO":
+        algorithm = "SLAM-LSTM-PPO"
+
+    elif algorithm == "PPO":
+        algorithm = "PPO"
+
+    elif algorithm == "GAN-PPO":
+        algorithm = "GAN-PPO"
+
+    data[algorithm]["episodes"].append(episode)
+    data[algorithm]["rewards"].append(reward)
+
+
+# ============================================================
+# SORT DATA
+# ============================================================
+
+for algorithm in data:
+
+    combined = sorted(
+        zip(
+            data[algorithm]["episodes"],
+            data[algorithm]["rewards"]
+        ),
+        key=lambda x: x[0]
+    )
+
+    data[algorithm]["episodes"] = [
+        item[0] for item in combined
+    ]
+
+    data[algorithm]["rewards"] = [
+        item[1] for item in combined
+    ]
+
+
+# ============================================================
+# LIMIT DATA TO MAXIMUM EPISODE
+# ============================================================
+
+plot_data = {
+    "PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for algorithm in data:
+
+    for episode, reward in zip(
+        data[algorithm]["episodes"],
+        data[algorithm]["rewards"]
+    ):
+
+        if episode <= MAX_EPISODE:
+
+            plot_data[algorithm]["episodes"].append(
+                episode
+            )
+
+            plot_data[algorithm]["rewards"].append(
+                reward
+            )
+
+
+# ============================================================
+# DISPLAY DETECTED DATA
+# ============================================================
+
+print("\n" + "=" * 70)
+print("DETECTED ALGORITHMS")
+print("=" * 70)
+
+for algorithm in data:
+
+    episodes = data[algorithm]["episodes"]
+
+    if len(episodes) > 0:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: 0"
+        )
+
+
+# ============================================================
+# PLOTTING DATA CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print(f"PLOTTING DATA: UP TO {MAX_EPISODE} EPISODES")
+print("=" * 70)
+
+for algorithm in plot_data:
+
+    episodes = plot_data[algorithm]["episodes"]
+
+    if episodes:
+
+        print(
+            f"{algorithm:<25}"
+            f"Points plotted: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"No data within selected episode range."
+        )
+
+
+# ============================================================
+# GAN-PPO CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print("GAN-PPO CHECK")
+print("=" * 70)
+
+if data["GAN-PPO"]["episodes"]:
+
+    print("GAN-PPO detected successfully.")
+
+    print(
+        f"Reward points: "
+        f"{len(data['GAN-PPO']['episodes'])}"
+    )
+
+else:
+
+    print(
+        "GAN-PPO is not present in the input file."
+    )
+
+    print("\nIMPORTANT:")
+
+    print(
+        "GAN-PPO reward lines must be written as:"
+    )
+
+    print(
+        "GAN-PPO Episode 050 | Reward = 0.6502"
+    )
+
+
+# ============================================================
+# PLOT SETTINGS
+# ============================================================
+
+plt.rcParams["font.family"] = "Times New Roman"
+
+fig, ax = plt.subplots(
+    figsize=(13, 8)
+)
+
+
+# ============================================================
+# PLOT PPO
+# ============================================================
+
+if plot_data["PPO"]["episodes"]:
+
+    episodes = np.asarray(
+        plot_data["PPO"]["episodes"]
+    )
+
+    rewards = np.asarray(
+        plot_data["PPO"]["rewards"]
+    )
+
+    smoothed_rewards = smooth(
+        rewards,
+        SMOOTH_WINDOW
+    )
+
+    ax.plot(
+        episodes,
+        smoothed_rewards,
+        marker="o",
+        markersize=5.5,
+        linewidth=2.2,
+        markevery=max(1, len(episodes) // 25),
+        label="PPO"
+    )
+
+
+# ============================================================
+# PLOT SLAM-LSTM-PPO AS OURS
+# ============================================================
+
+if plot_data["SLAM-LSTM-PPO"]["episodes"]:
+
+    episodes = np.asarray(
+        plot_data["SLAM-LSTM-PPO"]["episodes"]
+    )
+
+    rewards = np.asarray(
+        plot_data["SLAM-LSTM-PPO"]["rewards"]
+    )
+
+    smoothed_rewards = smooth(
+        rewards,
+        SMOOTH_WINDOW
+    )
+
+    ax.plot(
+        episodes,
+        smoothed_rewards,
+        marker="s",
+        markersize=5.5,
+        linewidth=2.2,
+        markevery=max(1, len(episodes) // 25),
+        label="Ours"
+    )
+
+
+# ============================================================
+# PLOT GAN-PPO
+# ============================================================
+
+if plot_data["GAN-PPO"]["episodes"]:
+
+    episodes = np.asarray(
+        plot_data["GAN-PPO"]["episodes"]
+    )
+
+    rewards = np.asarray(
+        plot_data["GAN-PPO"]["rewards"]
+    )
+
+    smoothed_rewards = smooth(
+        rewards,
+        SMOOTH_WINDOW
+    )
+
+    ax.plot(
+        episodes,
+        smoothed_rewards,
+        marker="^",
+        markersize=6,
+        linewidth=2.2,
+        markevery=max(1, len(episodes) // 25),
+        label="GAN-PPO"
+    )
+
+
+# ============================================================
+# AXIS LABELS
+# ============================================================
+
+ax.set_xlabel(
+    "Episode",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+ax.set_ylabel(
+    "Anomaly Resolution Reward",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+
+# ============================================================
+# TICKS
+# ============================================================
+
+ax.tick_params(
+    axis="both",
+    labelsize=18
+)
+
+for label in ax.get_xticklabels():
+    label.set_fontname("Times New Roman")
+
+for label in ax.get_yticklabels():
+    label.set_fontname("Times New Roman")
+
+
+# ============================================================
+# AXIS LIMIT
+# ============================================================
+
+ax.set_xlim(
+    0,
+    MAX_EPISODE
+)
+
+
+# ============================================================
+# GRID
+# ============================================================
+
+ax.grid(
+    True,
+    linestyle="--",
+    linewidth=0.8
+)
+
+
+# ============================================================
+# LEGEND
+# ============================================================
+
+legend = ax.legend(
+    loc="lower center",
+    bbox_to_anchor=(0.5, 1.02),
+    fontsize=17,
+    ncol=3,
+    frameon=True
+)
+
+for text_item in legend.get_texts():
+    text_item.set_fontname("Times New Roman")
+
+
+# ============================================================
+# LAYOUT
+# ============================================================
+
+fig.tight_layout()
+
+
+# ============================================================
+# SAVE PNG
+# ============================================================
+
+fig.savefig(
+    OUTPUT_PNG,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+
+# ============================================================
+# SAVE EPS
+# ============================================================
+
+fig.savefig(
+    OUTPUT_EPS,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+
+# ============================================================
+# DISPLAY
+# ============================================================
+
+plt.show()
+
+
+# ============================================================
+# RAW REWARD STATISTICS
+# ============================================================
+
+print("\n" + "=" * 70)
+print(
+    f"REWARD STATISTICS — UP TO {MAX_EPISODE} EPISODES"
+)
+print("=" * 70)
+
+for algorithm in [
+    "PPO",
+    "SLAM-LSTM-PPO",
+    "GAN-PPO"
+]:
+
+    rewards = plot_data[algorithm]["rewards"]
+
+    if not rewards:
+        continue
+
+    print(
+        f"{algorithm:<25}"
+        f"Min = {min(rewards):>10.4f}   "
+        f"Max = {max(rewards):>10.4f}   "
+        f"Mean = {sum(rewards) / len(rewards):>10.4f}"
+    )
+
+
+# ============================================================
+# OUTPUT FILES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("FIGURES SAVED")
+print("=" * 70)
+
+print(f"PNG: {OUTPUT_PNG}")
+print(f"EPS: {OUTPUT_EPS}")
+
+print(
+    f"\nSmoothing method: Centered moving average"
+    f"\nSmoothing window: {SMOOTH_WINDOW} points"
+)
+import os
+import re
+import matplotlib.pyplot as plt
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+DATA_FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+FILE_NAME = "combinedPPOSLAMv.txt"
+
+FILE_PATH = os.path.join(DATA_FOLDER, FILE_NAME)
+
+OUTPUT_PNG = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.png"
+)
+
+OUTPUT_EPS = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.eps"
+)
+
+# Plot only the first 600 episodes
+#MAX_EPISODE = 100000
+MAX_EPISODE = 100000
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+if not os.path.isfile(FILE_PATH):
+    raise FileNotFoundError(
+        f"File not found:\n{FILE_PATH}"
+    )
+
+print("\nReading data from:")
+print(FILE_PATH)
+
+with open(FILE_PATH, "r", encoding="utf-8", errors="ignore") as file:
+    text = file.read()
+
+print(f"\nFile size: {len(text)} characters")
+
+# ============================================================
+# REWARD PARSER
+# ============================================================
+#
+# Recognizes:
+#
+# PPO Episode 050 | Reward = 0.6502
+# SLAM-LSTM-PPO Episode 050 | Reward = 0.1234
+# GAN-PPO Episode 050 | Reward = -0.5234
+#
+# ============================================================
+
+pattern = re.compile(
+    r"^\s*"
+    r"(PPO|SLAM-LSTM-PPO|GAN-PPO)"
+    r"\s+Episode\s+(\d+)"
+    r"\s*\|\s*Reward\s*=\s*"
+    r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"
+    r"\s*$",
+    re.IGNORECASE | re.MULTILINE
+)
+
+# ============================================================
+# EXTRACT DATA
+# ============================================================
+
+data = {
+    "PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for match in pattern.finditer(text):
+
+    algorithm = match.group(1).upper()
+
+    episode = int(match.group(2))
+    reward = float(match.group(3))
+
+    # Preserve proper algorithm spelling
+    if algorithm == "PPO":
+        algorithm = "PPO"
+
+    elif algorithm == "SLAM-LSTM-PPO":
+        algorithm = "SLAM-LSTM-PPO"
+
+    elif algorithm == "GAN-PPO":
+        algorithm = "GAN-PPO"
+
+    data[algorithm]["episodes"].append(episode)
+    data[algorithm]["rewards"].append(reward)
+
+# ============================================================
+# SORT DATA
+# ============================================================
+
+for algorithm in data:
+
+    combined = sorted(
+        zip(
+            data[algorithm]["episodes"],
+            data[algorithm]["rewards"]
+        ),
+        key=lambda x: x[0]
+    )
+
+    data[algorithm]["episodes"] = [
+        item[0] for item in combined
+    ]
+
+    data[algorithm]["rewards"] = [
+        item[1] for item in combined
+    ]
+
+# ============================================================
+# LIMIT DATA TO FIRST 600 EPISODES
+# ============================================================
+
+plot_data = {
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "PPO": {
+            "episodes": [],
+            "rewards": []
+        },
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for algorithm in data:
+
+    for episode, reward in zip(
+        data[algorithm]["episodes"],
+        data[algorithm]["rewards"]
+    ):
+
+        if episode <= MAX_EPISODE:
+
+            plot_data[algorithm]["episodes"].append(
+                episode
+            )
+
+            plot_data[algorithm]["rewards"].append(
+                reward
+            )
+
+# ============================================================
+# DISPLAY DETECTED DATA
+# ============================================================
+
+print("\n" + "=" * 70)
+print("DETECTED ALGORITHMS")
+print("=" * 70)
+
+for algorithm in data:
+
+    episodes = data[algorithm]["episodes"]
+
+    if len(episodes) > 0:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: 0"
+        )
+
+# ============================================================
+# FIRST 600 EPISODES CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print("PLOTTING DATA: FIRST 600 EPISODES")
+print("=" * 70)
+
+for algorithm in plot_data:
+
+    episodes = plot_data[algorithm]["episodes"]
+
+    if episodes:
+
+        print(
+            f"{algorithm:<25}"
+            f"Points plotted: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"No data within first 600 episodes."
+        )
+
+# ============================================================
+# GAN-PPO CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print("GAN-PPO CHECK")
+print("=" * 70)
+
+if data["GAN-PPO"]["episodes"]:
+
+    print(
+        "GAN-PPO detected successfully."
+    )
+
+    print(
+        f"Reward points: "
+        f"{len(data['GAN-PPO']['episodes'])}"
+    )
+
+else:
+
+    print(
+        "GAN-PPO is not present in LSTMPPOD1.txt."
+    )
+
+    print(
+        "\nIMPORTANT:"
+    )
+
+    print(
+        "Your GAN-PPO reward lines must be written as:"
+    )
+
+    print(
+        "GAN-PPO Episode 050 | Reward = 0.6502"
+    )
+
+# ============================================================
+# PLOT SETTINGS
+# ============================================================
+
+plt.rcParams["font.family"] = "Times New Roman"
+
+fig, ax = plt.subplots(
+    figsize=(13, 8)
+)
+
+# ============================================================
+# PLOT PPO
+# ============================================================
+
+if plot_data["PPO"]["episodes"]:
+
+    ax.plot(
+        plot_data["PPO"]["episodes"],
+        plot_data["PPO"]["rewards"],
+        marker="o",
+        markersize=5.5,
+        linewidth=2.2,
+        label="PPO"
+    )
+
+# ============================================================
+# PLOT SLAM-LSTM-PPO AS OURS
+# ============================================================
+
+if plot_data["SLAM-LSTM-PPO"]["episodes"]:
+
+    ax.plot(
+        plot_data["SLAM-LSTM-PPO"]["episodes"],
+        plot_data["SLAM-LSTM-PPO"]["rewards"],
+        marker="s",
+        markersize=5.5,
+        linewidth=2.2,
+        label="Ours"
+    )
+
+# ============================================================
+# PLOT GAN-PPO
+# ============================================================
+
+if plot_data["GAN-PPO"]["episodes"]:
+
+    ax.plot(
+        plot_data["GAN-PPO"]["episodes"],
+        plot_data["GAN-PPO"]["rewards"],
+        marker="^",
+        markersize=6,
+        linewidth=2.2,
+        label="GAN-PPO"
+    )
+
+# ============================================================
+# AXIS LABELS
+# ============================================================
+
+ax.set_xlabel(
+    "Episode",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+ax.set_ylabel(
+    "Anomaly Resolution Reward",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+# ============================================================
+# TICKS
+# ============================================================
+
+ax.tick_params(
+    axis="both",
+    labelsize=18
+)
+
+for label in ax.get_xticklabels():
+    label.set_fontname("Times New Roman")
+
+for label in ax.get_yticklabels():
+    label.set_fontname("Times New Roman")
+
+# ============================================================
+# AXIS LIMIT
+# ============================================================
+
+ax.set_xlim(
+    0,
+    MAX_EPISODE
+)
+
+# ============================================================
+# GRID
+# ============================================================
+
+ax.grid(
+    True,
+    linestyle="--",
+    linewidth=0.8
+)
+
+# ============================================================
+# LEGEND
+# ============================================================
+# Legend placed above the figure.
+
+legend = ax.legend(
+    loc="lower center",
+    bbox_to_anchor=(0.5, 1.02),
+    fontsize=17,
+    ncol=3,
+    frameon=True
+)
+
+for text_item in legend.get_texts():
+    text_item.set_fontname("Times New Roman")
+
+# ============================================================
+# LAYOUT
+# ============================================================
+
+fig.tight_layout()
+
+# ============================================================
+# SAVE PNG
+# ============================================================
+
+fig.savefig(
+    OUTPUT_PNG,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# SAVE EPS
+# ============================================================
+
+fig.savefig(
+    OUTPUT_EPS,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# DISPLAY
+# ============================================================
+
+plt.show()
+
+# ============================================================
+# STATISTICS FOR FIRST 600 EPISODES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("REWARD STATISTICS — FIRST 600 EPISODES")
+print("=" * 70)
+
+for algorithm in [
+    "PPO",
+    "SLAM-LSTM-PPO",
+    "GAN-PPO"
+]:
+
+    rewards = plot_data[algorithm]["rewards"]
+
+    if not rewards:
+        continue
+
+    print(
+        f"{algorithm:<25}"
+        f"Min = {min(rewards):>10.4f}   "
+        f"Max = {max(rewards):>10.4f}   "
+        f"Mean = {sum(rewards) / len(rewards):>10.4f}"
+    )
+
+# ============================================================
+# OUTPUT FILES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("FIGURES SAVED")
+print("=" * 70)
+
+print(f"PNG: {OUTPUT_PNG}")
+print(f"EPS: {OUTPUT_EPS}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import os
+import re
+import matplotlib.pyplot as plt
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+DATA_FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+FILE_NAME = "LSTMPPOD1.txt"
+
+FILE_PATH = os.path.join(DATA_FOLDER, FILE_NAME)
+
+OUTPUT_PNG = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.png"
+)
+
+OUTPUT_EPS = os.path.join(
+    DATA_FOLDER,
+    "LSTMPPOD1_reward_comparison.eps"
+)
+
+# ============================================================
+# READ FILE
+# ============================================================
+
+if not os.path.isfile(FILE_PATH):
+    raise FileNotFoundError(
+        f"File not found:\n{FILE_PATH}"
+    )
+
+print("\nReading data from:")
+print(FILE_PATH)
+
+with open(FILE_PATH, "r", encoding="utf-8", errors="ignore") as file:
+    text = file.read()
+
+print(f"\nFile size: {len(text)} characters")
+
+# ============================================================
+# REWARD PARSER
+# ============================================================
+#
+# Recognizes:
+#
+# PPO Episode 050 | Reward = 0.6502
+# SLAM-LSTM-PPO Episode 050 | Reward = 0.1234
+# GAN-PPO Episode 050 | Reward = -0.5234
+#
+# ============================================================
+
+pattern = re.compile(
+    r"^\s*"
+    r"(PPO|SLAM-LSTM-PPO|GAN-PPO)"
+    r"\s+Episode\s+(\d+)"
+    r"\s*\|\s*Reward\s*=\s*"
+    r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)"
+    r"\s*$",
+    re.IGNORECASE | re.MULTILINE
+)
+
+# ============================================================
+# EXTRACT DATA
+# ============================================================
+
+data = {
+    "PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "SLAM-LSTM-PPO": {
+        "episodes": [],
+        "rewards": []
+    },
+    "GAN-PPO": {
+        "episodes": [],
+        "rewards": []
+    }
+}
+
+for match in pattern.finditer(text):
+
+    algorithm = match.group(1).upper()
+
+    episode = int(match.group(2))
+    reward = float(match.group(3))
+
+    # Preserve proper algorithm spelling
+    if algorithm == "PPO":
+        algorithm = "PPO"
+
+    elif algorithm == "SLAM-LSTM-PPO":
+        algorithm = "SLAM-LSTM-PPO"
+
+    elif algorithm == "GAN-PPO":
+        algorithm = "GAN-PPO"
+
+    data[algorithm]["episodes"].append(episode)
+    data[algorithm]["rewards"].append(reward)
+
+# ============================================================
+# SORT DATA
+# ============================================================
+
+for algorithm in data:
+    combined = sorted(
+        zip(
+            data[algorithm]["episodes"],
+            data[algorithm]["rewards"]
+        ),
+        key=lambda x: x[0]
+    )
+
+    data[algorithm]["episodes"] = [
+        item[0] for item in combined
+    ]
+
+    data[algorithm]["rewards"] = [
+        item[1] for item in combined
+    ]
+
+# ============================================================
+# DISPLAY DETECTED DATA
+# ============================================================
+
+print("\n" + "=" * 70)
+print("DETECTED ALGORITHMS")
+print("=" * 70)
+
+for algorithm in data:
+
+    episodes = data[algorithm]["episodes"]
+
+    if len(episodes) > 0:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: {len(episodes):<5}"
+            f"Episode range: "
+            f"{min(episodes)} - {max(episodes)}"
+        )
+
+    else:
+
+        print(
+            f"{algorithm:<25}"
+            f"Reward points: 0"
+        )
+
+# ============================================================
+# GAN-PPO CHECK
+# ============================================================
+
+print("\n" + "=" * 70)
+print("GAN-PPO CHECK")
+print("=" * 70)
+
+if data["GAN-PPO"]["episodes"]:
+
+    print(
+        "GAN-PPO detected successfully."
+    )
+
+    print(
+        f"Reward points: "
+        f"{len(data['GAN-PPO']['episodes'])}"
+    )
+
+else:
+
+    print(
+        "GAN-PPO is not present in LSTMPPOD1.txt."
+    )
+
+    print(
+        "\nIMPORTANT:"
+    )
+
+    print(
+        "Your GAN-PPO reward lines must be written as:"
+    )
+
+    print(
+        "GAN-PPO Episode 050 | Reward = 0.6502"
+    )
+
+# ============================================================
+# PLOT SETTINGS
+# ============================================================
+
+plt.rcParams["font.family"] = "Times New Roman"
+
+fig, ax = plt.subplots(
+    figsize=(13, 8)
+)
+
+# ============================================================
+# PLOT PPO
+# ============================================================
+
+if data["PPO"]["episodes"]:
+    ax.plot(
+        data["PPO"]["episodes"],
+        data["PPO"]["rewards"],
+        marker="o",
+        markersize=5.5,
+        linewidth=2.2,
+        label="PPO"
+    )
+
+# ============================================================
+# PLOT SLAM-LSTM-PPO
+# ============================================================
+
+if data["SLAM-LSTM-PPO"]["episodes"]:
+    ax.plot(
+        data["SLAM-LSTM-PPO"]["episodes"],
+        data["SLAM-LSTM-PPO"]["rewards"],
+        marker="s",
+        markersize=5.5,
+        linewidth=2.2,
+        label="SLAM-LSTM-PPO"
+    )
+
+# ============================================================
+# PLOT GAN-PPO
+# ============================================================
+
+if data["GAN-PPO"]["episodes"]:
+    ax.plot(
+        data["GAN-PPO"]["episodes"],
+        data["GAN-PPO"]["rewards"],
+        marker="^",
+        markersize=6,
+        linewidth=2.2,
+        label="GAN-PPO"
+    )
+
+# ============================================================
+# AXIS LABELS
+# ============================================================
+
+ax.set_xlabel(
+    "Episode",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+ax.set_ylabel(
+    "Anomaly Resolution Reward",
+    fontsize=21,
+    fontname="Times New Roman"
+)
+
+# ============================================================
+# TICKS
+# ============================================================
+
+ax.tick_params(
+    axis="both",
+    labelsize=18
+)
+
+for label in ax.get_xticklabels():
+    label.set_fontname("Times New Roman")
+
+for label in ax.get_yticklabels():
+    label.set_fontname("Times New Roman")
+
+# ============================================================
+# AXIS LIMIT
+# ============================================================
+
+ax.set_xlim(left=0)
+
+# ============================================================
+# GRID
+# ============================================================
+# No transparency is used so EPS does not generate the
+# PostScript transparency warning.
+
+ax.grid(
+    True,
+    linestyle="--",
+    linewidth=0.8
+)
+
+# ============================================================
+# LEGEND
+# ============================================================
+
+legend = ax.legend(
+    loc="best",
+    fontsize=17,
+    ncol=3,
+    frameon=True
+)
+
+for text_item in legend.get_texts():
+    text_item.set_fontname("Times New Roman")
+
+# ============================================================
+# LAYOUT
+# ============================================================
+
+fig.tight_layout()
+
+# ============================================================
+# SAVE PNG
+# ============================================================
+
+fig.savefig(
+    OUTPUT_PNG,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# SAVE EPS
+# ============================================================
+
+fig.savefig(
+    OUTPUT_EPS,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+# ============================================================
+# DISPLAY
+# ============================================================
+
+plt.show()
+
+# ============================================================
+# STATISTICS
+# ============================================================
+
+print("\n" + "=" * 70)
+print("REWARD STATISTICS")
+print("=" * 70)
+
+for algorithm in [
+    "PPO",
+    "SLAM-LSTM-PPO",
+    "GAN-PPO"
+]:
+
+    rewards = data[algorithm]["rewards"]
+
+    if not rewards:
+        continue
+
+    print(
+        f"{algorithm:<25}"
+        f"Min = {min(rewards):>10.4f}   "
+        f"Max = {max(rewards):>10.4f}   "
+        f"Mean = {sum(rewards) / len(rewards):>10.4f}"
+    )
+
+# ============================================================
+# OUTPUT FILES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("FIGURES SAVED")
+print("=" * 70)
+
+print(f"PNG: {OUTPUT_PNG}")
+print(f"EPS: {OUTPUT_EPS}")
+# ============================================================
+# BLOCK 1: CONFIGURATION
+# ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import os
+import time
+import random
+import sqlite3
+import warnings
+
+import numpy as np
+import pandas as pd
+
+warnings.filterwarnings("ignore")
+import re
+import os
+import matplotlib.pyplot as plt
+
+
+# ============================================================
+# Configuration
+# ============================================================
+import re
+import os
+import matplotlib.pyplot as plt
+
+
+import re
+import os
+import matplotlib.pyplot as plt
+
+
+# ============================================================
+# FILE LOCATION
+# ============================================================
+DATA_FOLDER = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+FILE_NAME = "LSTMPPOD1.txt"
+
+file_path = os.path.join(DATA_FOLDER, FILE_NAME)
+
+
+# ============================================================
+# CHECK FILE
+# ============================================================
+if not os.path.isfile(file_path):
+    raise FileNotFoundError(
+        f"\nCannot find:\n{file_path}"
+    )
+
+print("\nReading data from:")
+print(file_path)
+
+
+# ============================================================
+# REWARD REGEX
+# ============================================================
+# IMPORTANT:
+# We do NOT use ^ or $.
+#
+# Therefore, the reward can be detected even if the line
+# contains additional text before or after it.
+#
+# Examples detected:
+#
+# GAN-PPO Episode 050 | Reward = 0.1910
+#
+# Some text GAN-PPO Episode 100 | Reward = -0.3943
+#
+# ============================================================
+
+pattern = re.compile(
+    r"([A-Za-z0-9_]+(?:-[A-Za-z0-9_]+)*)"
+    r"\s+Episode\s+(\d+)"
+    r"\s*\|\s*Reward\s*=\s*"
+    r"([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)",
+    re.IGNORECASE
+)
+
+
+# ============================================================
+# STORAGE
+# ============================================================
+rewards = {}
+
+
+# ============================================================
+# READ FILE
+# ============================================================
+with open(file_path, "r", encoding="utf-8") as file:
+
+    text = file.read()
+
+
+# ============================================================
+# FIND ALL REWARD RECORDS
+# ============================================================
+matches = pattern.findall(text)
+
+
+for algorithm, episode, reward in matches:
+
+    algorithm = algorithm.strip()
+    episode = int(episode)
+    reward = float(reward)
+
+    if algorithm not in rewards:
+
+        rewards[algorithm] = {
+            "episodes": [],
+            "rewards": []
+        }
+
+    rewards[algorithm]["episodes"].append(episode)
+    rewards[algorithm]["rewards"].append(reward)
+
+
+# ============================================================
+# DETECTED ALGORITHMS
+# ============================================================
+print("\n" + "=" * 70)
+print("DETECTED ALGORITHMS")
+print("=" * 70)
+
+for algorithm, data in rewards.items():
+
+    print(
+        f"{algorithm:<25}"
+        f"Reward points: {len(data['episodes']):<6}"
+        f"Episode range: "
+        f"{min(data['episodes'])} - {max(data['episodes'])}"
+    )
+
+
+# ============================================================
+# SPECIFIC CHECK FOR GAN-PPO
+# ============================================================
+print("\n" + "=" * 70)
+print("GAN-PPO CHECK")
+print("=" * 70)
+
+if "GAN-PPO" in rewards:
+
+    gan_data = rewards["GAN-PPO"]
+
+    print(
+        f"GAN-PPO successfully detected: "
+        f"{len(gan_data['episodes'])} reward points"
+    )
+
+    print(
+        f"Episode range: "
+        f"{min(gan_data['episodes'])} - "
+        f"{max(gan_data['episodes'])}"
+    )
+
+    print("\nFirst GAN-PPO rewards:")
+
+    for episode, reward in zip(
+        gan_data["episodes"][:10],
+        gan_data["rewards"][:10]
+    ):
+
+        print(
+            f"Episode {episode:04d} | "
+            f"Reward = {reward:.4f}"
+        )
+
+else:
+
+    print("WARNING: GAN-PPO was NOT found in PPODATA.txt.")
+
+
+# ============================================================
+# CHECK
+# ============================================================
+if not rewards:
+
+    raise ValueError(
+        "\nNo reward records were detected."
+    )
+
+
+# ============================================================
+# PLOT
+# ============================================================
+plt.figure(figsize=(12, 7))
+
+
+for algorithm, data in rewards.items():
+
+    # Sort by episode
+    sorted_data = sorted(
+        zip(
+            data["episodes"],
+            data["rewards"]
+        ),
+        key=lambda x: x[0]
+    )
+
+    episodes = [
+        x[0]
+        for x in sorted_data
+    ]
+
+    reward_values = [
+        x[1]
+        for x in sorted_data
+    ]
+
+    plt.plot(
+        episodes,
+        reward_values,
+        marker="o",
+        markersize=4,
+        linewidth=2.0,
+        label=algorithm
+    )
+
+
+# ============================================================
+# PLOT FORMATTING
+# ============================================================
+plt.xlabel(
+    "Episode",
+    fontsize=20
+)
+
+plt.ylabel(
+    "Reward",
+    fontsize=20
+)
+
+plt.xticks(
+    fontsize=18
+)
+
+plt.yticks(
+    fontsize=18
+)
+
+plt.grid(
+    True,
+    linestyle="--",
+    linewidth=0.7,
+    alpha=0.6
+)
+
+plt.legend(
+    fontsize=15,
+    loc="best",
+    ncol=3
+)
+
+plt.xlim(
+    left=0
+)
+
+plt.tight_layout()
+
+
+# ============================================================
+# SAVE FIGURES
+# ============================================================
+png_path = os.path.join(
+    DATA_FOLDER,
+    "reward_comparison.png"
+)
+
+eps_path = os.path.join(
+    DATA_FOLDER,
+    "reward_comparison.eps"
+)
+
+plt.savefig(
+    png_path,
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.savefig(
+    eps_path,
+    format="eps",
+    dpi=600,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+
+# ============================================================
+# STATISTICS
+# ============================================================
+print("\n" + "=" * 70)
+print("REWARD STATISTICS")
+print("=" * 70)
+
+for algorithm, data in rewards.items():
+
+    values = data["rewards"]
+
+    average_reward = sum(values) / len(values)
+
+    print(
+        f"{algorithm:<25}"
+        f"Min = {min(values):>9.4f} | "
+        f"Max = {max(values):>9.4f} | "
+        f"Average = {average_reward:>9.4f}"
+    )
+
+
+# ============================================================
+# OUTPUT
+# ============================================================
+print("\n" + "=" * 70)
+print("FIGURES SAVED")
+print("=" * 70)
+
+print(f"PNG: {png_path}")
+print(f"EPS: {eps_path}")#---------------------------
+# Paths
+# ------------------------------------------------------------
+
+PROJECT_DIR = r"E:\Abrokwa\PycharmProjects\pythonProject1\pythonProject"
+
+DB_PATH = os.path.join(
+    PROJECT_DIR,
+    "Lower_Layer_Data.db"
+)
+
+RESULT_DIR = os.path.join(
+    PROJECT_DIR,
+    "five_model_results"
+)
+
+MODEL_DIR = os.path.join(
+    RESULT_DIR,
+    "models"
+)
+
+os.makedirs(RESULT_DIR, exist_ok=True)
+os.makedirs(MODEL_DIR, exist_ok=True)
+
+# ------------------------------------------------------------
+# Reproducibility
+# ------------------------------------------------------------
+
+SEED = 420
+
+random.seed(SEED)
+np.random.seed(SEED)
+
+# ------------------------------------------------------------
+# User scalability levels
+# ------------------------------------------------------------
+
+USER_LEVELS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+
+# ------------------------------------------------------------
+# Dataset
+# ------------------------------------------------------------
+
+TABLE_NAME = "lower_layer_data"
+
+TARGET_COLUMN = "attack_category"
+
+# ------------------------------------------------------------
+# Radio / physical-layer features
+# ------------------------------------------------------------
+
+FEATURE_COLUMNS = [
+    "dlBytes",
+    "dlMcs",
+    "dlBler",
+    "ulBytes",
+    "ulMcs",
+    "ulBler",
+    "ri",
+    "phr",
+    "pcmax",
+    "rsrq",
+    "sinr",
+    "rsrp",
+    "rssi",
+    "cqi",
+    "pucchSnr",
+    "puschSnr"
+]
+
+# ------------------------------------------------------------
+# Resource configuration
+# ------------------------------------------------------------
+
+MAX_BW = 100.0
+MAX_RB = 273.0
+
+MIN_BW = 20.0
+MIN_RB = 52.0
+
+# ------------------------------------------------------------
+# QoS thresholds
+# ------------------------------------------------------------
+
+BLER_THRESHOLD = 0.10
+SINR_THRESHOLD = 0.0
+CQI_THRESHOLD = 7.0
+
+print("=" * 70)
+print("FIVE-MODEL O-RAN EXPERIMENT")
+print("=" * 70)
+print(f"Database : {DB_PATH}")
+print(f"Results  : {RESULT_DIR}")
+print(f"Users    : {USER_LEVELS}")
+
+
+# ============================================================
+# BLOCK 2: LOAD DATASET
+# ============================================================
+
+if not os.path.exists(DB_PATH):
+    raise FileNotFoundError(
+        f"Database not found:\n{DB_PATH}"
+    )
+
+connection = sqlite3.connect(DB_PATH)
+
+# Check available tables
+tables = pd.read_sql_query(
+    "SELECT name FROM sqlite_master WHERE type='table';",
+    connection
+)
+
+print("\nAvailable tables:")
+print(tables)
+
+if TABLE_NAME not in tables["name"].values:
+    raise ValueError(
+        f"Table '{TABLE_NAME}' was not found in the database."
+    )
+
+# Load complete dataset
+df = pd.read_sql_query(
+    f"SELECT * FROM {TABLE_NAME}",
+    connection
+)
+
+connection.close()
+
+print("\nDataset shape:", df.shape)
+
+print("\nColumns:")
+print(df.columns.tolist())
+
+missing_features = [
+    col for col in FEATURE_COLUMNS
+    if col not in df.columns
+]
+
+if missing_features:
+    raise ValueError(
+        f"Missing required features: {missing_features}"
+    )
+
+if TARGET_COLUMN not in df.columns:
+    raise ValueError(
+        f"Target column '{TARGET_COLUMN}' not found."
+    )
+
+print("\nAttack categories:")
+print(df[TARGET_COLUMN].value_counts())
+
+print("\nDataset loaded successfully.")
+
+# ============================================================
+# BLOCK 3: DATA CLEANING AND NORMALIZATION
+# ============================================================
+
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+
+# Convert radio features to numeric
+for column in FEATURE_COLUMNS:
+    df[column] = pd.to_numeric(
+        df[column],
+        errors="coerce"
+    )
+
+# Remove rows with missing values
+df = df.dropna(
+    subset=FEATURE_COLUMNS + [TARGET_COLUMN]
+).reset_index(drop=True)
+
+X = df[FEATURE_COLUMNS].values.astype(np.float32)
+
+# Encode attack categories
+label_encoder = LabelEncoder()
+
+y = label_encoder.fit_transform(
+    df[TARGET_COLUMN].astype(str)
+)
+
+print("\nClasses:")
+for index, label in enumerate(label_encoder.classes_):
+    print(index, "->", label)
+
+# ------------------------------------------------------------
+# Train / validation / test split
+# ------------------------------------------------------------
+
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X,
+    y,
+    test_size=0.30,
+    random_state=SEED,
+    stratify=y
+)
+
+X_val, X_test, y_val, y_test = train_test_split(
+    X_temp,
+    y_temp,
+    test_size=0.50,
+    random_state=SEED,
+    stratify=y_temp
+)
+
+# ------------------------------------------------------------
+# Scaling
+# ------------------------------------------------------------
+
+scaler = StandardScaler()
+
+X_train_scaled = scaler.fit_transform(X_train).astype(np.float32)
+X_val_scaled = scaler.transform(X_val).astype(np.float32)
+X_test_scaled = scaler.transform(X_test).astype(np.float32)
+
+print("\nTrain:", X_train_scaled.shape)
+print("Validation:", X_val_scaled.shape)
+print("Test:", X_test_scaled.shape)
+
+
+
+
+# ============================================================
+# BLOCK: CREATE TEST SEQUENCES FOR SLAM-LSTM
+# ============================================================
+
+SEQ_LEN = 5
+
+
+def create_sequences(X, seq_len=5):
+    sequences = []
+
+    for i in range(len(X) - seq_len + 1):
+        sequences.append(
+            X[i:i + seq_len]
+        )
+
+    return np.asarray(sequences, dtype=np.float32)
+
+
+X_test_seq = create_sequences(
+    X_test_scaled,
+    SEQ_LEN
+)
+
+print("\nTest sequence shape:", X_test_seq.shape)
+# ============================================================
+# BLOCK 4: O-RAN RESOURCE ENVIRONMENT
+# ============================================================
+
+class ORANEnvironment:
+
+    def __init__(self, feature_data, seed=42):
+
+        self.X = feature_data
+        self.rng = np.random.default_rng(seed)
+
+        self.max_bw = MAX_BW
+        self.max_rb = MAX_RB
+
+        self.min_bw = MIN_BW
+        self.min_rb = MIN_RB
+
+    def reset(self):
+
+        index = self.rng.integers(
+            0,
+            len(self.X)
+        )
+
+        self.features = self.X[index].copy()
+
+        self.bw = self.rng.uniform(
+            self.min_bw,
+            self.max_bw * 0.80
+        )
+
+        self.rb = self.rng.uniform(
+            self.min_rb,
+            self.max_rb * 0.80
+        )
+
+        return self._state()
+
+    def _state(self):
+
+        return np.concatenate([
+            self.features,
+            [
+                self.bw / self.max_bw,
+                self.rb / self.max_rb
+            ]
+        ]).astype(np.float32)
+
+    def step(self, action):
+
+        old_bw = self.bw
+        old_rb = self.rb
+
+        if action == 0:
+            # Maintain
+            pass
+
+        elif action == 1:
+            # Moderate increase
+            self.bw *= 1.10
+            self.rb *= 1.10
+
+        elif action == 2:
+            # Aggressive increase
+            self.bw *= 1.25
+            self.rb *= 1.25
+
+        elif action == 3:
+            # Decrease
+            self.bw *= 0.90
+            self.rb *= 0.90
+
+        self.bw = np.clip(
+            self.bw,
+            self.min_bw,
+            self.max_bw
+        )
+
+        self.rb = np.clip(
+            self.rb,
+            self.min_rb,
+            self.max_rb
+        )
+
+        # ----------------------------------------------------
+        # Radio conditions
+        # ----------------------------------------------------
+
+        dl_bler = float(self.features[2])
+        ul_bler = float(self.features[5])
+        sinr = float(self.features[10])
+        cqi = float(self.features[13])
+
+        # ----------------------------------------------------
+        # QoS condition
+        # ----------------------------------------------------
+
+        qos_violation = (
+            dl_bler > BLER_THRESHOLD
+            or
+            ul_bler > BLER_THRESHOLD
+            or
+            sinr < SINR_THRESHOLD
+            or
+            cqi < CQI_THRESHOLD
+        )
+
+        # ----------------------------------------------------
+        # Resource efficiency
+        # ----------------------------------------------------
+
+        bw_utilization = self.bw / self.max_bw
+        rb_utilization = self.rb / self.max_rb
+
+        resource_efficiency = (
+            1.0 - abs(
+                0.70 -
+                (0.5 * bw_utilization +
+                 0.5 * rb_utilization)
+            )
+        )
+
+        resource_efficiency = np.clip(
+            resource_efficiency,
+            0.0,
+            1.0
+        )
+
+        # ----------------------------------------------------
+        # Scheduling efficiency
+        # ----------------------------------------------------
+
+        resource_gain = (
+            (self.bw - old_bw) / self.max_bw
+            +
+            (self.rb - old_rb) / self.max_rb
+        )
+
+        scheduling_efficiency = (
+            1.0
+            - 0.5 * float(qos_violation)
+            + 0.25 * resource_efficiency
+            - 0.10 * abs(resource_gain)
+        )
+
+        scheduling_efficiency = np.clip(
+            scheduling_efficiency,
+            0.0,
+            1.0
+        )
+
+        # ----------------------------------------------------
+        # Reward
+        # ----------------------------------------------------
+
+        reward = (
+            scheduling_efficiency
+            +
+            resource_efficiency
+            -
+            1.5 * float(qos_violation)
+        )
+
+        next_state = self._state()
+
+        return (
+            next_state,
+            float(reward),
+            {
+                "qos_violation": int(qos_violation),
+                "resource_efficiency": float(
+                    resource_efficiency
+                ),
+                "scheduling_efficiency": float(
+                    scheduling_efficiency
+                ),
+                "bw": float(self.bw),
+                "rb": float(self.rb)
+            }
+        )
+# ============================================================
+# BLOCK 5: PPO AGENT
+# ============================================================
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.distributions import Categorical
+
+
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available()
+    else "cpu"
+)
+
+print("\nDevice:", DEVICE)
+
+
+class ActorCritic(nn.Module):
+
+    def __init__(
+        self,
+        state_dim,
+        action_dim,
+        hidden_dim=128
+    ):
+
+        super().__init__()
+
+        self.shared = nn.Sequential(
+            nn.Linear(state_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU()
+        )
+
+        self.actor = nn.Linear(
+            hidden_dim,
+            action_dim
+        )
+
+        self.critic = nn.Linear(
+            hidden_dim,
+            1
+        )
+
+    def forward(self, state):
+
+        h = self.shared(state)
+
+        logits = self.actor(h)
+        value = self.critic(h)
+
+        return logits, value
+
+
+class PPOAgent:
+
+    def __init__(
+        self,
+        state_dim,
+        action_dim,
+        lr=1e-4,#5e-4
+         #lr=0.001,
+        gamma=0.85,
+        clip_eps=0.205
+    ):
+
+        self.gamma = gamma
+        self.clip_eps = clip_eps
+
+        self.network = ActorCritic(
+            state_dim,
+            action_dim
+        ).to(DEVICE)
+
+        self.optimizer = optim.Adam(
+            self.network.parameters(),
+            lr=lr
+        )
+
+    def select_action(self, state):
+
+        state_tensor = torch.tensor(
+            state,
+            dtype=torch.float32,
+            device=DEVICE
+        ).unsqueeze(0)
+
+        with torch.no_grad():
+
+            logits, value = self.network(
+                state_tensor
+            )
+
+            distribution = Categorical(
+                logits=logits
+            )
+
+            action = distribution.sample()
+
+            log_probability = distribution.log_prob(
+                action
+            )
+
+        return (
+            action.item(),
+            log_probability.item(),
+            value.item()
+        )
+
+    def update(
+        self,
+        states,
+        actions,
+        old_log_probs,
+        rewards,
+        values
+    ):
+
+        states = torch.tensor(
+            np.array(states),
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        actions = torch.tensor(
+            actions,
+            dtype=torch.long,
+            device=DEVICE
+        )
+
+        old_log_probs = torch.tensor(
+            old_log_probs,
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        rewards = torch.tensor(
+            rewards,
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        values = torch.tensor(
+            values,
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        # Discounted returns
+        returns = []
+
+        discounted = 0.0
+
+        for reward in reversed(rewards):
+
+            discounted = (
+                reward
+                +
+                self.gamma * discounted
+            )
+
+            returns.insert(
+                0,
+                discounted
+            )
+
+        returns = torch.tensor(
+            returns,
+            dtype=torch.float32,
+            device=DEVICE
+        )
+
+        advantages = returns - values
+
+        advantages = (
+            advantages -
+            advantages.mean()
+        ) / (
+            advantages.std() + 1e-8
+        )
+
+        for _ in range(5):
+
+            logits, new_values = self.network(
+                states
+            )
+
+            distribution = Categorical(
+                logits=logits
+            )
+
+            new_log_probs = distribution.log_prob(
+                actions
+            )
+
+            ratio = torch.exp(
+                new_log_probs -
+                old_log_probs
+            )
+
+            clipped_ratio = torch.clamp(
+                ratio,
+                1.0 - self.clip_eps,
+                1.0 + self.clip_eps
+            )
+
+            actor_loss = -torch.min(
+                ratio * advantages,
+                clipped_ratio * advantages
+            ).mean()
+
+            critic_loss = (
+                returns -
+                new_values.squeeze()
+            ).pow(2).mean()
+
+            loss = (
+                actor_loss
+                +
+                0.5 * critic_loss
+            )
+
+            self.optimizer.zero_grad()
+            loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(
+                self.network.parameters(),
+                1.0
+            )
+
+            self.optimizer.step()
+
+# ============================================================
+# BLOCK 6: TRAIN PPO BASELINE
+# ============================================================
+
+
+def train_ppo(
+    feature_data,
+    episodes=1,
+    steps_per_episode=20
+):
+
+    environment = ORANEnvironment(
+        feature_data,
+        seed=SEED
+    )
+
+    initial_state = environment.reset()
+
+    state_dim = len(initial_state)
+    action_dim = 4
+
+    agent = PPOAgent(
+        state_dim,
+        action_dim
+    )
+
+    rewards_history = []
+
+    for episode in range(episodes):
+
+        state = environment.reset()
+
+        states = []
+        actions = []
+        log_probs = []
+        rewards = []
+        values = []
+
+        episode_reward = 0.0
+
+        for _ in range(steps_per_episode):
+
+            action, log_prob, value = (
+                agent.select_action(state)
+            )
+
+            next_state, reward, info = (
+                environment.step(action)
+            )
+
+            states.append(state)
+            actions.append(action)
+            log_probs.append(log_prob)
+            rewards.append(reward)
+            values.append(value)
+
+            state = next_state
+
+            episode_reward += reward
+
+        agent.update(
+            states,
+            actions,
+            log_probs,
+            rewards,
+            values
+        )
+
+        rewards_history.append(
+            episode_reward
+        )
+
+        if (episode + 1) % 50 == 0:
+
+            print(
+                f"PPO Episode "
+                f"{episode + 1:03d} | "
+                f"Reward = "
+                f"{np.mean(rewards_history[-50:]):.4f}"
+            )
+
+    torch.save(
+        agent.network.state_dict(),
+        os.path.join(
+            MODEL_DIR,
+            "ppo.pt"
+        )
+    )
+
+    return agent
+
+
+ppo_agent = train_ppo(
+    X_train_scaled
+)
+# ============================================================
+# BLOCK 7: SLAM-LSTM
+# ============================================================
+
+class SLAMLSTM(nn.Module):
+
+    def __init__(
+        self,
+        input_dim=16,
+        hidden_dim=128,
+        layers=10,
+        num_classes=6
+    ):
+
+        super().__init__()
+
+        self.lstm = nn.LSTM(
+            input_dim,
+            hidden_dim,
+            num_layers=layers,
+            batch_first=True
+        )
+
+        self.attention = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, 1)
+        )
+
+        self.classifier = nn.Linear(
+            hidden_dim,
+            num_classes
+        )
+
+    def forward(self, x):
+
+        lstm_output, _ = self.lstm(x)
+
+        attention_scores = self.attention(
+            lstm_output
+        )
+
+        attention_weights = torch.softmax(
+            attention_scores,
+            dim=1
+        )
+
+        context = torch.sum(
+            attention_weights *
+            lstm_output,
+            dim=1
+        )
+
+        logits = self.classifier(
+            context
+        )
+
+        return logits, context
+
+# ============================================================
+# BLOCK 8: CREATE LSTM SEQUENCES
+# ============================================================
+
+SEQUENCE_LENGTH = 5
+
+
+def create_sequences(X, y, sequence_length=5):
+
+    sequences = []
+    labels = []
+
+    for i in range(
+        len(X) - sequence_length + 1
+    ):
+
+        sequences.append(
+            X[
+                i:i + sequence_length
+            ]
+        )
+
+        labels.append(
+            y[
+                i + sequence_length - 1
+            ]
+        )
+
+    return (
+        np.asarray(
+            sequences,
+            dtype=np.float32
+        ),
+        np.asarray(
+            labels,
+            dtype=np.int64
+        )
+    )
+
+
+X_train_seq, y_train_seq = create_sequences(
+    X_train_scaled,
+    y_train,
+    SEQUENCE_LENGTH
+)
+
+X_val_seq, y_val_seq = create_sequences(
+    X_val_scaled,
+    y_val,
+    SEQUENCE_LENGTH
+)
+
+print(
+    "\nLSTM sequence shape:",
+    X_train_seq.shape
+)
+
+# ============================================================
+# BLOCK 9: TRAIN SLAM-LSTM
+# ============================================================
+
+def train_slam_lstm(
+    X_seq,
+    y_seq,
+    epochs=2,
+    batch_size=128
+):
+
+    model = SLAMLSTM(
+        input_dim=16,
+        hidden_dim=128,
+        layers=2,
+        num_classes=len(
+            label_encoder.classes_
+        )
+    ).to(DEVICE)
+
+    optimizer = optim.Adam(
+        model.parameters(),
+        lr=1e-4#5e-45e-4,
+    )
+
+    criterion = nn.CrossEntropyLoss()
+
+    X_tensor = torch.tensor(
+        X_seq,
+        dtype=torch.float32
+    )
+
+    y_tensor = torch.tensor(
+        y_seq,
+        dtype=torch.long
+    )
+
+    dataset = torch.utils.data.TensorDataset(
+        X_tensor,
+        y_tensor
+    )
+
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True
+    )
+
+    for epoch in range(epochs):
+
+        model.train()
+
+        epoch_loss = 0.0
+        correct = 0
+        total = 0
+
+        for batch_x, batch_y in loader:
+
+            batch_x = batch_x.to(DEVICE)
+            batch_y = batch_y.to(DEVICE)
+
+            logits, _ = model(batch_x)
+
+            loss = criterion(
+                logits,
+                batch_y
+            )
+
+            optimizer.zero_grad()
+
+            loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(),
+                1.0
+            )
+
+            optimizer.step()
+
+            epoch_loss += loss.item()
+
+            predictions = torch.argmax(
+                logits,
+                dim=1
+            )
+
+            correct += (
+                predictions == batch_y
+            ).sum().item()
+
+            total += len(batch_y)
+
+        accuracy = correct / total
+
+        print(
+            f"SLAM-LSTM Epoch "
+            f"{epoch + 1:02d}/{epochs} | "
+            f"Loss = "
+            f"{epoch_loss / len(loader):.6f} | "
+            f"Accuracy = "
+            f"{accuracy:.4f}"
+        )
+
+    torch.save(
+        model.state_dict(),
+        os.path.join(
+            MODEL_DIR,
+            "slam_lstm.pt"
+        )
+    )
+
+    return model
+
+
+slam_lstm = train_slam_lstm(
+    X_train_seq,
+    y_train_seq
+)
+
+
+# ============================================================
+# BLOCK 10: SLAM-LSTM + PPO
+# ============================================================
+
+class SLAMPPOAgent:
+
+    def __init__(
+        self,
+        lstm_model
+    ):
+
+        self.lstm_model = lstm_model
+
+        for parameter in self.lstm_model.parameters():
+            parameter.requires_grad = False
+
+        self.lstm_model.eval()
+
+        self.context_dim = 128
+
+        # 16 raw features
+        # + 128 LSTM context
+        # + BW
+        # + RB
+        # + anomaly probability
+        state_dim = (
+            16 +
+            self.context_dim +
+            2 +
+            1
+        )
+
+        self.ppo = PPOAgent(
+            state_dim=state_dim,
+            action_dim=4
+        )
+
+    def construct_state(
+        self,
+        sequence,
+        bw,
+        rb
+    ):
+
+        tensor = torch.tensor(
+            sequence,
+            dtype=torch.float32,
+            device=DEVICE
+        ).unsqueeze(0)
+
+        with torch.no_grad():
+
+            logits, context = (
+                self.lstm_model(tensor)
+            )
+
+            probabilities = torch.softmax(
+                logits,
+                dim=1
+            )
+
+            anomaly_probability = (
+                1.0 -
+                probabilities[:, 0:1]
+            )
+
+        latest_features = sequence[-1]
+
+        state = torch.cat(
+            [
+                torch.tensor(
+                    latest_features,
+                    dtype=torch.float32,
+                    device=DEVICE
+                ).unsqueeze(0),
+
+                context,
+
+                torch.tensor(
+                    [
+                        bw / MAX_BW,
+                        rb / MAX_RB
+                    ],
+                    dtype=torch.float32,
+                    device=DEVICE
+                ).unsqueeze(0),
+
+                anomaly_probability
+            ],
+            dim=1
+        )
+
+        return state.cpu().numpy()[0]
+
+
+def train_slam_ppo(
+    lstm_model,
+    X_sequences,
+    episodes=1000000,
+    steps_per_episode=20
+):
+
+    agent = SLAMPPOAgent(
+        lstm_model
+    )
+
+    environment = ORANEnvironment(
+        X_train_scaled,
+        seed=SEED
+    )
+
+    rewards_history = []
+
+    for episode in range(episodes):
+
+        state = environment.reset()
+
+        states = []
+        actions = []
+        log_probs = []
+        rewards = []
+        values = []
+
+        sequence = X_sequences[
+            np.random.randint(
+                len(X_sequences)
+            )
+        ]
+
+        episode_reward = 0.0
+
+        for step in range(
+            steps_per_episode
+        ):
+
+            state = agent.construct_state(
+                sequence,
+                environment.bw,
+                environment.rb
+            )
+
+            action, log_prob, value = (
+                agent.ppo.select_action(
+                    state
+                )
+            )
+
+            next_state, reward, info = (
+                environment.step(action)
+            )
+
+            states.append(state)
+            actions.append(action)
+            log_probs.append(log_prob)
+            rewards.append(reward)
+            values.append(value)
+
+            episode_reward += reward
+
+        agent.ppo.update(
+            states,
+            actions,
+            log_probs,
+            rewards,
+            values
+        )
+
+        rewards_history.append(
+            episode_reward
+        )
+
+        if (episode + 1) % 50 == 0:
+
+            print(
+                f"SLAM-LSTM-PPO Episode "
+                f"{episode + 1:03d} | "
+                f"Reward = "
+                f"{np.mean(rewards_history[-50:]):.4f}"
+            )
+
+    torch.save(
+        agent.ppo.network.state_dict(),
+        os.path.join(
+            MODEL_DIR,
+            "slam_lstm_ppo.pt"
+        )
+    )
+
+    return agent
+
+
+ours_agent = train_slam_ppo(
+    slam_lstm,
+    X_train_seq
+)
+
+
+# ============================================================
+# BLOCK 11: K-MEANS + DECISION
+# ============================================================
+
+from sklearn.cluster import KMeans
+
+
+class KMeansDecision:
+
+    def __init__(self, n_clusters=6):
+
+        self.kmeans = KMeans(
+            n_clusters=n_clusters,
+            random_state=SEED,
+            n_init=10
+        )
+
+        self.cluster_actions = {}
+
+    def fit(self, X, y):
+
+        clusters = self.kmeans.fit_predict(X)
+
+        for cluster in np.unique(clusters):
+
+            indices = (
+                clusters == cluster
+            )
+
+            cluster_labels = y[indices]
+
+            # Determine dominant attack category
+            dominant = np.bincount(
+                cluster_labels
+            ).argmax()
+
+            # Non-benign cluster -> increase resources
+            if dominant != 0:
+
+                self.cluster_actions[
+                    cluster
+                ] = 1
+
+            else:
+
+                self.cluster_actions[
+                    cluster
+                ] = 0
+
+        return self
+
+    def predict_action(self, x):
+
+        cluster = self.kmeans.predict(
+            x.reshape(1, -1)
+        )[0]
+
+        return self.cluster_actions.get(
+            cluster,
+            0
+        )
+
+
+kmeans_model = KMeansDecision()
+
+kmeans_model.fit(
+    X_train_scaled,
+    y_train
+)
+
+
+# ============================================================
+# BLOCK 12: KNOWLEDGE GRAPH BASELINE
+# ============================================================
+
+class KnowledgeGraphModel:
+
+    def __init__(self):
+
+        self.feature_weights = None
+        self.threshold = None
+
+    def fit(self, X, y):
+
+        # ----------------------------------------------------
+        # Estimate feature relevance
+        # ----------------------------------------------------
+
+        correlations = []
+
+        for j in range(X.shape[1]):
+
+            feature = X[:, j]
+
+            if np.std(feature) == 0:
+
+                correlations.append(0.0)
+
+            else:
+
+                correlations.append(
+                    abs(
+                        np.corrcoef(
+                            feature,
+                            y
+                        )[0, 1]
+                    )
+                )
+
+        self.feature_weights = np.nan_to_num(
+            correlations
+        )
+
+        weighted_score = np.sum(
+            np.abs(X) *
+            self.feature_weights,
+            axis=1
+        )
+
+        self.threshold = np.percentile(
+            weighted_score,
+            70
+        )
+
+        return self
+
+    def predict_action(self, x):
+
+        score = np.sum(
+            np.abs(x) *
+            self.feature_weights
+        )
+
+        if score >= self.threshold:
+
+            return 1
+
+        return 0
+
+
+kg_model = KnowledgeGraphModel()
+
+kg_model.fit(
+    X_train_scaled,
+    y_train
+)
+
+
+# ============================================================
+# BLOCK 13: GAN FOR DATA AUGMENTATION
+# ============================================================
+
+class Generator(nn.Module):
+
+    def __init__(
+        self,
+        latent_dim=32,
+        output_dim=16
+    ):
+        super().__init__()
+
+        self.network = nn.Sequential(
+            nn.Linear(latent_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Linear(128, output_dim)
+        )
+
+    def forward(self, z):
+        return self.network(z)
+
+
+class Discriminator(nn.Module):
+
+    def __init__(
+        self,
+        input_dim=16
+    ):
+        super().__init__()
+
+        self.network = nn.Sequential(
+            nn.Linear(input_dim, 128),
+            nn.LeakyReLU(0.2),
+            nn.Linear(128, 64),
+            nn.LeakyReLU(0.2),
+            nn.Linear(64, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        return self.network(x)
+# ============================================================
+# BLOCK 14: TRAIN GAN
+# ============================================================
+
+def train_gan(
+    X,
+    epochs=1,
+    batch_size=128
+):
+
+    generator = Generator().to(DEVICE)
+
+    discriminator = Discriminator().to(DEVICE)
+
+    criterion = nn.BCELoss()
+
+    g_optimizer = optim.Adam(
+        generator.parameters(),
+        lr=0.0002
+        #lr=5e-4
+    )
+
+    d_optimizer = optim.Adam(
+        discriminator.parameters(),
+        lr=0.0002#5e-4
+    )
+
+    dataset = torch.tensor(
+        X,
+        dtype=torch.float32
+    )
+
+    for epoch in range(epochs):
+
+        permutation = torch.randperm(
+            len(dataset)
+        )
+
+        epoch_d_loss = 0.0
+        epoch_g_loss = 0.0
+
+        for i in range(
+            0,
+            len(dataset),
+            batch_size
+        ):
+
+            indices = permutation[
+                i:i + batch_size
+            ]
+
+            real = dataset[
+                indices
+            ].to(DEVICE)
+
+            current_batch = len(real)
+
+            real_labels = torch.ones(
+                current_batch,
+                1,
+                device=DEVICE
+            )
+
+            fake_labels = torch.zeros(
+                current_batch,
+                1,
+                device=DEVICE
+            )
+
+            # ------------------------------------------------
+            # Train discriminator
+            # ------------------------------------------------
+
+            z = torch.randn(
+                current_batch,
+                32,
+                device=DEVICE
+            )
+
+            fake = generator(z)
+
+            d_real = discriminator(real)
+
+            d_fake = discriminator(
+                fake.detach()
+            )
+
+            d_loss = (
+                criterion(
+                    d_real,
+                    real_labels
+                )
+                +
+                criterion(
+                    d_fake,
+                    fake_labels
+                )
+            )
+
+            d_optimizer.zero_grad()
+
+            d_loss.backward()
+
+            d_optimizer.step()
+
+            # ------------------------------------------------
+            # Train generator
+            # ------------------------------------------------
+
+            z = torch.randn(
+                current_batch,
+                32,
+                device=DEVICE
+            )
+
+            fake = generator(z)
+
+            d_fake = discriminator(fake)
+
+            g_loss = criterion(
+                d_fake,
+                real_labels
+            )
+
+            g_optimizer.zero_grad()
+
+            g_loss.backward()
+
+            g_optimizer.step()
+
+            epoch_d_loss += d_loss.item()
+            epoch_g_loss += g_loss.item()
+
+        if (epoch + 1) % 10 == 0:
+
+            print(
+                f"GAN Epoch "
+                f"{epoch + 1:03d}/{epochs} | "
+                f"D Loss = "
+                f"{epoch_d_loss:.4f} | "
+                f"G Loss = "
+                f"{epoch_g_loss:.4f}"
+            )
+
+    torch.save(
+        generator.state_dict(),
+        os.path.join(
+            MODEL_DIR,
+            "gan_generator.pt"
+        )
+    )
+
+    return generator
+
+# ============================================================
+# BLOCK 15: TRAIN GAN
+# ============================================================
+
+gan_generator = train_gan(
+    X_train_scaled,
+    epochs=1,
+    batch_size=128
+)
+
+print("\nGAN training completed successfully.")
+# ============================================================
+# BLOCK 16: TRAIN GAN-PPO
+# ============================================================
+# ============================================================
+# BLOCK 16: GENERATE SYNTHETIC DATA FROM GAN
+# ============================================================
+
+def generate_synthetic_data(generator, number_of_samples):
+    generator.eval()
+
+    with torch.no_grad():
+        z = torch.randn(
+            number_of_samples,
+            32,
+            device=DEVICE
+        )
+
+        synthetic = generator(z)
+
+    return synthetic.cpu().numpy()
+
+
+# Generate synthetic samples
+synthetic_X = generate_synthetic_data(
+    gan_generator,
+    len(X_train_scaled)
+)
+
+print("\nSynthetic GAN data shape:", synthetic_X.shape)
+gan_augmented_X = np.vstack([
+    X_train_scaled,
+    synthetic_X
+])
+
+print(
+    "GAN-PPO training samples:",
+    len(gan_augmented_X)
+)
+
+gan_ppo_agent = train_ppo(
+    gan_augmented_X,
+    episodes=1000000,
+    steps_per_episode=20
+)
+
+# Rename saved model
+gan_ppo_path = os.path.join(
+    MODEL_DIR,
+    "gan_ppo.pt"
+)
+
+ppo_path = os.path.join(
+    MODEL_DIR,
+    "ppo.pt"
+)
+
+if os.path.exists(ppo_path):
+
+    import shutil
+
+    shutil.copy(
+        ppo_path,
+        gan_ppo_path
+    )
+
+
+# ============================================================
+# BLOCK 17: UNIFIED MODEL ACTION INTERFACE
+# ============================================================
+
+class ModelWrapper:
+
+    def __init__(
+        self,
+        name,
+        model,
+        model_type
+    ):
+
+        self.name = name
+        self.model = model
+        self.model_type = model_type
+
+    def action(
+        self,
+        x,
+        environment,
+        sequence=None
+    ):
+
+        if self.model_type == "ppo":
+
+            state = environment._state()
+
+            action, _, _ = (
+                self.model.select_action(
+                    state
+                )
+            )
+
+            return action
+
+        elif self.model_type == "slam_ppo":
+
+            state = self.model.construct_state(
+                sequence,
+                environment.bw,
+                environment.rb
+            )
+
+            action, _, _ = (
+                self.model.ppo.select_action(
+                    state
+                )
+            )
+
+            return action
+
+        elif self.model_type == "kmeans":
+
+            return self.model.predict_action(
+                x
+            )
+
+        elif self.model_type == "kg":
+
+            return self.model.predict_action(
+                x
+            )
+
+
+# ============================================================
+# BLOCK 18: FIVE MODELS
+# ============================================================
+
+models = {
+
+    "Ours (SLAM-LSTM-PPO)": ModelWrapper(
+        "Ours (SLAM-LSTM-PPO)",
+        ours_agent,
+        "slam_ppo"
+    ),
+
+    "Kmeans+Decision": ModelWrapper(
+        "Kmeans+Decision",
+        kmeans_model,
+        "kmeans"
+    ),
+
+    "Knowledge Graph": ModelWrapper(
+        "Knowledge Graph",
+        kg_model,
+        "kg"
+    ),
+
+    "GAN PPO": ModelWrapper(
+        "GAN PPO",
+        gan_ppo_agent,
+        "ppo"
+    ),
+
+    "PPO": ModelWrapper(
+        "PPO",
+        ppo_agent,
+        "ppo"
+    )
+}
+
+print("\nModels:")
+for model_name in models:
+    print(" -", model_name)
+
+
+# ============================================================
+# BLOCK 19: SCALABILITY EXPERIMENT
+# ============================================================
+
+def simulate_model(
+    model_wrapper,
+    user_count,
+    feature_data,
+    sequences=None,
+    seed=42
+):
+
+    rng = np.random.default_rng(seed)
+
+    selected_indices = rng.choice(
+        len(feature_data),
+        size=user_count,
+        replace=True
+    )
+
+    environment = ORANEnvironment(
+        feature_data,
+        seed=seed
+    )
+
+    total_scheduling = 0.0
+    total_qos = 0
+    total_resource = 0.0
+
+    start_time = time.perf_counter()
+
+    for index in selected_indices:
+
+        x = feature_data[index]
+
+        environment.features = x.copy()
+
+        environment.bw = rng.uniform(
+            MIN_BW,
+            MAX_BW * 0.80
+        )
+
+        environment.rb = rng.uniform(
+            MIN_RB,
+            MAX_RB * 0.80
+        )
+
+        sequence = None
+
+        if (
+            model_wrapper.model_type
+            == "slam_ppo"
+        ):
+
+            if sequences is not None:
+
+                sequence = sequences[
+                    index %
+                    len(sequences)
+                ]
+
+        action = model_wrapper.action(
+            x,
+            environment,
+            sequence
+        )
+
+        _, _, info = environment.step(
+            action
+        )
+
+        total_scheduling += (
+            info["scheduling_efficiency"]
+        )
+
+        total_qos += (
+            info["qos_violation"]
+        )
+
+        total_resource += (
+            info["resource_efficiency"]
+        )
+
+    elapsed = (
+        time.perf_counter() -
+        start_time
+    )
+
+    return {
+
+        "users": user_count,
+
+        "execution_time_ms":
+            elapsed * 1000,
+
+        "processing_time_ms_per_user":
+            elapsed * 1000 / user_count,
+
+        "scheduling_efficiency":
+            100.0 *
+            total_scheduling /
+            user_count,
+
+        "qos_violation_rate":
+            100.0 *
+            total_qos /
+            user_count,
+
+        "resource_allocation_efficiency":
+            100.0 *
+            total_resource /
+            user_count
+    }
+
+
+# ============================================================
+# BLOCK 20: RUN FIVE-MODEL EXPERIMENT
+# ============================================================
+
+all_results = []
+
+for model_name, model_wrapper in models.items():
+
+    print("\n")
+    print("=" * 70)
+    print(model_name)
+    print("=" * 70)
+
+    for users in USER_LEVELS:
+
+        result = simulate_model(
+            model_wrapper,
+            users,
+            X_test_scaled,
+            X_test_seq,
+            seed=SEED + users
+        )
+
+        result["model"] = model_name
+
+        all_results.append(
+            result
+        )
+
+        print(
+            f"Users={users:4d} | "
+            f"Time={result['execution_time_ms']:.3f} ms | "
+            f"Scheduling={result['scheduling_efficiency']:.2f}% | "
+            f"QoS violation={result['qos_violation_rate']:.2f}% | "
+            f"Resource efficiency={result['resource_allocation_efficiency']:.2f}%"
+        )
+
+results_df = pd.DataFrame(
+    all_results
+)
+
+results_path = os.path.join(
+    RESULT_DIR,
+    "five_model_results.csv"
+)
+
+results_df.to_csv(
+    results_path,
+    index=False
+)
+
+print(
+    "\nResults saved to:",
+    results_path
+)
+
+# ============================================================
+# BLOCK 21: SAVE INDIVIDUAL METRICS
+# ============================================================
+
+scalability_df = results_df[
+    [
+        "model",
+        "users",
+        "execution_time_ms",
+        "processing_time_ms_per_user"
+    ]
+]
+
+scheduling_df = results_df[
+    [
+        "model",
+        "users",
+        "scheduling_efficiency"
+    ]
+]
+
+qos_df = results_df[
+    [
+        "model",
+        "users",
+        "qos_violation_rate"
+    ]
+]
+
+resource_df = results_df[
+    [
+        "model",
+        "users",
+        "resource_allocation_efficiency"
+    ]
+]
+
+scalability_df.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "scalability.csv"
+    ),
+    index=False
+)
+
+scheduling_df.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "scheduling.csv"
+    ),
+    index=False
+)
+
+qos_df.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "qos_violation.csv"
+    ),
+    index=False
+)
+
+resource_df.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "resource_allocation_efficiency.csv"
+    ),
+    index=False
+)
+
+print("\nAll metric files saved.")
+
+
+# ============================================================
+# BLOCK 22: IEEE-STYLE PLOTS
+# ============================================================
+
+import matplotlib.pyplot as plt
+
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 18
+
+MODEL_ORDER = [
+    "Ours (SLAM-LSTM-PPO)",
+    "Kmeans+Decision",
+    "Knowledge Graph",
+    "GAN PPO",
+    "PPO"
+]
+
+
+def plot_metric(
+    dataframe,
+    metric,
+    ylabel,
+    filename,
+    ymin=None,
+    ymax=None
+):
+
+    fig, ax = plt.subplots(
+        figsize=(10, 6)
+    )
+
+    for model_name in MODEL_ORDER:
+
+        subset = dataframe[
+            dataframe["model"] ==
+            model_name
+        ].sort_values("users")
+
+        ax.plot(
+            subset["users"],
+            subset[metric],
+            marker="o",
+            linewidth=2.2,
+            markersize=7,
+            label=model_name
+        )
+
+    ax.set_xlabel(
+        "Number of users",
+        fontsize=20
+    )
+
+    ax.set_ylabel(
+        ylabel,
+        fontsize=20
+    )
+
+    ax.set_xlim(
+        100,
+        1000
+    )
+
+    if ymin is not None:
+        ax.set_ylim(
+            bottom=ymin
+        )
+
+    if ymax is not None:
+        ax.set_ylim(
+            top=ymax
+        )
+
+    ax.grid(
+        True,
+        linestyle="--",
+        alpha=0.5
+    )
+
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.18),
+        ncol=3,
+        fontsize=13
+    )
+
+    plt.tight_layout()
+
+    plt.savefig(
+        os.path.join(
+            RESULT_DIR,
+            filename + ".png"
+        ),
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.savefig(
+        os.path.join(
+            RESULT_DIR,
+            filename + ".eps"
+        ),
+        dpi=600,
+        bbox_inches="tight"
+    )
+
+    plt.show()
+
+
+# ------------------------------------------------------------
+# 1. Scalability
+# ------------------------------------------------------------
+
+plot_metric(
+    scalability_df,
+    "processing_time_ms_per_user",
+    "Processing time per user (ms)",
+    "fig_scalability",
+    ymin=0
+)
+
+
+# ------------------------------------------------------------
+# 2. Scheduling
+# ------------------------------------------------------------
+
+plot_metric(
+    scheduling_df,
+    "scheduling_efficiency",
+    "Scheduling efficiency (%)",
+    "fig_scheduling",
+    ymin=0,
+    ymax=100
+)
+
+
+# ------------------------------------------------------------
+# 3. QoS violation
+# ------------------------------------------------------------
+
+plot_metric(
+    qos_df,
+    "qos_violation_rate",
+    "QoS violation rate (%)",
+    "fig_qos_violation",
+    ymin=0
+)
+
+
+# ------------------------------------------------------------
+# 4. Resource allocation
+# ------------------------------------------------------------
+
+plot_metric(
+    resource_df,
+    "resource_allocation_efficiency",
+    "Resource allocation efficiency (%)",
+    "fig_resource_allocation",
+    ymin=0,
+    ymax=100
+)
+
+# ============================================================
+# BLOCK 23: FINAL COMPARISON
+# ============================================================
+
+summary_1000 = results_df[
+    results_df["users"] == 1000
+].copy()
+
+summary_1000 = summary_1000[
+    [
+        "model",
+        "execution_time_ms",
+        "processing_time_ms_per_user",
+        "scheduling_efficiency",
+        "qos_violation_rate",
+        "resource_allocation_efficiency"
+    ]
+]
+
+summary_1000 = summary_1000.set_index(
+    "model"
+).loc[MODEL_ORDER].reset_index()
+
+print("\n")
+print("=" * 100)
+print("FINAL COMPARISON AT 1000 USERS")
+print("=" * 100)
+
+print(
+    summary_1000.to_string(
+        index=False,
+        float_format=lambda x: f"{x:.4f}"
+    )
+)
+
+summary_1000.to_csv(
+    os.path.join(
+        RESULT_DIR,
+        "comparison_1000_users.csv"
+    ),
+    index=False
+)
